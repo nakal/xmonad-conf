@@ -1,0 +1,24 @@
+
+! ******************** xterm settings ********************
+
+xterm*renderFont: true
+xterm*faceName: Inconsolata
+xterm*faceSize: 12
+xterm*locale: UTF-8
+xterm*dynamicColors: true
+xterm*saveLines: 1024
+xterm*background: black
+xterm*foreground: darkgray
+xterm*metaSendsEscape: true
+xterm*charClass: 33:48,36-38:48,43-47:48,58:48,61:48,63-64:48,126:48
+
+! ******************** urxvt settings ********************
+
+urxvt*font: xft:Inconsolata:pixelsize=16:weight=normal
+urxvt*locale: UTF-8
+urxvt*dynamicColors: true
+urxvt*saveLines: 1024
+urxvt*background: black
+urxvt*foreground: darkgray
+urxvt*metaSendsEscape: true
+urxvt*scrollBar: false

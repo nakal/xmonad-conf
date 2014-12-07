@@ -1,0 +1,16 @@
+include "/usr/local/share/themes/oxygen-gtk/gtk-2.0/gtkrc"
+gtk-icon-theme-name = "HumanAzul"
+
+gtk-fallback-icon-theme="gnome"
+gtk-font-name="Roboto Condensed Light 11"
+gtk-cursor-theme-name="gnome"
+gtk-toolbar-style=GTK_TOOLBAR_ICONS
+gtk-toolbar-icon-size=GTK_ICON_SIZE_LARGE_TOOLBAR
+gtk-button-images=1
+gtk-menu-images=1
+gtk-enable-event-sounds=0
+gtk-enable-input-feedback-sounds=0
+gtk-xft-antialias=1
+gtk-xft-hinting=1
+gtk-xft-hintstyle="hintfull"
+gtk-xft-rgba="bgr"

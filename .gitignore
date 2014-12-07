@@ -1,0 +1,8 @@
+xmonad.errors
+xmonad-x86_64-freebsd
+xmonad-x86_64-linux
+*.hi
+*.o
+.*.swp
+conkyrc
+conf/

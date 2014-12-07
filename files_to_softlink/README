@@ -1,0 +1,3 @@
+This directory contains files to softlink within your $HOME.
+It should be enough to execute bootstrap.sh script to prepare
+everything.

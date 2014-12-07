@@ -1,0 +1,7 @@
+*.*.swp
+*.*.swo
+*.*.un~
+cscope.out
+tags
+[Tt]humbs.db
+*.DS_Store
