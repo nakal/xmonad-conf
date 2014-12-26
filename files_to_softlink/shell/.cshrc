@@ -32,10 +32,10 @@ if ($?prompt) then
 
 	if ($USER == "root") then
 		# Red prompt
-		set prompt = "%B%{\033[1;31m%}%N@%m%b:%~ %#%{\033[0m%} "
+		set prompt = "%B%{\033[1;31m%}%N@%m%b %~ %#%{\033[0m%} "
 	else
 		# Yellow prompt
-		set prompt = "%B%{\033[1;33m%}%N@%m%b:%~ %#%{\033[0m%} "
+		set prompt = "%B%{\033[1;33m%}%N@%m%b %~ %#%{\033[0m%} "
 	endif
 	set promptchars = "%#"
 
