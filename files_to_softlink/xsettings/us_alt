@@ -3,15 +3,18 @@ xkb_symbols "de" {
     name[Group1]= "US-Layout (with DE optimisations)";
 
     include "pc(pc105)"
-    include "us(basic)"
+    include "us(intl)"
     include "inet(evdev)"
 
-    key <AD01>	{ [ q, Q, at, Greek_OMEGA ] };
+    key <TLDE> { [ grave, asciitilde, dead_grave, dead_tilde ] };
+    key <AD01>	{ [ q, Q, at, dead_acute ] };
     key <AD03>	{ [ e, E, EuroSign, cent ] };
     key <AE11> { [ minus, underscore, ssharp, ssharp ] };
     key <AD11> { [ bracketleft,  braceleft,  udiaeresis, Udiaeresis ] };
+    key <AC05> { [ g, G, dead_greek ] };
     key <AC10> { [ semicolon, colon, odiaeresis, Odiaeresis ]	};
     key <AC11> { [ apostrophe, quotedbl, adiaeresis, Adiaeresis ] };
+    key <AB07> { [ m, M, mu, dead_greek ] };
 
     include "level3(ralt_switch)"
     include "capslock(swapescape)"
