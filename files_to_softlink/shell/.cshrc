@@ -14,7 +14,7 @@ alias l		ll
 alias ..	cd ..
 alias ...	cd ../..
 
-alias vi	gvim
+alias vi	vim
 
 # A righteous umask
 umask 22

@@ -2,8 +2,8 @@
 ! ******************** xterm settings ********************
 
 xterm*renderFont: true
-xterm*faceName: Inconsolata
-xterm*faceSize: 12
+xterm*faceName: Bitstream Vera Sans Mono:bold
+xterm*faceSize: 11
 xterm*locale: UTF-8
 xterm*dynamicColors: true
 xterm*saveLines: 1024
@@ -14,7 +14,7 @@ xterm*charClass: 33:48,36-38:48,43-47:48,58:48,61:48,63-64:48,126:48
 
 ! ******************** urxvt settings ********************
 
-urxvt*font: xft:Inconsolata:pixelsize=16:weight=normal
+urxvt*font: xft:Bitstream Vera Serif Mono:pixelsize=11:weight=normal
 urxvt*locale: UTF-8
 urxvt*dynamicColors: true
 urxvt*saveLines: 1024

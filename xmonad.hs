@@ -157,11 +157,11 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- launch gmrun
     , ((modm .|. shiftMask, xK_p     ), spawn "gmrun")
 
-    -- launch gvim (in various ways, with most common uses)
-    , ((modm,			xK_v     ), spawn "gvim -c \"Unite -start-insert file_rec\"")
-    , ((modm .|. shiftMask,	xK_v     ), spawn "gvim ~/.vim/vimrc")
-    , ((modm .|. controlMask,	xK_v     ), spawn "cd ~/src/nid-prototype ; gvim -c \"Unite -start-insert file_rec\"")
-    , ((modm .|. shiftMask,	xK_x     ), spawn "gvim ~/.xmonad/xmonad.hs")
+    -- launch vim (in various ways, with most common uses)
+    , ((modm,			xK_v     ), spawn $ (XMonad.terminal conf) ++ " -e vim -c \"Unite -start-insert file_rec\"")
+    , ((modm .|. shiftMask,	xK_v     ), spawn $ (XMonad.terminal conf) ++ " -e vim ~/.vim/vimrc")
+    , ((modm .|. controlMask,	xK_v     ), spawn $ "cd ~/src/nid-prototype ; " ++ (XMonad.terminal conf) ++ " -e vim -c \"Unite -start-insert file_rec\"")
+    , ((modm .|. shiftMask,	xK_x     ), spawn $ (XMonad.terminal conf) ++ " -e vim ~/.xmonad/xmonad.hs")
     , ((modm,	xK_i     ), spawn $ (XMonad.terminal conf) ++ " -title weechat -e sh -c 'tmux has-session -t weechat && tmux attach-session -d -t weechat || tmux new-session -s weechat weechat'" )
 
     -- screensaver
@@ -390,7 +390,7 @@ myLogHook dzenbar homedir =
 {- Dzen status bars -}
 
 dzenFont :: String
-dzenFont = "xft:Inconsolata:size=11:bold"
+dzenFont = "xft:Bitstream Vera Sans Mono:size=11:bold"
 
 dzenExec :: String
 dzenExec = "dzen2 -y 0 -h 24 -fg '#FFFFFF' -bg '#202020' -fn '" ++ dzenFont ++ "'"

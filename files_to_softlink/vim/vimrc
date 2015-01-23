@@ -20,7 +20,6 @@ set exrc
 set secure
 set tags=./tags;
 
-set guifont=Inconsolata\ Bold\ 11
 set vb
 set nomodeline
 set noexpandtab
