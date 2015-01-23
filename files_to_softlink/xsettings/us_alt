@@ -7,6 +7,7 @@ xkb_symbols "de" {
     include "inet(evdev)"
 
     key <TLDE> { [ grave, asciitilde, dead_grave, dead_tilde ] };
+    key <AE06> { [ 6, asciicircum, onequarter, dead_circumflex ] };
     key <AD01>	{ [ q, Q, at, dead_acute ] };
     key <AD03>	{ [ e, E, EuroSign, cent ] };
     key <AE11> { [ minus, underscore, ssharp, ssharp ] };
