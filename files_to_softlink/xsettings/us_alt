@@ -10,8 +10,9 @@ xkb_symbols "de" {
     key <AE06> { [ 6, asciicircum, onequarter, dead_circumflex ] };
     key <AD01>	{ [ q, Q, at, dead_acute ] };
     key <AD03>	{ [ e, E, EuroSign, cent ] };
-    key <AE11> { [ minus, underscore, ssharp, ssharp ] };
+    key <AE11> { [ minus, underscore, ssharp, dead_belowdot ] };
     key <AD11> { [ bracketleft,  braceleft,  udiaeresis, Udiaeresis ] };
+    key <AD12> { [ bracketright, braceright, dead_diaeresis, degree ] };
     key <AC05> { [ g, G, dead_greek ] };
     key <AC10> { [ semicolon, colon, odiaeresis, Odiaeresis ]	};
     key <AC11> { [ apostrophe, quotedbl, adiaeresis, Adiaeresis ] };

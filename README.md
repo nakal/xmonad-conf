@@ -12,7 +12,7 @@ configuration, but also some additional goodies for a usable desktop.
 
 Included fine tuning has been done for (e.g.):
 * csh
-* (g)vim
+* vim
 * tmux
 * git
 * indent
@@ -21,12 +21,12 @@ Included fine tuning has been done for (e.g.):
 
 ## Small warning
 
-First thing to note is that *you won't like my desktop configuration* for sure.
-Take a look what is started during X login. Comment everything out that you
-don't want. This might be, for example, my "weird keyboard layout" which makes
-a german keyboard to a better programmer's keyboard, but can be annoying for
-start when you don't understand my intentions (and did not look up what the
-layout actually does). I will talk about this below.
+First thing to note is that you probably don't want to simply take the setup as
+it is now.  Take a look what is started during X login. Comment everything out
+that you don't want. This might be, for example, my "weird keyboard layout"
+which makes a german keyboard to a better programmer's keyboard, but can be
+annoying for start when you don't understand my intentions (and did not look up
+what the layout actually does). I will talk about this below.
 
 **Please be careful using this project. I cannot be hold responsible for any
 damages that might occur. If you are not sure, STOP and DON'T USE anything
@@ -119,9 +119,16 @@ inside. You can decide then, whether you like it or not.
 Here the features:
 * US QWERTY setting (basically *it is* a US keyboard then)
 * rich keyboard variant with many default key combos
-	that exist in US layouts
+	that exist in US (international) layouts
 * Capslock and Escape swap (for vim)
 * 'at' and 'euro' symbols back at their place
 * Umlauts are accessible through *AltGr* plus the key where they are on the
 	German keyboard. *Shift* will make them caps.
 * Compose key on the "<>|" key next to left shift.
+* `dead_greek` keyboard symbol on *AltGr*+g and *AltGr*+Shift+m
+	to enable greek alphabet with default compositions
+* some important dead keys have been swapped with their higher level siblings
+	(e.g. `asciicircum`, `asciitilde`, `grave`)
+* `dead_acute` on level 4 key `q` (think: "aQute")
+* `dead_diaeresis` and `degree` on level 3 & 4 key `*`
+* missing french quotation marks (because of umlauts) can be all composed
