@@ -393,7 +393,7 @@ dzenFont :: String
 dzenFont = "xft:Bitstream Vera Sans Mono:size=11:bold"
 
 dzenExec :: String
-dzenExec = "dzen2 -y 0 -h 24 -fg '#FFFFFF' -bg '#202020' -fn '" ++ dzenFont ++ "'"
+dzenExec = "dzen2 -e '' -y 0 -h 24 -fg '#FFFFFF' -bg '#202020' -fn '" ++ dzenFont ++ "'"
 
 -- left hand side, workspaces and layouts
 myXmonadBar :: Int -> String
