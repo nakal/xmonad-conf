@@ -390,7 +390,7 @@ myLogHook dzenbar homedir =
 {- Dzen status bars -}
 
 dzenFont :: String
-dzenFont = "xft:Bitstream Vera Sans Mono:size=11:bold"
+dzenFont = "Bitstream Vera Sans Mono:size=11:bold"
 
 dzenExec :: String
 dzenExec = "dzen2 -e '' -y 0 -h 24 -fg '#FFFFFF' -bg '#202020' -fn '" ++ dzenFont ++ "'"
