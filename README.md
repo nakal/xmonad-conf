@@ -62,6 +62,18 @@ You can use the directory `~/.xmonad/conf` to make fine tuning for hosts.
 Xmonad will look for a configuration there that is named
 `~/.xmonad/conf/HOSTNAME.hs`.
 
+### Workspaces and Layouts
+
+The workspaces mentioned here have all 3 letters to keep the `dzen2` workspace
+bar short. They are also merged with their number as prefix when shown in the
+dzenbar.  You can use the names which are already defined to specify a certain
+workspace layout.
+
+The `com` layout is best used with `pidgin` and `claws-mail`. `gfx` is
+adjusted for `gimp` other applications like `darktable` will be simply shown
+full-screen there. Take a look at the layout definitions and don't forget
+to modify them, especially when changing their names.
+
 ### Example
 
 This configuration will make 9 desktops with the given names. It will take
