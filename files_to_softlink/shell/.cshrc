@@ -45,7 +45,7 @@ if ($?prompt) then
 	set autolist = ambiguous
 	# Use history to aid expansion
 	set autoexpand
-	set autorehash
+	set autorehash = always
 	set nobeep
 	set rmstar
 	set mail = (/var/mail/$USER)
