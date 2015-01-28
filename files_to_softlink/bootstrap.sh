@@ -54,6 +54,7 @@ echo Preparing vim and plugins...
 mkdir -p .vim/bundle .vim/autoload
 cd .vim
 ln -s ~/.xmonad/files_to_softlink/vim/vimrc .
+ln -s ~/.xmonad/files_to_softlink/vim/update-plugins.sh .
 cd autoload
 git clone https://github.com/tpope/vim-pathogen.git
 ln -s vim-pathogen/autoload/pathogen.vim .
