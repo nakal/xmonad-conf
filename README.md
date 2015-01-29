@@ -11,6 +11,7 @@ Please be aware that this repository does not just host an Xmonad
 configuration, but also some additional goodies for a usable desktop.
 
 Included fine tuning has been done for (e.g.):
+
 * csh
 * vim
 * tmux
@@ -129,6 +130,7 @@ inside. You can decide then, whether you like it or not.
 **It is only for German keyboards!**
 
 Here the features:
+
 * US QWERTY setting (basically *it is* a US keyboard then)
 * rich keyboard variant with many default key combos
 	that exist in US (international) layouts
