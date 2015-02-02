@@ -116,7 +116,7 @@ found or if an error reading your configuration occurs.
 The configuration is fully managed in [git](http://git-scm.com).
 
 All the configurations included are softlinks. It means that you can update
-them and you implicitely update the checked out project. This also implies
+them and you implicitly update the checked out project. This also implies
 that it might be a good idea to make yourself a fork of this project. But
 you can also merge in changes from my repository, but don't complain, if
 something breaks for you. You should consider this project my private
