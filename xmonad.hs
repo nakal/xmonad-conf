@@ -29,6 +29,7 @@ import XMonad.Layout.ResizableTile
 import XMonad.Config.Desktop ( desktopLayoutModifiers )
 import XMonad.Layout.Reflect ( reflectHoriz )
 import XMonad.Hooks.ManageDocks
+import XMonad.Actions.CycleWS
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
@@ -239,6 +240,10 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Restart xmonad
     , ((modm              , xK_q     ), spawn "killall conky dzen2; xmonad --recompile && xmonad --restart")
 
+    , ((0              , xK_KP_Insert     ), toggleWS )
+    , ((0              , xK_KP_Add     ), nextWS )
+    , ((0              , xK_KP_Subtract     ), prevWS )
+
     -- Run xmessage with a summary of the default keybindings (useful for beginners)
     -- , ((modMask .|. shiftMask, xK_slash ), spawn ("echo \"" ++ help ++ "\" | xmessage -file -"))
     ]
@@ -268,6 +273,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     [((m .|. modm, key), screenWorkspace sc >>= flip whenJust (windows . f))
         | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
         , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
+
 
 
 ------------------------------------------------------------------------
