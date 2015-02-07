@@ -114,20 +114,21 @@ readScreenWidthIO = do
 dzenBitmap :: FilePath -> String -> String
 dzenBitmap homedir pic = homedir ++ "/.xmonad/dzen2/" ++ pic ++ ".xbm"
 
-panelLine :: FilePath -> String -> String
-panelLine homedir netif =
-        "^fg(lightblue)" ++
-	( bitmap "cpu" ) ++ " ${cpu}% " ++
-	( bitmap "mem" ) ++ " ${memperc}% " ++
-	( bitmap "net_wired" ) ++ " " ++
-	( bitmap "net_down_03" ) ++ "${downspeed " ++ netif ++ "} " ++
-	( bitmap "net_up_03" ) ++ "${upspeed " ++ netif ++ "} " ++
-	( bitmap "volume" ) ++ " ${exec mixer vol | egrep -o \"[0-9]+$\" | head -1 | egrep -o \"[0-9]*\"}% " ++
-	"^fg(yellow) ${time %a %d.%m.%Y} ${time %R}"
+panelLine :: Int -> FilePath -> String -> String
+panelLine width homedir netif =
+        "^fg(white) " ++
+        "^pa(" ++ panelofs 560 ++ ") |  ^fg(lightblue)" ++ ( bitmap "cpu" ) ++ " ${cpu}% " ++
+	"^pa(" ++ panelofs 470 ++ ") " ++ ( bitmap "mem" ) ++ " ${memperc}% " ++
+	"^pa(" ++ panelofs 405 ++ ") " ++ ( bitmap "net_wired" ) ++ " " ++
+	"^pa(" ++ panelofs 390 ++ ") " ++ ( bitmap "net_down_03" ) ++ "${downspeed " ++ netif ++ "} " ++
+	"^pa(" ++ panelofs 315 ++ ") " ++ ( bitmap "net_up_03" ) ++ "${upspeed " ++ netif ++ "} " ++
+	"^pa(" ++ panelofs 240 ++ ") " ++ ( bitmap "volume" ) ++ " ${exec mixer vol | egrep -o \"[0-9]+$\" | head -1 | egrep -o \"[0-9]*\"}% " ++
+	"^fg(yellow) ^pa(" ++ panelofs 180 ++ ") ${time %a %d.%m.%Y} ${time %R}"
 	where bitmap name = "^i(" ++ (dzenBitmap homedir name) ++ ")"
+              panelofs x = show $ width - x
 
-writeConkyConf :: FilePath -> NetInterfaceName -> IO ()
-writeConkyConf homedir netif =
+writeConkyConf :: Int -> FilePath -> NetInterfaceName -> IO ()
+writeConkyConf width homedir netif =
 	writeFile (homedir ++ "/.xmonad/conkyrc") (unlines $ conf homedir netif)
 		where conf homedir netif = [
 				"background yes",
@@ -136,7 +137,7 @@ writeConkyConf homedir netif =
 				"update_interval 1",
 				"",
 				"TEXT",
-				panelLine homedir netif
+				panelLine width homedir netif
 			]
 
 -- Border colors for unfocused and focused windows, respectively.
@@ -401,15 +402,25 @@ dzenFont = "Bitstream Vera Sans Mono:size=11:bold"
 dzenExec :: String
 dzenExec = "dzen2 -e '' -y 0 -h 24 -fg '#FFFFFF' -bg '#202020' -fn '" ++ dzenFont ++ "'"
 
+myXmonadBarWidth :: Int -> Int
+myXmonadBarWidth screenwidth = screenwidth - myStatusBarWidth screenwidth
+
+myStatusBarWidth :: Int -> Int
+myStatusBarWidth screenwidth = screenwidth `div` 3
+myStatusBarXOfs :: Int -> Int
+myStatusBarXOfs = myXmonadBarWidth
+
 -- left hand side, workspaces and layouts
 myXmonadBar :: Int -> String
-myXmonadBar screenwidth = dzenExec ++ " -x 0 -ta l -w " ++ (show $ screenwidth `div` 2)
+myXmonadBar screenwidth = dzenExec ++ " -x 0 -ta l -w " ++
+        (show $ myXmonadBarWidth screenwidth)
 
 -- right hand side, resources, date, time
 myStatusBar :: String -> Int -> String
-myStatusBar myHomeDirectory screenwidth = "conky -c " ++ myHomeDirectory ++ "/.xmonad/conkyrc | " ++
-        dzenExec ++ " -ta r -x " ++ sw_div2 ++ " -w " ++ sw_div2
-	where sw_div2 = show $ screenwidth `div` 2
+myStatusBar myHomeDirectory screenwidth = "conky -c " ++ myHomeDirectory
+        ++ "/.xmonad/conkyrc | " ++
+        dzenExec ++ " -x " ++ (show $ myStatusBarXOfs screenwidth) ++
+        " -w " ++ (show $ myStatusBarWidth screenwidth)
 
 xconfig conf dzenbar host homedir screenwidth = defaultConfig
 		{
@@ -436,7 +447,7 @@ xconfig conf dzenbar host homedir screenwidth = defaultConfig
 -- startup hook reading and executing .startup file
 startup :: String -> FilePath -> Int -> HostConfiguration -> X()
 startup host homedir screenwidth conf = do
-	io $ writeConkyConf homedir (netInterfaceName conf)
+	io $ writeConkyConf (myStatusBarWidth screenwidth) homedir (netInterfaceName conf)
         autostartAllPrograms $ autostartPrograms conf
 	spawn (myStatusBar homedir screenwidth)
         return ()
