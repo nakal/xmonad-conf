@@ -13,9 +13,8 @@ import Data.List
 import Control.Applicative ((<$>))
 import System.IO
 import System.Exit
-import System.Posix.Process
 import System.Directory
-import Network.BSD
+import System.Posix.Process
 import Graphics.X11.Xlib.Display
 
 import XMonad.Hooks.DynamicLog
@@ -34,26 +33,9 @@ import XMonad.Actions.CycleWS
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
-type WorkspaceName = String
-type NetInterfaceName = String
-type ExecuteCommand = ( String, [ String ] )
-
-defaultWorkspaceNames = ["web","com","dev","gfx","ofc","","irc","",""]
-defaultNetInterfaceName = "re0"
-
-data HostConfiguration = HostConfiguration {
-        workspaceNames :: [ WorkspaceName ]          ,
-        netInterfaceName :: NetInterfaceName         ,
-        autostartPrograms :: [ ExecuteCommand ]
-        }
-        deriving ( Read, Show )
-
-defaultHostConfiguration :: HostConfiguration
-defaultHostConfiguration = HostConfiguration {
-        workspaceNames = defaultWorkspaceNames          ,
-        netInterfaceName = defaultNetInterfaceName      ,
-        autostartPrograms = []
-        }
+import Dzen.Tools
+import HostConfiguration
+import SysInfo.StatusBar
 
 -- xterm as default terminal in Xmonad
 myTerminal      = "xterm"
@@ -74,20 +56,6 @@ myBorderWidth   = 1
 -- ("right alt"), which does not conflict with emacs keybindings. The
 -- "windows key" is usually mod4Mask.
 myModMask = mod4Mask
-
-readHostConfiguration :: FilePath -> String -> IO HostConfiguration
-readHostConfiguration homedir host = do
-	let confpath = homedir ++ "/.xmonad/conf/" ++ host ++ ".hs"
-	confexists <- doesFileExist confpath
-        if confexists then do
-                        contents <- readFile confpath
-                        let parseresult = reads contents :: [ ( HostConfiguration, String ) ]
-                        if null parseresult then return defaultHostConfiguration
-                                else return $ fst $ head parseresult
-                else return defaultHostConfiguration
-
-myHostName :: IO String
-myHostName = takeWhile (/= '.') <$> getHostName
 
 -- This function numbers the workspace names
 numberedWorkspaces :: [ String ] -> [ String ]
@@ -111,34 +79,6 @@ readScreenWidthIO = do
 	let width = fromIntegral $ displayWidth display (defaultScreen display)
 	return width
 
-dzenBitmap :: FilePath -> String -> String
-dzenBitmap homedir pic = homedir ++ "/.xmonad/dzen2/" ++ pic ++ ".xbm"
-
-panelLine :: Int -> FilePath -> String -> String
-panelLine width homedir netif =
-        "^fg(white) " ++
-        "^pa(" ++ panelofs 560 ++ ") |  ^fg(lightblue)" ++ ( bitmap "cpu" ) ++ " ${cpu}% " ++
-	"^pa(" ++ panelofs 470 ++ ") " ++ ( bitmap "mem" ) ++ " ${memperc}% " ++
-	"^pa(" ++ panelofs 405 ++ ") " ++ ( bitmap "net_wired" ) ++ " " ++
-	"^pa(" ++ panelofs 390 ++ ") " ++ ( bitmap "net_down_03" ) ++ "${downspeed " ++ netif ++ "} " ++
-	"^pa(" ++ panelofs 315 ++ ") " ++ ( bitmap "net_up_03" ) ++ "${upspeed " ++ netif ++ "} " ++
-	"^pa(" ++ panelofs 240 ++ ") " ++ ( bitmap "volume" ) ++ " ${exec mixer vol | egrep -o \"[0-9]+$\" | head -1 | egrep -o \"[0-9]*\"}% " ++
-	"^fg(yellow) ^pa(" ++ panelofs 180 ++ ") ${time %a %d.%m.%Y} ${time %R}"
-	where bitmap name = "^i(" ++ (dzenBitmap homedir name) ++ ")"
-              panelofs x = show $ width - x
-
-writeConkyConf :: Int -> FilePath -> NetInterfaceName -> IO ()
-writeConkyConf width homedir netif =
-	writeFile (homedir ++ "/.xmonad/conkyrc") (unlines $ conf homedir netif)
-		where conf homedir netif = [
-				"background yes",
-				"out_to_console yes",
-				"out_to_x no",
-				"update_interval 1",
-				"",
-				"TEXT",
-				panelLine width homedir netif
-			]
 
 -- Border colors for unfocused and focused windows, respectively.
 myNormalBorderColor  = "#dddddd"
@@ -394,35 +334,12 @@ myLogHook dzenbar homedir =
 		, ppOutput            =   hPutStrLn dzenbar
 	}
 
-{- Dzen status bars -}
-
-dzenFont :: String
-dzenFont = "Bitstream Vera Sans Mono:size=11:bold"
-
-dzenExec :: String
-dzenExec = "dzen2 -e '' -y 0 -h 24 -fg '#FFFFFF' -bg '#202020' -fn '" ++ dzenFont ++ "'"
-
-myXmonadBarWidth :: Int -> Int
-myXmonadBarWidth screenwidth = screenwidth - myStatusBarWidth screenwidth
-
-myStatusBarWidth :: Int -> Int
-myStatusBarWidth screenwidth = screenwidth `div` 3
-myStatusBarXOfs :: Int -> Int
-myStatusBarXOfs = myXmonadBarWidth
-
 -- left hand side, workspaces and layouts
 myXmonadBar :: Int -> String
 myXmonadBar screenwidth = dzenExec ++ " -x 0 -ta l -w " ++
         (show $ myXmonadBarWidth screenwidth)
 
--- right hand side, resources, date, time
-myStatusBar :: String -> Int -> String
-myStatusBar myHomeDirectory screenwidth = "conky -c " ++ myHomeDirectory
-        ++ "/.xmonad/conkyrc | " ++
-        dzenExec ++ " -x " ++ (show $ myStatusBarXOfs screenwidth) ++
-        " -w " ++ (show $ myStatusBarWidth screenwidth)
-
-xconfig conf dzenbar host homedir screenwidth = defaultConfig
+xconfig conf dzenbar homedir screenwidth = defaultConfig
 		{
 			terminal           = myTerminal,
 			focusFollowsMouse  = myFocusFollowsMouse,
@@ -440,16 +357,15 @@ xconfig conf dzenbar host homedir screenwidth = defaultConfig
 			manageHook         = myManageHook wsnames,
 			handleEventHook    = myEventHook,
 			logHook            = myLogHook dzenbar homedir >> fadeInactiveLogHook 0xdddddddd,
-			startupHook        = startup host homedir screenwidth conf
+			startupHook        = startup homedir screenwidth conf
 		}
                 where wsnames = workspaceNames conf
 
 -- startup hook reading and executing .startup file
-startup :: String -> FilePath -> Int -> HostConfiguration -> X()
-startup host homedir screenwidth conf = do
-	io $ writeConkyConf (myStatusBarWidth screenwidth) homedir (netInterfaceName conf)
+startup :: FilePath -> Int -> HostConfiguration -> X()
+startup homedir screenwidth conf = do
+        startStatusBar homedir screenwidth conf
         autostartAllPrograms $ autostartPrograms conf
-	spawn (myStatusBar homedir screenwidth)
         return ()
 
 autostartAllPrograms :: [ ExecuteCommand ] -> X ()
@@ -458,10 +374,9 @@ autostartAllPrograms =
         where execprog prog = spawn $ (fst prog) ++ " " ++ (unwords $ snd prog)
 
 main = do
-	host <- myHostName
 	homedir <- getHomeDirectory
 	screenwidth <- readScreenWidthIO
 	dzenbar <- spawnPipe $ myXmonadBar screenwidth
-        conf <- readHostConfiguration homedir host
+        conf <- readHostConfiguration homedir
         hPutStrLn stderr $ show conf
-	xmonad $ xconfig conf dzenbar host homedir screenwidth
+	xmonad $ xconfig conf dzenbar homedir screenwidth
