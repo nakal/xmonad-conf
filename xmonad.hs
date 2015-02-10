@@ -158,7 +158,6 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm,               xK_s     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -t server1 'tmux new-session /bin/tcsh'" )
     , ((modm .|. shiftMask, xK_s     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -t server2 'tmux new-session /bin/tcsh'" )
     , ((modm .|. shiftMask, xK_y     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -t yuni 'tmux new-session /bin/tcsh'" )
-    -- , ((modm .|. shiftMask, xK_g     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -t gitlab 'tmux new-session'" )
 
     -- Push window back into tiling
     , ((modm,               xK_t     ), withFocused $ windows . W.sink)

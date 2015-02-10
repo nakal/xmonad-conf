@@ -21,10 +21,10 @@ type NetTx = Int
 data NetLoad = NetLoad NetRx NetTx
 
 getSysCtlCombinedValue :: String -> IO [ String ]
-getSysCtlCombinedValue name =  fmap words $ readProcess "sysctl" [ "-n", name ] []
+getSysCtlCombinedValue name =  fmap words $ readProcess "/sbin/sysctl" [ "-n", name ] []
 
 getSysCtlValues :: [ String ] -> IO [ String ]
-getSysCtlValues names =  fmap lines $ readProcess "sysctl" ("-n":names) []
+getSysCtlValues names =  fmap lines $ readProcess "/sbin/sysctl" ("-n":names) []
 
 getCPULoad :: IO CPULoad
 getCPULoad = do
@@ -100,13 +100,13 @@ filterSeconds str =
 
 getTimeAndDate :: IO String
 getTimeAndDate = do
-        str <- fmap words $ readProcess "date" [] []
+        str <- fmap words $ readProcess "/bin/date" [] []
         let f1 = fmap filterSeconds $ filter isNotTimezone str
         return $ unwords f1
 
 getVolume :: IO Int
 getVolume = do
-        str <- readProcess "mixer" ["-S", "vol"] []
+        str <- readProcess "/usr/sbin/mixer" ["-S", "vol"] []
         let (left,d:right) = span (/= ':') $ drop 4 str
         return $ (read left + read right) `div` 2
 

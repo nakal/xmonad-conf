@@ -4,7 +4,7 @@ echo Checking packages...
 pkg info slim sudo gtk2 vim git xterm xscreensaver \
 	hs-xmonad hs-network hs-xmonad-contrib \
 	firefox gimp libreoffice dmenu gmrun tmux \
-	conky dzen2 weechat-devel zenity claws-mail \
+	dzen2 weechat-devel zenity claws-mail \
 	gtk-oxygen-engine xrdb xsetroot setxkbmap gnupg \
 	xmodmap hsetroot \
 	> /dev/null
