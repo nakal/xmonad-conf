@@ -63,11 +63,11 @@ getMemLoad = do
 
 getNetLoad :: String -> IO NetLoad
 getNetLoad iface = do
-        let (iface_name, iface_index) = splitNetInterfaceName iface
-        let sysctlname_prefix = "dev." ++ iface_name ++ "." ++ iface_index ++ ".stats."
-        loadv <- getSysCtlValues [ sysctlname_prefix ++ "rx.good_octets", sysctlname_prefix ++ "tx.good_octets" ]
-        let ints = fmap (\x -> read x :: Int) loadv
-        return $ NetLoad (head ints) (last ints)
+        str <- readProcess "/usr/bin/netstat" ["-i", "-I", iface, "-bW"] []
+        let rr = words $ head $ tail $ lines str
+            rx = read $ rr !! 7
+            tx = read $ rr !! 10
+        return $ NetLoad rx tx
 
 getCPUPercent :: (CPULoad,CPULoad) -> Int
 getCPUPercent (CPULoad oldused oldtotal, CPULoad curused curtotal) =
@@ -88,9 +88,6 @@ netspeed x
         | x > 2 * 1024 ^ 2          =       (printf "%.2f" (((fromIntegral x)/(1024^2)) :: Double)) ++ "MB"
         | x > 2 * 1024              =       (printf "%.2f" (((fromIntegral x)/1024) :: Double)) ++ "kB"
         | otherwise                 =       (show x) ++ "B"
-
-splitNetInterfaceName :: String -> (String, String)
-splitNetInterfaceName iface = span isAlpha iface
 
 isNotTimezone :: String -> Bool
 isNotTimezone str = not $ foldr (\x -> (&&) (isUpper x)) True str
@@ -118,12 +115,12 @@ displayStats dzen cpu mem (net_rx,net_tx) homedir = do
         datestr <- getTimeAndDate
         vol <- getVolume
         hPutStrLn dzen $ "^fg(white)^pa(80) |  " ++
-                "^fg(lightblue)^i(/usr/home/cinek/.xmonad/dzen2/cpu.xbm) " ++ (show cpu) ++ "% " ++
-                "^pa(170) ^i(/usr/home/cinek/.xmonad/dzen2/mem.xbm) " ++ (show mem) ++ "% " ++
-                "^pa(235) ^i(/usr/home/cinek/.xmonad/dzen2/net_wired.xbm) " ++
-                "^pa(250) ^i(/usr/home/cinek/.xmonad/dzen2/net_down_03.xbm)" ++ net_rx ++ "   " ++
-                "^pa(325) ^i(/usr/home/cinek/.xmonad/dzen2/net_up_03.xbm)" ++ net_tx ++ "   " ++
-                "^pa(400) ^i(/usr/home/cinek/.xmonad/dzen2/volume.xbm) " ++ (show vol) ++ "% " ++
+                "^fg(lightblue)^i(" ++ homedir ++ "/.xmonad/dzen2/cpu.xbm) " ++ (show cpu) ++ "% " ++
+                "^pa(170) ^i(" ++ homedir ++ "/.xmonad/dzen2/mem.xbm) " ++ (show mem) ++ "% " ++
+                "^pa(235) ^i(" ++ homedir ++ "/.xmonad/dzen2/net_wired.xbm) " ++
+                "^pa(250) ^i(" ++ homedir ++ "/.xmonad/dzen2/net_down_03.xbm)" ++ net_rx ++ "   " ++
+                "^pa(325) ^i(" ++ homedir ++ "/.xmonad/dzen2/net_up_03.xbm)" ++ net_tx ++ "   " ++
+                "^pa(400) ^i(" ++ homedir ++ "/.xmonad/dzen2/volume.xbm) " ++ (show vol) ++ "% " ++
                 "^fg(yellow) ^pa(460) " ++ datestr
         hFlush dzen
 
