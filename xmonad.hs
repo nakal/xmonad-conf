@@ -179,7 +179,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
 
     -- Restart xmonad
-    , ((modm              , xK_q     ), spawn "killall conky dzen2; xmonad --recompile && xmonad --restart")
+    , ((modm              , xK_q     ), spawn "killall dzen2; cd ~/.xmonad/lib/Exec && make ; xmonad --recompile && xmonad --restart")
 
     , ((0              , xK_KP_Insert     ), toggleWS )
     , ((0              , xK_KP_Add     ), nextWS )

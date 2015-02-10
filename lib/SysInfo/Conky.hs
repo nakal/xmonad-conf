@@ -8,7 +8,7 @@ import XMonad
 
 panelLine :: Int -> FilePath -> String -> String
 panelLine width homedir netif =
-        "^fg(white) " ++
+        "^fg(white)" ++
         "^pa(" ++ panelofs 560 ++ ") |  ^fg(lightblue)" ++ ( bitmap "cpu" ) ++ " ${cpu}% " ++
 	"^pa(" ++ panelofs 470 ++ ") " ++ ( bitmap "mem" ) ++ " ${memperc}% " ++
 	"^pa(" ++ panelofs 405 ++ ") " ++ ( bitmap "net_wired" ) ++ " " ++
@@ -42,7 +42,5 @@ startConky homedir screenwidth conf = do
 -- right hand side, resources, date, time
 myStatusBar :: String -> Int -> String
 myStatusBar myHomeDirectory screenwidth = "conky -c " ++ myHomeDirectory
-        ++ "/.xmonad/conkyrc | " ++
-        dzenExec ++ " -x " ++ (show $ myStatusBarXOfs screenwidth) ++
-        " -w " ++ (show $ myStatusBarWidth screenwidth)
+        ++ "/.xmonad/conkyrc | " ++ dzenStatusBar screenwidth
 

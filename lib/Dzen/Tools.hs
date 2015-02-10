@@ -15,7 +15,18 @@ dzenExec = "dzen2 -e '' -y 0 -h 24 -fg '#FFFFFF' -bg '#202020' -fn '" ++ dzenFon
 myXmonadBarWidth :: Int -> Int
 myXmonadBarWidth screenwidth = screenwidth - myStatusBarWidth screenwidth
 
+myStatusBarWidthMinimal :: Int
+myStatusBarWidthMinimal = 580
+
 myStatusBarWidth :: Int -> Int
-myStatusBarWidth screenwidth = screenwidth `div` 3
+myStatusBarWidth screenwidth =
+        if onethird < myStatusBarWidthMinimal
+                then myStatusBarWidthMinimal else onethird
+        where onethird = screenwidth `div` 3
 myStatusBarXOfs :: Int -> Int
 myStatusBarXOfs = myXmonadBarWidth
+
+dzenStatusBar :: Int -> String
+dzenStatusBar screenwidth =
+        dzenExec ++ " -x " ++ (show $ myStatusBarXOfs screenwidth) ++
+        " -w " ++ (show $ myStatusBarWidth screenwidth)

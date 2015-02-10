@@ -8,11 +8,12 @@ import SysInfo.Conky
 import SysInfo.FreeBSD
 import System.IO
 import XMonad
+import XMonad.Core
 
 startOSStatusBar :: String -> String -> Int -> HostConfiguration -> X()
-startOSStatusBar os homedir barwidth conf
-        -- | os == "freebsd" = startFreeBSD homedir barwidth conf
-        | otherwise = startConky homedir barwidth conf
+startOSStatusBar os homedir screenwidth conf
+        | os == "freebsd" = startFreeBSD homedir screenwidth conf
+        | otherwise = startConky homedir screenwidth conf
 
 startStatusBar :: String -> Int -> HostConfiguration -> X()
 startStatusBar homedir barwidth conf = do
