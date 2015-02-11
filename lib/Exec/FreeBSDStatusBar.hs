@@ -1,8 +1,6 @@
 
 import Control.Concurrent
 import Data.Char
-import Dzen.Tools
-import HostConfiguration
 import System.Environment
 import System.Process
 import System.IO
@@ -136,7 +134,7 @@ displayStats dzen cpu coreloads mem (net_rx,net_tx) homedir = do
                 "^fg(yellow) ^pa(460) " ++ datestr
         hFlush dzen
 
-gatherLoop :: Handle -> CPULoad -> [ CPULoad ] -> NetLoad -> FilePath -> NetInterfaceName -> IO()
+gatherLoop :: Handle -> CPULoad -> [ CPULoad ] -> NetLoad -> FilePath -> String -> IO()
 gatherLoop dzen lastcpu lastcoreloads lastnet homedir iface = do
         cpuload <- getCPULoad
         coreloads <- allCoreLoads
@@ -148,7 +146,7 @@ gatherLoop dzen lastcpu lastcoreloads lastnet homedir iface = do
         threadDelay 1000000
         gatherLoop dzen cpuload coreloads netload homedir iface
 
-startFreeBSD :: FilePath -> NetInterfaceName -> IO()
+startFreeBSD :: FilePath -> String -> IO()
 startFreeBSD homedir iface = do
          -- setEnv "LC_NUMERIC" "C"
          cpuinit <- getCPULoad
