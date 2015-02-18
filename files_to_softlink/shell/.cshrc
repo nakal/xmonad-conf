@@ -27,6 +27,7 @@ setenv	PAGER	less
 setenv	BLOCKSIZE	K
 setenv LSCOLORS gxfxcxdxbxegedabagacad
 setenv GOROOT /usr/local/go
+setenv TERM screen-256color
 
 if ($?prompt) then
 

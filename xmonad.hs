@@ -90,7 +90,7 @@ myFocusedBorderColor = "#ff0000"
 myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
     -- launch a terminal
-    [ ((modm .|. shiftMask, xK_Return), spawn $ (XMonad.terminal conf) ++ " -e tmux new-session")
+    [ ((modm .|. shiftMask, xK_Return), spawn $ (XMonad.terminal conf) ++ " -e tmux -2 new-session")
     , ((controlMask .|. shiftMask, xK_Return), spawn $ XMonad.terminal conf) -- plain terminal without tmux
 
     -- launch dmenu
