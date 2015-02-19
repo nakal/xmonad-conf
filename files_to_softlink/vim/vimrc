@@ -6,7 +6,7 @@ set runtimepath+=$GOROOT/misc/vim
 set nobackup
 set noundofile
 set t_Co=256
-colorscheme desert
+colorscheme atom-dark-256
 set background=dark
 set ai smartindent
 set hlsearch

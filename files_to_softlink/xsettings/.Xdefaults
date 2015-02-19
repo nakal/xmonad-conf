@@ -2,7 +2,7 @@
 ! ******************** xterm settings ********************
 
 xterm*renderFont: true
-xterm*faceName: Droid Sans Mono:bold
+xterm*faceName: Droid Sans Mono:normal
 xterm*faceSize: 11
 xterm*locale: UTF-8
 xterm*dynamicColors: true

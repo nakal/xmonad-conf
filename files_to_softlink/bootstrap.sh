@@ -51,7 +51,7 @@ cd $HOME
 git config --global core.excludesfile ~/.gitignore_global
 
 echo Preparing vim and plugins...
-mkdir -p .vim/bundle .vim/autoload
+mkdir -p .vim/bundle .vim/autoload .vim/colors
 cd .vim
 ln -s ~/.xmonad/files_to_softlink/vim/vimrc .
 ln -s ~/.xmonad/files_to_softlink/vim/update-plugins.sh .
@@ -65,6 +65,10 @@ git clone https://github.com/tpope/vim-fugitive
 git clone https://github.com/tpope/vim-unimpaired
 git clone https://github.com/altercation/vim-colors-solarized
 git clone https://github.com/bling/vim-airline
+cd ../colors
+git clone https://github.com/gosukiwi/vim-atom-dark.git
+ln -s vim-atom-dark/colors/atom-dark.vim .
+ln -s vim-atom-dark/colors/atom-dark-256.vim .
 cd ../..
 
 echo Preparing xmonad...
