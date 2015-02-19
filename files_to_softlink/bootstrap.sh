@@ -27,7 +27,7 @@ done
 cd $HOME
 echo Removing old softlinks...
 rm -f .cshrc .xinitrc .Xdefaults .gtkrc-2.0 .tmux.conf .indent.pro
-rm -f ~/.config/gtk-3.0/settings.ini
+rm -f ~/.config/gtk-3.0/settings.ini .gitignore_global
 echo Moving vim configuration out of the way...
 mv .vim .vim-bak-`date +%s` 2> /dev/null
 mv .vimrc .vimrc-bak-`date +%s` 2> /dev/null
