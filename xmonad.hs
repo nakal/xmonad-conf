@@ -104,7 +104,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. shiftMask,	xK_v     ), spawn $ (XMonad.terminal conf) ++ " -e vim ~/.vim/vimrc")
     , ((modm .|. controlMask,	xK_v     ), spawn $ "cd ~/src/nid-prototype ; " ++ (XMonad.terminal conf) ++ " -e vim -c \"Unite -start-insert file_rec\"")
     , ((modm .|. shiftMask,	xK_x     ), spawn $ (XMonad.terminal conf) ++ " -e vim ~/.xmonad/xmonad.hs")
-    , ((modm,	xK_i     ), spawn $ (XMonad.terminal conf) ++ " -title weechat -e sh -c 'tmux has-session -t weechat && tmux attach-session -d -t weechat || tmux new-session -s weechat weechat'" )
+    , ((modm,	xK_i     ), spawn $ (XMonad.terminal conf) ++ " -title weechat -e sh -c 'tmux has-session -t weechat && tmux attach-session -d -t weechat || tmux -2 new-session -s weechat weechat'" )
 
     -- screensaver
     , ((mod1Mask .|. controlMask, xK_l     ), spawn "xscreensaver-command -lock")
@@ -155,9 +155,9 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Expand the master area
     , ((modm,               xK_l     ), sendMessage Expand)
 
-    , ((modm,               xK_s     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -t server1 'tmux new-session /bin/tcsh'" )
-    , ((modm .|. shiftMask, xK_s     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -t server2 'tmux new-session /bin/tcsh'" )
-    , ((modm .|. shiftMask, xK_y     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -t yuni 'tmux new-session /bin/tcsh'" )
+    , ((modm,               xK_s     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -t server1 'tmux -2 new-session /bin/tcsh'" )
+    , ((modm .|. shiftMask, xK_s     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -t server2 'tmux -2 new-session /bin/tcsh'" )
+    , ((modm .|. shiftMask, xK_y     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -t yuni 'tmux -2 new-session /bin/tcsh'" )
 
     -- Push window back into tiling
     , ((modm,               xK_t     ), withFocused $ windows . W.sink)
