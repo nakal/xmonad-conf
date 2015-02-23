@@ -1,7 +1,7 @@
 
 # Aliases
 function l
-	ls -l
+	ls -l $argv
 end
 
 function ..
@@ -13,7 +13,7 @@ function ...
 end
 
 function vi
-	vim
+	vim $argv
 end
 
 # Environment
