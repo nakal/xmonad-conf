@@ -28,6 +28,7 @@ cd $HOME
 echo Removing old softlinks...
 rm -f .cshrc .xinitrc .Xdefaults .gtkrc-2.0 .tmux.conf .indent.pro
 rm -f ~/.config/gtk-3.0/settings.ini .gitignore_global
+rm -f ~/.config/fish/config.fish
 echo Moving vim configuration out of the way...
 mv .vim .vim-bak-`date +%s` 2> /dev/null
 mv .vimrc .vimrc-bak-`date +%s` 2> /dev/null
@@ -45,6 +46,10 @@ ln -s ~/.xmonad/files_to_softlink/misc/.gitignore_global .
 mkdir -p $HOME/.config/gtk-3.0
 cd $HOME/.config/gtk-3.0
 ln -s ~/.xmonad/files_to_softlink/xsettings/settings.ini .
+
+mkdir -p $HOME/.config/fish
+cd $HOME/.config/fish
+ln -s ~/.xmonad/files_to_softlink/shell/config.fish .
 
 echo Initial git setup...
 cd $HOME
