@@ -1,6 +1,6 @@
 # nakal's Xmonad (plus desktop) configuration
 
-![Desktop screenshot](https://lh4.googleusercontent.com/-Ct3atgoq6xM/VNawZlY356I/AAAAAAAAGLY/hRwaD5Mpqhw/w862-h485-no/xmonad-desktop.png)
+![Desktop screenshot](https://lh5.googleusercontent.com/-RItTC_wfR6Q/VOwiuFmwLXI/AAAAAAAAGM8/yfyCwRaiq5s/w862-h485-no/xmonad-desktop.png)
 
 [Xmonad](http://xmonad.org/) is a minimalistic tiled window manager for Xorg.
 To configure it, you need some [Haskell](http://haskel.org/) knowledge. It is
