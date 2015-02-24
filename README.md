@@ -12,13 +12,23 @@ configuration, but also some additional goodies for a usable desktop.
 
 Included fine tuning has been done for (e.g.):
 
-* csh
-* vim
-* tmux
-* git
-* indent
-* Xorg and its GTK toolkits
-* slim login manager
+* shells:
+	* fish
+	* tcsh
+* editors:
+	* vim
+* version control system:
+	* git
+* utils:
+	* tmux
+	* indent
+* X settings:
+	* Xorg Xdefaults
+	* GTK+ 2 & 3
+	* dzen2
+* login manager:
+	* slim
+	* session management
 
 ## Small warning
 
