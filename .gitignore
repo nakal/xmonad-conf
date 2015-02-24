@@ -6,3 +6,4 @@ xmonad-x86_64-linux
 .*.swp
 conkyrc
 conf/
+lib/Exec/FreeBSDStatusBar
