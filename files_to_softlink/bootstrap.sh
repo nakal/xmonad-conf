@@ -41,7 +41,8 @@ ln -s ~/.xmonad/files_to_softlink/xsettings/.Xdefaults .
 ln -s ~/.xmonad/files_to_softlink/xsettings/.gtkrc-2.0 .
 ln -s ~/.xmonad/files_to_softlink/tmux/.tmux.conf .
 ln -s ~/.xmonad/files_to_softlink/misc/.indent.pro .
-ln -s ~/.xmonad/files_to_softlink/misc/.gitignore_global .
+ln -s ~/.xmonad/files_to_softlink/git/.gitignore_global .
+ln -s ~/.xmonad/files_to_softlink/git/.gitconfig .
 
 mkdir -p $HOME/.config/gtk-3.0
 cd $HOME/.config/gtk-3.0
