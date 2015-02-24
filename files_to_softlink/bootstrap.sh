@@ -15,7 +15,8 @@ fi
 
 cd $HOME
 REMOVE_FILES=".cshrc .xinitrc .Xdefaults .gtkrc-2.0 .tmux.conf .indent.pro \
-	~/.config/gtk-3.0/settings.ini .gitignore_global"
+	~/.config/gtk-3.0/settings.ini .gitignore_global .gitconfig \
+	~/.config/fish/config.fish"
 
 for df in $REMOVE_FILES; do
 	echo Checking dotfile: $df
@@ -26,9 +27,7 @@ done
 # remove old stuff
 cd $HOME
 echo Removing old softlinks...
-rm -f .cshrc .xinitrc .Xdefaults .gtkrc-2.0 .tmux.conf .indent.pro
-rm -f ~/.config/gtk-3.0/settings.ini .gitignore_global
-rm -f ~/.config/fish/config.fish
+rm -f $REMOVE_FILES
 echo Moving vim configuration out of the way...
 mv .vim .vim-bak-`date +%s` 2> /dev/null
 mv .vimrc .vimrc-bak-`date +%s` 2> /dev/null
