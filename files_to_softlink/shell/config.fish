@@ -17,7 +17,7 @@ function vi
 end
 
 # Environment
-set -gx PATH $PATH /usr/games /usr/local/sbin /usr/local/bin $HOME/bin
+set -gx PATH $PATH /usr/games /sbin /usr/sbin /usr/local/sbin /usr/local/bin $HOME/bin
 set -gx EDITOR vim
 set -gx PAGER less
 set -gx BLOCKSIZE K
