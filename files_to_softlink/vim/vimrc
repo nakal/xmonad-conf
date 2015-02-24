@@ -1,5 +1,5 @@
 " set all&
-" set shell=zsh
+set shell=sh
 set shortmess+=I
 set nocompatible
 set runtimepath+=$GOROOT/misc/vim
