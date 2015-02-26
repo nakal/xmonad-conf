@@ -67,10 +67,11 @@ function get_git_status -d "Git status on the right side"
 		set_color -b normal
 		if [ "$dirty" != "0" ]
 			set_color 822
+			echo "$dirty ($uncommitted) "
 		else
 			set_color 666
+			echo "($uncommitted) "
 		end
-		echo "$dirty ($uncommitted) "
 	end
 
 	if [ "$dirty" != "0" ]
