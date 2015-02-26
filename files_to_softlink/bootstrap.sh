@@ -1,12 +1,21 @@
 #!/bin/sh
 
+# Git repo helper
+git_init_dir()
+{
+	REPOPATH="$1"
+	REPODIR="$2"
+	test -d "$REPODIR" && git pull
+	test -d "$REPODIR" || git clone "$REPOPATH" "$REPODIR"
+}
+
 echo Checking packages...
 pkg info slim sudo gtk2 vim git xterm xscreensaver \
 	hs-xmonad hs-network hs-xmonad-contrib \
 	firefox gimp libreoffice dmenu gmrun tmux \
 	dzen2 weechat-devel zenity claws-mail \
 	gtk-oxygen-engine xrdb xsetroot setxkbmap gnupg \
-	xmodmap hsetroot \
+	xmodmap hsetroot fish \
 	> /dev/null
 if [ $? -ne 0 ]; then
 	echo ERROR: Missing packages for bootstrap.
@@ -15,8 +24,8 @@ fi
 
 cd $HOME
 REMOVE_FILES=".cshrc .xinitrc .Xdefaults .gtkrc-2.0 .tmux.conf .indent.pro \
-	~/.config/gtk-3.0/settings.ini .gitignore_global .gitconfig \
-	~/.config/fish/config.fish"
+	$HOME/.config/gtk-3.0/settings.ini .gitignore_global .gitconfig \
+	$HOME/.config/fish/config.fish $HOME/.config/fish/custom"
 
 for df in $REMOVE_FILES; do
 	echo Checking dotfile: $df
@@ -34,7 +43,7 @@ mv .vimrc .vimrc-bak-`date +%s` 2> /dev/null
 
 # prepare conf in user's home
 echo Reinstalling softlinks...
-ln -s ~/.xmonad/files_to_softlink/shell/.cshrc .
+ln -s ~/.xmonad/files_to_softlink/shell/tcsh/.cshrc .
 ln -s ~/.xmonad/files_to_softlink/xsettings/.xinitrc .
 ln -s ~/.xmonad/files_to_softlink/xsettings/.Xdefaults .
 ln -s ~/.xmonad/files_to_softlink/xsettings/.gtkrc-2.0 .
@@ -47,13 +56,13 @@ mkdir -p $HOME/.config/gtk-3.0
 cd $HOME/.config/gtk-3.0
 ln -s ~/.xmonad/files_to_softlink/xsettings/settings.ini .
 
+echo Preparing fish shell...
 mkdir -p $HOME/.config/fish
 cd $HOME/.config/fish
-ln -s ~/.xmonad/files_to_softlink/shell/config.fish .
-
-echo Initial git setup...
+ln -s ~/.xmonad/files_to_softlink/shell/fish/config.fish .
+ln -s ~/.xmonad/files_to_softlink/shell/fish/custom .
 cd $HOME
-git config --global core.excludesfile ~/.gitignore_global
+git_init_dir https://github.com/bpinto/oh-my-fish.git .oh-my-fish
 
 echo Preparing vim and plugins...
 mkdir -p .vim/bundle .vim/autoload .vim/colors
