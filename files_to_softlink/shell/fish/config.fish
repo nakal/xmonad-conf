@@ -57,16 +57,18 @@ function fish_prompt
 	echo -n -s "$__fish_prompt_prefix_color" "$USER" @ "$__fish_prompt_hostname" "$__fish_prompt_normal" ' ' "$__fish_prompt_cwd" (prompt_pwd) "$__fish_prompt_normal" ' > '
 end
 
-set __git_status_slow_repo_size "500000"
+set __git_status_slow_repo_size "2500"
 
 function get_git_status -d "Git status on the right side"
-	if command git rev-parse --is-inside-work-tree >/dev/null 2>&1
+
+	set -l is_git_workdir (command git rev-parse --is-inside-work-tree 2> /dev/null)
+	if [ "$is_git_workdir" = "true" ]
 
 		set -l curgitpath (command realpath (git rev-parse --git-dir))
 		set -l ref (command git symbolic-ref HEAD | sed  "s-refs/heads/--" | sed -e 's/^ *//' -e 's/ *$//' 2> /dev/null)
 
 		if [ "$__git_status_last_git_path" != "$curgitpath" ]
-			set -l reposize (command du -sk "$curgitpath" | sed 's/[^0-9].*//')
+			set -l reposize (command du -sk "$curgitpath/index" | sed 's/[^0-9].*//')
 			if test "$reposize" -lt "$__git_status_slow_repo_size"
 				set -l dirty (command git status -s -uno --ignore-submodules=dirty | wc -l | sed -e 's/^ *//' -e 's/ *$//' 2> /dev/null)
 				set -l uncommitted (command git status -s --ignore-submodules=dirty | egrep "^\?\? " | wc -l | sed -e 's/^ *//' -e 's/ *$//' 2> /dev/null)
