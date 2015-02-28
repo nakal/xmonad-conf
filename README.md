@@ -14,6 +14,7 @@ Included fine tuning has been done for (e.g.):
 
 * shells:
 	* fish
+		* managed by [oh-my-fish](https://github.com/bpinto/oh-my-fish)
 		* custom theme with Git integration
 	* tcsh
 * editors:
