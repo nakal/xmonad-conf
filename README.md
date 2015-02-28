@@ -14,6 +14,7 @@ Included fine tuning has been done for (e.g.):
 
 * shells:
 	* fish
+		* custom theme with Git integration
 	* tcsh
 * editors:
 	* vim
