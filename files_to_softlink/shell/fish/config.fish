@@ -8,16 +8,8 @@ set fish_custom $HOME/.config/fish/custom
 . $fish_path/oh-my-fish.fish
 
 # Aliases
-function l
-	ls -l $argv
-end
-
 function ...
 	cd ../..
-end
-
-function vi
-	vim $argv
 end
 
 # Environment

@@ -25,7 +25,9 @@ fi
 cd $HOME
 REMOVE_FILES=".cshrc .xinitrc .Xdefaults .gtkrc-2.0 .tmux.conf .indent.pro \
 	$HOME/.config/gtk-3.0/settings.ini .gitignore_global .gitconfig \
-	$HOME/.config/fish/config.fish $HOME/.config/fish/custom"
+	$HOME/.config/fish/config.fish $HOME/.config/fish/custom \
+	$HOME/.config/fish/functions \
+	"
 
 for df in $REMOVE_FILES; do
 	echo Checking dotfile: $df
@@ -61,6 +63,7 @@ mkdir -p $HOME/.config/fish
 cd $HOME/.config/fish
 ln -s ~/.xmonad/files_to_softlink/shell/fish/config.fish .
 ln -s ~/.xmonad/files_to_softlink/shell/fish/custom .
+ln -s ~/.xmonad/files_to_softlink/shell/fish/functions .
 cd $HOME
 git_init_dir https://github.com/bpinto/oh-my-fish.git .oh-my-fish
 
