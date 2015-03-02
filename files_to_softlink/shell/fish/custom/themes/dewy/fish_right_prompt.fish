@@ -9,7 +9,7 @@ function get_git_status -d "Git status on the right side"
 		set -l ref (command git symbolic-ref HEAD | sed  "s-refs/heads/--" | sed -e 's/^ *//' -e 's/ *$//' 2> /dev/null)
 
 		if [ "$__git_status_last_git_path" != "$curgitpath" ]
-			set -l reposize (command du -sk "$curgitpath/index" | sed 's/[^0-9].*//')
+			set -l reposize (command du -sk "$curgitpath/index" 2> /dev/null | sed 's/[^0-9].*//')
 			if test "$reposize" -lt "$__git_status_slow_repo_size"
 				set -l dirty (command git status -s -uno --ignore-submodules=dirty | wc -l | sed -e 's/^ *//' -e 's/ *$//' 2> /dev/null)
 				set -l uncommitted (command git status -s --ignore-submodules=dirty | egrep "^\?\? " | wc -l | sed -e 's/^ *//' -e 's/ *$//' 2> /dev/null)
