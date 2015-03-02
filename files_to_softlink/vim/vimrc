@@ -26,6 +26,7 @@ set nomodeline
 set noexpandtab
 set shiftwidth=8
 set tabstop=8
+set number
 
 set printdevice=192.168.0.50
 set printoptions=paper:a4
