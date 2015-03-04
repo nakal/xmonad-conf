@@ -1,0 +1,3 @@
+[submodule "shell-setup"]
+	path = shell-setup
+	url = git@github.com:nakal/shell-setup.git
