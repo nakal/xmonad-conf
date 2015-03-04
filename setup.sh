@@ -18,13 +18,10 @@ else
 	exit 1
 fi
 
-SHELL_SETUP="$SCRIPT_HOME/shell-setup/setup.sh"
-if [ -x "$SHELL_SETUP" ]; then
-	echo "Found submodule shell-setup. Very good."
-	$SHELL_SETUP
-else
-	echo "WARNING: Submodule shell-setup does not exist. Skipping."
-fi
+# Execute it first
+git submodule init
+git submodule update
+"$SHELL_SETUP_DIR/setup.sh"
 
 echo Checking packages...
 pkg info slim sudo gtk2 xterm xscreensaver \
