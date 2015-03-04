@@ -1,8 +1,30 @@
 #!/bin/sh
 
-echo Preparing shell-based access...
-THISDIR=`dirname $0`
-$THISDIR/bootstrap_shell_only.sh
+echo Looking for my installation directory...
+SCRIPT_HOME=`dirname $0`
+SCRIPT_HOME=`realpath "$SCRIPT_HOME"`
+XMONAD_HOME=`realpath "$HOME/.xmonad"`
+if [ "$SCRIPT_HOME" != "$XMONAD_HOME" ]; then
+	echo "The Xmonad project should be placed directly in\
+ your $XMONAD_HOME directory."
+	echo "Aborting."
+	exit 1
+fi
+
+if [ -x "$SCRIPT_HOME/setup.sh" ]; then
+	echo "Found myself in $SCRIPT_HOME, good."
+else
+	echo "Hmm, I cannot find my own directory. Giving up..."
+	exit 1
+fi
+
+SHELL_SETUP="$SCRIPT_HOME/shell-setup/setup.sh"
+if [ -x "$SHELL_SETUP" ]; then
+	echo "Found submodule shell-setup. Very good."
+	$SHELL_SETUP
+else
+	echo "WARNING: Submodule shell-setup does not exist. Skipping."
+fi
 
 echo Checking packages...
 pkg info slim sudo gtk2 xterm xscreensaver \
@@ -13,13 +35,13 @@ pkg info slim sudo gtk2 xterm xscreensaver \
 	xmodmap hsetroot \
 	> /dev/null
 if [ $? -ne 0 ]; then
-	echo "ERROR: Missing packages for bootstrap (for X)."
+	echo "ERROR: Missing packages for setup (for X)."
 	exit 1
 fi
 
 cd $HOME
 REMOVE_FILES=".xinitrc .Xdefaults .gtkrc-2.0 \
-	$HOME/.config/gtk-3.0/settings.ini \
+	.config/gtk-3.0/settings.ini \
 	"
 
 for df in $REMOVE_FILES; do
@@ -35,13 +57,13 @@ rm -f $REMOVE_FILES
 
 # prepare conf in user's home
 echo Reinstalling softlinks...
-ln -s ~/.xmonad/files_to_softlink/xsettings/.xinitrc .
-ln -s ~/.xmonad/files_to_softlink/xsettings/.Xdefaults .
-ln -s ~/.xmonad/files_to_softlink/xsettings/.gtkrc-2.0 .
+ln -s $SCRIPT_HOME/xsettings/.xinitrc .
+ln -s $SCRIPT_HOME/xsettings/.Xdefaults .
+ln -s $SCRIPT_HOME/xsettings/.gtkrc-2.0 .
 
 mkdir -p $HOME/.config/gtk-3.0
 cd $HOME/.config/gtk-3.0
-ln -s ~/.xmonad/files_to_softlink/xsettings/settings.ini .
+ln -s $SCRIPT_HOME/xsettings/settings.ini .
 
 cd $HOME
 echo Preparing xmonad...
@@ -50,7 +72,7 @@ xmonad --recompile
 echo "-----------------------------------------------------------------"
 echo "DONE!"
 echo "-----------------------------------------------------------------"
-echo "Don't forget to copy ~/.xmonad/files_to_softlink/xsettings/us_alt"
+echo "Don't forget to copy $SCRIPT_HOME/xkb/us_alt"
 echo "for keyboard bindings."
 echo "Also restart xmonad with:"
 echo "xmonad --restart"

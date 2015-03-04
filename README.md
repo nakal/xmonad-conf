@@ -12,18 +12,6 @@ configuration, but also some additional goodies for a usable desktop.
 
 Included fine tuning has been done for (e.g.):
 
-* shells:
-	* fish
-		* managed by [oh-my-fish](https://github.com/bpinto/oh-my-fish)
-		* custom theme with Git integration
-	* tcsh
-* editors:
-	* vim
-* version control system:
-	* git
-* utils:
-	* tmux
-	* indent
 * X settings:
 	* Xorg Xdefaults
 	* GTK+ 2 & 3
@@ -35,7 +23,7 @@ Included fine tuning has been done for (e.g.):
 ## Small warning
 
 First thing to note is that you probably don't want to simply take the setup as
-it is now.  Take a look what is started during X login. Comment everything out
+it is now.  Take a look what is started during X login. Comment out everything
 that you don't want. This might be, for example, my "weird keyboard layout"
 which makes a german keyboard to a better programmer's keyboard, but can be
 annoying for start when you don't understand my intentions (and did not look up
@@ -60,9 +48,9 @@ before doing any damage.
 For those who read the warnings above and have confidence that I am not
 doing any harm, proceed with these steps:
 
-0. **Make a backup of your dotfiles in $HOME**
+0. **Make a backup of your $HOME**
 1. Clone the project.
-2. Move the project right to `~/.xmonad`.
+2. Move the project files to `~/.xmonad`.
 3. When you have FreeBSD, you can directly execute the script
    `~/.xmonad/files_to_softlink/bootstrap.sh`. If not you will need
    to check the dependencies by yourself and comment out the
