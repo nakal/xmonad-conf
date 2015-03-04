@@ -52,7 +52,7 @@ doing any harm, proceed with these steps:
 1. Clone the project.
 2. Move the project files to `~/.xmonad`.
 3. When you have FreeBSD, you can directly execute the script
-   `~/.xmonad/files_to_softlink/bootstrap.sh`. If not you will need
+   `~/.xmonad/setup.sh`. If not you will need
    to check the dependencies by yourself and comment out the
    `pkg info` check at the beginning of the script.
 4. Optional: install the keyboard layout.
