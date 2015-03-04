@@ -46,6 +46,14 @@ ln -s ~/.xmonad/files_to_softlink/misc/.indent.pro .
 ln -s ~/.xmonad/files_to_softlink/git/.gitignore_global .
 ln -s ~/.xmonad/files_to_softlink/git/.gitconfig .
 
+echo Checking local tmux configuration...
+if [ -r "$HOME/.tmux.local" ]; then
+	echo "Already exists (skipping)."
+else
+	grep "set -g status-style " "$HOME/.tmux.conf" | sed 's/^/#/' > "$HOME/.tmux.local"
+	echo "-> Installed. You can change tmux status bar color there."
+fi
+
 echo Preparing fish shell...
 mkdir -p $HOME/.config/fish
 cd $HOME/.config/fish
