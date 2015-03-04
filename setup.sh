@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo Looking for my installation directory...
+echo "[Xmonad setup] Looking for my installation directory..."
 SCRIPT_HOME=`dirname $0`
 SCRIPT_HOME=`realpath "$SCRIPT_HOME"`
 XMONAD_HOME=`realpath "$HOME/.xmonad"`
@@ -19,11 +19,12 @@ else
 fi
 
 # Execute it first
+cd "$SCRIPT_HOME"
 git submodule init
 git submodule update
-"$SHELL_SETUP_DIR/setup.sh"
+"./shell-setup/setup.sh"
 
-echo Checking packages...
+echo "[Xmonad setup] Checking packages..."
 pkg info slim sudo gtk2 xterm xscreensaver \
 	hs-xmonad hs-network hs-xmonad-contrib \
 	firefox gimp libreoffice dmenu gmrun \
@@ -49,11 +50,11 @@ done
 
 # remove old stuff
 cd $HOME
-echo Removing old softlinks...
+echo "[Xmonad setup] Removing old softlinks..."
 rm -f $REMOVE_FILES
 
 # prepare conf in user's home
-echo Reinstalling softlinks...
+echo "[Xmonad setup] Reinstalling softlinks..."
 ln -s $SCRIPT_HOME/xsettings/.xinitrc .
 ln -s $SCRIPT_HOME/xsettings/.Xdefaults .
 ln -s $SCRIPT_HOME/xsettings/.gtkrc-2.0 .
@@ -67,11 +68,12 @@ echo Preparing xmonad...
 xmonad --recompile
 
 echo "-----------------------------------------------------------------"
-echo "DONE!"
+echo "[Xmonad setup] Finished successfully."
 echo "-----------------------------------------------------------------"
 echo "Don't forget to copy $SCRIPT_HOME/xkb/us_alt"
 echo "for keyboard bindings."
 echo "Also restart xmonad with:"
 echo "xmonad --restart"
 echo "-----------------------------------------------------------------"
+
 exit 0
