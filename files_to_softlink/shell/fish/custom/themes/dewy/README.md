@@ -18,5 +18,6 @@ some annoyances.
 	* Shows -number in green for branch that is ahead.
 	* Shows branch in cyan without status info, if the repository would
 		slow down the prompt too much.
+	* Shows pink branch name while rebase is in progress
 
 [screenshot]: https://lh3.googleusercontent.com/-RCKrxVbW7uk/VPD97XVYhLI/AAAAAAAAGNo/JmP7KsQNc4o/w732-h84-no/fish_dewy_theme.png

@@ -6,7 +6,8 @@ function get_git_status -d "Git status on the right side"
 	if [ "$is_git_workdir" = "true" ]
 
 		set -l curgitpath (command realpath (git rev-parse --git-dir))
-		set -l ref (command git symbolic-ref HEAD | sed  "s-refs/heads/--" | sed -e 's/^ *//' -e 's/ *$//' 2> /dev/null)
+		set -l ref (command git symbolic-ref -q HEAD | sed  "s-refs/heads/--" | sed -e 's/^ *//' -e 's/ *$//')
+		test -d "$curgitpath/rebase-apply"; and set -l rebasing "1"
 
 		if [ "$__git_status_last_git_path" != "$curgitpath" ]
 			set -l reposize (command du -sk "$curgitpath/index" 2> /dev/null | sed 's/[^0-9].*//')
@@ -37,6 +38,12 @@ function get_git_status -d "Git status on the right side"
 						set_color -b 666
 					end
 					set_color white
+				end
+
+				if [ "$rebasing" = "1" ]
+					set_color -b c46
+					set_color white
+					set ref (basename (cat "$curgitpath/rebase-apply/head-name"))
 				end
 			else
 				set -g __git_status_last_git_path "$curgitpath"
