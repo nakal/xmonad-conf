@@ -5,8 +5,14 @@ git_init_dir()
 {
 	REPOPATH="$1"
 	REPODIR="$2"
-	test -d "$REPODIR" && git pull
-	test -d "$REPODIR" || git clone "$REPOPATH" "$REPODIR"
+	if [ -d "$REPODIR" ]; then
+		OLDDIR=`pwd`
+		cd "$REPODIR"
+		git pull
+		cd "$OLDDIR"
+	else
+		git clone "$REPOPATH" "$REPODIR"
+	fi
 }
 
 echo Checking packages...
