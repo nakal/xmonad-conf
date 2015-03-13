@@ -102,7 +102,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- launch vim (in various ways, with most common uses)
     , ((modm,			xK_v     ), spawn $ (XMonad.terminal conf) ++ " -e tcsh -c 'vim -c \"CtrlP\"'")
     , ((modm .|. shiftMask,	xK_v     ), spawn $ (XMonad.terminal conf) ++ " -e vim ~/.vim/vimrc")
-    , ((modm .|. controlMask,	xK_v     ), spawn $ "cd ~/src/nid-prototype ; " ++ (XMonad.terminal conf) ++ " -e tcsh 'vim -c \"CtrlP\"'")
+    , ((modm .|. controlMask,	xK_v     ), spawn $ "cd ~/src/nid-prototype ; " ++ (XMonad.terminal conf) ++ " -e tcsh -c 'vim -c \"CtrlP\"'")
     , ((modm .|. shiftMask,	xK_x     ), spawn $ (XMonad.terminal conf) ++ " -e vim ~/.xmonad/xmonad.hs")
     , ((modm,	xK_i     ), spawn $ (XMonad.terminal conf) ++ " -title weechat -e sh -c 'tmux has-session -t weechat && tmux attach-session -d -t weechat || tmux -2 new-session -s weechat weechat'" )
 
