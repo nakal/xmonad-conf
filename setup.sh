@@ -20,21 +20,29 @@ fi
 
 # Execute it first
 cd "$SCRIPT_HOME"
-git submodule init
+SHELLSETUP="./shell-setup/setup.sh"
+if [ ! -x "$SHELLSETUP" ]; then
+	git submodule init
+fi
 git submodule update
-"./shell-setup/setup.sh"
+$SHELLSETUP
 
-echo "[Xmonad setup] Checking packages..."
-pkg info slim sudo gtk2 xterm xscreensaver \
-	hs-xmonad hs-network hs-xmonad-contrib \
-	firefox gimp libreoffice dmenu gmrun \
-	dzen2 weechat-devel zenity claws-mail \
-	gtk-oxygen-engine xrdb xsetroot setxkbmap gnupg \
-	xmodmap hsetroot inconsolata-ttf \
-	> /dev/null
-if [ $? -ne 0 ]; then
-	echo "ERROR: Missing packages for setup (for X)."
-	exit 1
+OS=`uname -s`
+if [ "$OS" = "FreeBSD" ]; then
+	echo "[Xmonad setup] Checking packages..."
+	pkg info slim sudo gtk2 xterm xscreensaver \
+		hs-xmonad hs-network hs-xmonad-contrib \
+		firefox gimp libreoffice dmenu gmrun \
+		dzen2 weechat-devel zenity claws-mail \
+		gtk-oxygen-engine xrdb xsetroot setxkbmap gnupg \
+		xmodmap hsetroot inconsolata-ttf \
+		> /dev/null
+	if [ $? -ne 0 ]; then
+		echo "ERROR: Missing packages for setup (for X)."
+		exit 1
+	fi
+else
+	echo "[Xmonad setup] WARNING: Skipped checking packages..."
 fi
 
 cd $HOME
