@@ -25,7 +25,7 @@ if [ ! -x "$SHELLSETUP" ]; then
 	git submodule init
 fi
 git submodule update
-$SHELLSETUP || echo "Submodule shell-setup failed. Aborting." && exit 1
+$SHELLSETUP || (echo "Submodule shell-setup failed. Aborting." && exit 1)
 
 OS=`uname -s`
 if [ "$OS" = "FreeBSD" ]; then
