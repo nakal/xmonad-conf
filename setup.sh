@@ -2,8 +2,8 @@
 
 echo "[Xmonad setup] Looking for my installation directory..."
 SCRIPT_HOME=`dirname $0`
-SCRIPT_HOME=`realpath "$SCRIPT_HOME"`
-XMONAD_HOME=`realpath "$HOME/.xmonad"`
+SCRIPT_HOME=`readlink -f "$SCRIPT_HOME"`
+XMONAD_HOME=`readlink -f "$HOME/.xmonad"`
 if [ "$SCRIPT_HOME" != "$XMONAD_HOME" ]; then
 	echo "The Xmonad project should be placed directly in\
  your $XMONAD_HOME directory."
