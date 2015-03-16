@@ -45,6 +45,24 @@ else
 	echo "[Xmonad setup] WARNING: Skipped checking packages..."
 fi
 
+echo "[Xmonad setup] Checking software capabilities..."
+echo "Checking xmonad..."
+xmonad --version | egrep -q "xmonad 0.11"
+if [ $? -ne 0 ]; then
+	echo "*** need Xmonad 0.11."
+	exit 1
+else
+	echo "-> Xmonad is ok, good."
+fi
+echo "Checking dzen2..."
+dzen2 -v | grep -q XFT
+if [ $? -ne 0 ]; then
+	echo "*** dzen2 appears to be too old and does not support XFT."
+	exit 1
+else
+	echo "-> XFT found, good."
+fi
+
 cd $HOME
 REMOVE_FILES=".xinitrc .Xdefaults .gtkrc-2.0 \
 	.config/gtk-3.0/settings.ini \
