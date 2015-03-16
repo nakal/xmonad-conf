@@ -30,7 +30,7 @@ pkg info slim sudo gtk2 xterm xscreensaver \
 	firefox gimp libreoffice dmenu gmrun \
 	dzen2 weechat-devel zenity claws-mail \
 	gtk-oxygen-engine xrdb xsetroot setxkbmap gnupg \
-	xmodmap hsetroot \
+	xmodmap hsetroot inconsolata-ttf \
 	> /dev/null
 if [ $? -ne 0 ]; then
 	echo "ERROR: Missing packages for setup (for X)."

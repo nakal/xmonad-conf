@@ -2,8 +2,8 @@
 ! ******************** xterm settings ********************
 
 xterm*renderFont: true
-xterm*faceName: Droid Sans Mono:normal
-xterm*faceSize: 11
+xterm*faceName: Inconsolata
+xterm*faceSize: 13
 xterm*locale: UTF-8
 xterm*dynamicColors: true
 xterm*saveLines: 1024
