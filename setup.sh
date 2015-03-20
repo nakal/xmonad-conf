@@ -23,8 +23,12 @@ cd "$SCRIPT_HOME"
 SHELLSETUP="./shell-setup/setup.sh"
 if [ ! -x "$SHELLSETUP" ]; then
 	git submodule init
+	git submodule update
+else
+	cd ./shell-setup
+	git pull
+	cd "$SCRIPT_HOME"
 fi
-git submodule update
 $SHELLSETUP || (echo "Submodule shell-setup failed. Aborting." && exit 1)
 
 OS=`uname -s`
