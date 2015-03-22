@@ -1,10 +1,12 @@
 
 import Control.Concurrent
 import Data.Char
+import Data.Time
 import System.Environment
 import System.Process
 import System.IO
 import Text.Printf
+import RandR
 
 type CPUUsed = Int
 type CPUTotal = Int
@@ -62,10 +64,15 @@ getMemLoad = do
 getNetLoad :: String -> IO NetLoad
 getNetLoad iface = do
         str <- readProcess "/usr/bin/netstat" ["-i", "-I", iface, "-bW"] []
-        let rr = words $ head $ tail $ lines str
-            rx = read $ rr !! 7
-            tx = read $ rr !! 10
-        return $ NetLoad rx tx
+        let ls = tail $ lines str
+        if (null ls) then
+                return $ NetLoad 0 0
+                else
+                        let rr = words $ head ls
+                            rx = read $ rr !! 7
+                            tx = read $ rr !! 10
+                        in
+                                return $ NetLoad rx tx
 
 getCPUPercent :: (CPULoad,CPULoad) -> Int
 getCPUPercent (CPULoad oldused oldtotal, CPULoad curused curtotal) =
@@ -134,8 +141,8 @@ displayStats dzen cpu coreloads mem (net_rx,net_tx) homedir = do
                 "^fg(yellow) ^pa(460) " ++ datestr
         hFlush dzen
 
-gatherLoop :: Handle -> CPULoad -> [ CPULoad ] -> NetLoad -> FilePath -> String -> IO()
-gatherLoop dzen lastcpu lastcoreloads lastnet homedir iface = do
+gatherLoop :: Handle -> (TimeZone, Double, Double) -> [ XRandrOutput ] -> CPULoad -> [ CPULoad ] -> NetLoad -> FilePath -> String -> IO()
+gatherLoop dzen (tz, long, lat) x_Outputs lastcpu lastcoreloads lastnet homedir iface = do
         cpuload <- getCPULoad
         coreloads <- allCoreLoads
         mem <- fmap getMemPercent getMemLoad
@@ -143,20 +150,30 @@ gatherLoop dzen lastcpu lastcoreloads lastnet homedir iface = do
         displayStats dzen (getCPUPercent (lastcpu,cpuload))
                 (getBusyCPUs (lastcoreloads,coreloads)) mem
                 (getNetSpeeds (lastnet, netload)) homedir
+        if (long >= -180.0 && lat >= -180.0) then
+                updateDisplayLevel tz long lat x_Outputs
+                else
+                        return ()
         threadDelay 1000000
-        gatherLoop dzen cpuload coreloads netload homedir iface
+        gatherLoop dzen (tz, long, lat) x_Outputs cpuload coreloads netload homedir iface
 
-startFreeBSD :: FilePath -> String -> IO()
-startFreeBSD homedir iface = do
+startFreeBSD :: FilePath -> String -> Double -> Double -> IO()
+startFreeBSD homedir iface long lat = do
          -- setEnv "LC_NUMERIC" "C"
+         x_Outputs <- xRandrOutputs
+         tz <- getCurrentTimeZone
          cpuinit <- getCPULoad
          coreloadsinit <- allCoreLoads
          netinit <- getNetLoad iface
-         gatherLoop stdout cpuinit coreloadsinit netinit homedir iface
+         gatherLoop stdout (tz, long, lat) x_Outputs cpuinit coreloadsinit netinit homedir iface
 
 main :: IO()
 main = do
         args <- getArgs
         case args of
-                [ homedir, iface ]      ->      startFreeBSD homedir iface
+                [ homedir, iface, longitude, latitude ]
+                        -> do
+                                let long = - (read longitude :: Double)
+                                    lat = read latitude :: Double
+                                startFreeBSD homedir iface long lat
                 _       -> error "Error in parameters."

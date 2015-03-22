@@ -1,5 +1,8 @@
 
-module SysInfo.StatusBar where
+module SysInfo.StatusBar
+        (startStatusBar
+        )
+        where
 
 import Data.Char
 import HostConfiguration

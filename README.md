@@ -3,9 +3,6 @@
 ![Desktop screenshot](https://lh5.googleusercontent.com/-RItTC_wfR6Q/VOwiuFmwLXI/AAAAAAAAGM8/yfyCwRaiq5s/w862-h485-no/xmonad-desktop.png)
 
 [Xmonad](http://xmonad.org/) is a minimalistic tiled window manager for Xorg.
-To configure it, you need some [Haskell](http://haskel.org/) knowledge. It is
-a good idea to learn some Haskell basics before using Xmonad. Sooner or later
-you would like to make adaptations which are not solved by guessing the syntax.
 
 Please be aware that this repository does not just host an Xmonad
 configuration, but also some additional goodies for a usable desktop.
@@ -16,39 +13,30 @@ Included fine tuning has been done for (e.g.):
 	* Xorg Xdefaults
 	* GTK+ 2 & 3
 	* dzen2
+		* improved configuration for `FreeBSD`
+			* Circadian rhythm support
 * login manager:
 	* slim
 	* session management
 
 ## Small warning
 
-First thing to note is that you probably don't want to simply take the setup as
-it is now.  Take a look what is started during X login. Comment out everything
-that you don't want. This might be, for example, my "weird keyboard layout"
-which makes a german keyboard to a better programmer's keyboard, but can be
-annoying for start when you don't understand my intentions (and did not look up
-what the layout actually does). I will talk about this below.
-
-**Please be careful using this project. I cannot be hold responsible for any
-damages that might occur. If you are not sure, STOP and DON'T USE anything
-here.**
+The setup script used here will modify configurations and startup files
+in your home directory. Please be aware of this fact!
 
 I tried my best to avoid dangerous operations during the setup and operation
 phases (see below), but I cannot tell for sure if there are systems or hosts
 that can be damaged by the actions executed there.
 
-**TAKE A GOOD LOOK WHAT IS BEING DONE AND MAKE SURE THAT EVERYTHING IS
-REASONABLE IN YOUR CASE! AND I MEAN E-V-E-R-Y-T-H-I-N-G!!**
+When you start `setup.sh`, it will perform many safety checks not to destroy
+important data.
 
 ## Installation instructions
-
-If, at this point, you already don't understand something, give up please
-before doing any damage.
 
 For those who read the warnings above and have confidence that I am not
 doing any harm, proceed with these steps:
 
-0. **Make a backup of your $HOME**
+0. **Make a backup of your $HOME** (optional, but you never know!)
 1. Clone the project.
 2. Move the project files to `~/.xmonad`.
 3. When you have FreeBSD, you can directly execute the script
@@ -81,9 +69,17 @@ This configuration will make 9 desktops with the given names. It will take
 `em0` as the interface to watch network load and on startup it will also
 start firefox and claws-mail. It will also set the wallpaper with the
 given arguments (just so you can see how to pass arguments).
+The first and second option sets the geological position, it will be
+used to eliminate
+[the blue screen effect at night](https://en.wikipedia.org/wiki/Light_effects_on_circadian_rhythm)
+to respect your
+circadian rhythm. The screen will turn yellowish, when the night comes. If you
+don't like it, set both values to `-200.0`.
 
 ```
 HostConfiguration {
+        longitude = 10.447683333333,
+        latitude = 51.163375,
         workspaceNames = [ "web","com","dev","gfx","ofc","","irc","",""],
         netInterfaceName = "em0",
         autostartPrograms = [
@@ -102,6 +98,8 @@ Read/Show) or it will be safely skipped and the defaults will be used.
 It looks like this:
 ```
 defaultHostConfiguration = HostConfiguration {
+        longitude = -200.0,
+        latitude = -200.0,
         workspaceNames = ["web","com","dev","gfx","ofc","","irc","",""],
         netInterfaceName = "re0",
         autostartPrograms = []
