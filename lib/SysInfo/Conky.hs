@@ -3,6 +3,7 @@ module SysInfo.Conky where
 
 import Dzen.Tools
 import HostConfiguration
+import SysInfo.StatusBarType
 import System.IO
 import XMonad
 
@@ -32,12 +33,12 @@ writeConkyConf width homedir netif =
 				panelLine width homedir netif
 			]
 
-startConky :: String -> Int -> HostConfiguration -> X()
+startConky :: String -> Int -> HostConfiguration -> X StatusBarType
 startConky homedir screenwidth conf = do
         io $ hPutStrLn stderr "Using conky for this system."
         io $ writeConkyConf (myStatusBarWidth screenwidth) homedir (netInterfaceName conf)
         spawn (myStatusBar homedir screenwidth)
-        return ()
+        return ConkyBar
 
 -- right hand side, resources, date, time
 myStatusBar :: String -> Int -> String

@@ -36,6 +36,7 @@ import qualified Data.Map        as M
 import Dzen.Tools
 import HostConfiguration
 import SysInfo.StatusBar
+import SysInfo.StatusBarType
 
 -- xterm as default terminal in Xmonad
 myTerminal      = "xterm"
@@ -108,6 +109,16 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
     -- screensaver
     , ((mod1Mask .|. controlMask, xK_l     ), spawn "xscreensaver-command -lock")
+
+    , ((modm, xK_BackSpace     ),
+                do
+                        sb <- statusBarGet
+                        spawn $ "xmessage " ++ (
+                                case sb of
+                                        FreeBSDBar ->     "freebsd"
+                                        _          ->     "none"
+                                )
+        )
 
     -- shutdown
     , ((modm .|. shiftMask, xK_BackSpace),
@@ -363,7 +374,8 @@ xconfig conf dzenbar homedir screenwidth = defaultConfig
 -- startup hook reading and executing .startup file
 startup :: FilePath -> Int -> HostConfiguration -> X()
 startup homedir screenwidth conf = do
-        startStatusBar homedir screenwidth conf
+        statusbartype <- startStatusBar homedir screenwidth conf
+        statusBarPut statusbartype
         autostartAllPrograms $ autostartPrograms conf
         return ()
 

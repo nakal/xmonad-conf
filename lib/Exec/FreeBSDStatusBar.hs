@@ -3,10 +3,13 @@ import Control.Concurrent
 import Data.Char
 import Data.Time
 import System.Environment
+import System.Exit
+import System.Posix.Signals
 import System.Process
 import System.IO
 import Text.Printf
 import RandR
+import Command.CommandPipe
 
 type CPUUsed = Int
 type CPUTotal = Int
@@ -141,8 +144,8 @@ displayStats dzen cpu coreloads mem (net_rx,net_tx) homedir = do
                 "^fg(yellow) ^pa(460) " ++ datestr
         hFlush dzen
 
-gatherLoop :: Handle -> (TimeZone, Double, Double) -> [ XRandrOutput ] -> CPULoad -> [ CPULoad ] -> NetLoad -> FilePath -> String -> IO()
-gatherLoop dzen (tz, long, lat) x_Outputs lastcpu lastcoreloads lastnet homedir iface = do
+gatherLoop :: Handle -> FilePath -> (TimeZone, Double, Double) -> [ XRandrOutput ] -> CPULoad -> [ CPULoad ] -> NetLoad -> FilePath -> String -> IO()
+gatherLoop dzen cmdpipe (tz, long, lat) x_Outputs lastcpu lastcoreloads lastnet homedir iface = do
         cpuload <- getCPULoad
         coreloads <- allCoreLoads
         mem <- fmap getMemPercent getMemLoad
@@ -154,18 +157,39 @@ gatherLoop dzen (tz, long, lat) x_Outputs lastcpu lastcoreloads lastnet homedir 
                 updateDisplayLevel tz long lat x_Outputs
                 else
                         return ()
+        pollCommands cmdpipe
         threadDelay 1000000
-        gatherLoop dzen (tz, long, lat) x_Outputs cpuload coreloads netload homedir iface
+        gatherLoop dzen cmdpipe (tz, long, lat) x_Outputs cpuload coreloads netload homedir iface
 
-startFreeBSD :: FilePath -> String -> Double -> Double -> IO()
-startFreeBSD homedir iface long lat = do
+startFreeBSD :: FilePath -> String -> Double -> Double -> FilePath -> IO()
+startFreeBSD homedir iface long lat pipe = do
          -- setEnv "LC_NUMERIC" "C"
          x_Outputs <- xRandrOutputs
          tz <- getCurrentTimeZone
          cpuinit <- getCPULoad
          coreloadsinit <- allCoreLoads
          netinit <- getNetLoad iface
-         gatherLoop stdout (tz, long, lat) x_Outputs cpuinit coreloadsinit netinit homedir iface
+         gatherLoop stdout pipe (tz, long, lat) x_Outputs cpuinit coreloadsinit netinit homedir iface
+
+pipeFileName :: FilePath -> FilePath
+pipeFileName homedir =  homedir ++ "/.xmonad/cmdpipe"
+
+pollCommands :: FilePath -> IO ()
+pollCommands pipe = do
+        cmd <- getPipeCommandLine pipe
+        case cmd of
+                Just cmd -> hPutStrLn stderr $ "FreeBSDStatusBar received command \"" ++ cmd ++ "\""
+                _ -> return ()
+
+installSignals :: FilePath -> IO ()
+installSignals pipe = do
+        ppid <- myThreadId
+        mapM_ (\sig -> installHandler sig (Catch $ trap ppid pipe) Nothing)
+                [ lostConnection, keyboardSignal, softwareTermination, openEndedPipe ]
+
+trap tid pipe = do
+        deleteNamedPipe pipe
+        throwTo tid ExitSuccess
 
 main :: IO()
 main = do
@@ -175,5 +199,8 @@ main = do
                         -> do
                                 let long = - (read longitude :: Double)
                                     lat = read latitude :: Double
-                                startFreeBSD homedir iface long lat
+                                    pipe = pipeFileName homedir
+                                installSignals pipe
+                                makeNamedPipe pipe
+                                startFreeBSD homedir iface long lat pipe
                 _       -> error "Error in parameters."
