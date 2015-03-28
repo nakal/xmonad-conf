@@ -33,6 +33,7 @@ import XMonad.Actions.CycleWS
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
+import Command.CommandPipe
 import Dzen.Tools
 import HostConfiguration
 import SysInfo.StatusBar
@@ -110,15 +111,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- screensaver
     , ((mod1Mask .|. controlMask, xK_l     ), spawn "xscreensaver-command -lock")
 
-    , ((modm, xK_BackSpace     ),
-                do
-                        sb <- statusBarGet
-                        spawn $ "xmessage " ++ (
-                                case sb of
-                                        FreeBSDBar ->     "freebsd"
-                                        _          ->     "none"
-                                )
-        )
+    , ((modm, xK_BackSpace     ), sendCommandToPipe "test")
 
     -- shutdown
     , ((modm .|. shiftMask, xK_BackSpace),
@@ -226,6 +219,27 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
         , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 
+
+sendCommandToPipe :: String -> X()
+sendCommandToPipe cmd = do
+        sb <- statusBarGet
+        case gettype sb of
+                FreeBSDBar ->
+                        do
+                                h <- getPipeHandle
+                                io $ sendPipeCommandLine h cmd
+                _          ->     return ()
+
+getPipeHandle :: X Handle
+getPipeHandle = do
+        sb <- statusBarGet
+        case gethandle sb of
+                Just h  ->      return h
+                Nothing ->
+                        do
+                                h <- io $ connectCommandPipe $ getpath sb
+                                statusBarSetHandle sb h
+                                return h
 
 ------------------------------------------------------------------------
 -- Mouse bindings: default actions bound to mouse events
@@ -375,7 +389,7 @@ xconfig conf dzenbar homedir screenwidth = defaultConfig
 startup :: FilePath -> Int -> HostConfiguration -> X()
 startup homedir screenwidth conf = do
         statusbartype <- startStatusBar homedir screenwidth conf
-        statusBarPut statusbartype
+        statusBarPut $ StatusBarStatus statusbartype Nothing (pipeFileName homedir)
         autostartAllPrograms $ autostartPrograms conf
         return ()
 

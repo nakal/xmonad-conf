@@ -144,7 +144,7 @@ displayStats dzen cpu coreloads mem (net_rx,net_tx) homedir = do
                 "^fg(yellow) ^pa(460) " ++ datestr
         hFlush dzen
 
-gatherLoop :: Handle -> FilePath -> (TimeZone, Double, Double) -> [ XRandrOutput ] -> CPULoad -> [ CPULoad ] -> NetLoad -> FilePath -> String -> IO()
+gatherLoop :: Handle -> Handle -> (TimeZone, Double, Double) -> [ XRandrOutput ] -> CPULoad -> [ CPULoad ] -> NetLoad -> FilePath -> String -> IO()
 gatherLoop dzen cmdpipe (tz, long, lat) x_Outputs lastcpu lastcoreloads lastnet homedir iface = do
         cpuload <- getCPULoad
         coreloads <- allCoreLoads
@@ -157,9 +157,13 @@ gatherLoop dzen cmdpipe (tz, long, lat) x_Outputs lastcpu lastcoreloads lastnet 
                 updateDisplayLevel tz long lat x_Outputs
                 else
                         return ()
-        pollCommands cmdpipe
-        threadDelay 1000000
-        gatherLoop dzen cmdpipe (tz, long, lat) x_Outputs cpuload coreloads netload homedir iface
+        pipe_still_open <- pollCommands cmdpipe
+        if pipe_still_open
+                then do
+                        threadDelay 1000000
+                        gatherLoop dzen cmdpipe (tz, long, lat) x_Outputs cpuload coreloads netload homedir iface
+                else
+                        return ()
 
 startFreeBSD :: FilePath -> String -> Double -> Double -> FilePath -> IO()
 startFreeBSD homedir iface long lat pipe = do
@@ -169,17 +173,19 @@ startFreeBSD homedir iface long lat pipe = do
          cpuinit <- getCPULoad
          coreloadsinit <- allCoreLoads
          netinit <- getNetLoad iface
-         gatherLoop stdout pipe (tz, long, lat) x_Outputs cpuinit coreloadsinit netinit homedir iface
+         h <- bindCommandPipe pipe
+         gatherLoop stdout h (tz, long, lat) x_Outputs cpuinit coreloadsinit netinit homedir iface
 
-pipeFileName :: FilePath -> FilePath
-pipeFileName homedir =  homedir ++ "/.xmonad/cmdpipe"
-
-pollCommands :: FilePath -> IO ()
-pollCommands pipe = do
-        cmd <- getPipeCommandLine pipe
-        case cmd of
-                Just cmd -> hPutStrLn stderr $ "FreeBSDStatusBar received command \"" ++ cmd ++ "\""
-                _ -> return ()
+pollCommands :: Handle -> IO Bool
+pollCommands h = do
+        (cmd, eof) <- getPipeCommandLine h
+        case (cmd,eof) of
+                (Nothing,True)  ->
+                        do
+                                hClose h
+                                return False
+                (Just cmd,False) -> hPutStrLn stderr ("FreeBSDStatusBar received command \"" ++ cmd ++ "\"") >> return True
+                _ -> return True
 
 installSignals :: FilePath -> IO ()
 installSignals pipe = do
@@ -203,4 +209,5 @@ main = do
                                 installSignals pipe
                                 makeNamedPipe pipe
                                 startFreeBSD homedir iface long lat pipe
+                                deleteNamedPipe pipe
                 _       -> error "Error in parameters."
