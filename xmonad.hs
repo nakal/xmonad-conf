@@ -111,7 +111,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- screensaver
     , ((mod1Mask .|. controlMask, xK_l     ), spawn "xscreensaver-command -lock")
 
-    , ((modm, xK_BackSpace     ), sendCommandToPipe "test")
+    , ((modm, xK_BackSpace     ), sendCommandToPipe "shade_toggle")
 
     -- shutdown
     , ((modm .|. shiftMask, xK_BackSpace),

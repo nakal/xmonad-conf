@@ -3,6 +3,10 @@ module RandR
         (updateDisplayLevel
         ,xRandrOutputs
         ,XRandrOutput
+        ,RandRState(RandRState,active,level)
+        ,DisplayState
+        ,randRInitState
+        ,randRInitNopState
         )
         where
 
@@ -10,6 +14,8 @@ import Data.Time.Horizon
 import Data.Time
 import Data.Time.LocalTime
 import System.Process
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.State
 
 {-
  - night:       0.4 (>1h before sunrise)
@@ -33,6 +39,27 @@ eveningDuration = 30
 
 type XRandrOutput = String
 
+data RandRState = RandRState
+        {active :: Bool
+        ,level :: Int
+--        ,outputs :: [ XRandrOutput ]
+--        ,timezone :: TimeZone
+--        ,longitude :: LongitudeWest
+--        ,latitude :: LatitudeNorth
+        }
+
+type DisplayState = StateT RandRState IO
+
+randRInitState = RandRState
+        {active = True
+        ,level = 10
+        }
+
+randRInitNopState = RandRState
+        {active = False
+        ,level = 10
+        }
+
 dayMinutes :: LocalTime -> Int
 dayMinutes time =
         let tod = localTimeOfDay time
@@ -46,18 +73,25 @@ getSunTime tz long lat time f =
         locTim $ f (localDay $ locTim time) long lat
         where locTim = utcToLocalTime tz
 
-getLightLevel :: (Int, Int, Int) -> Int
-getLightLevel (now, daystart, dayend)
+getLightLevel :: Bool -> (Int, Int, Int) -> Int
+getLightLevel active (now, daystart, dayend)
+        | not active                    = 10
         | now < daystart + morningTime  = 4
         | now < daystart                = 10 - div ((daystart - now) * 6) morningDuration
         | now > dayend + eveningTime + eveningDuration = 4
         | now > dayend + eveningTime    = 4 + div ((dayend + eveningTime + eveningDuration - now) * 6) eveningDuration
         | otherwise                     = 10
 
-xRandrSetLevel :: Int -> String -> IO ()
-xRandrSetLevel lev x_out = do
-        rawSystem "xrandr" [ "--output", x_out, "--gamma", "1:1:" ++
-                (level_str lev), "--brightness", level_str lev ] >>= \_ -> return ()
+xRandrSetLevel :: Int -> String -> DisplayState ()
+xRandrSetLevel slev x_out = do
+        s <- get
+        let lev = if active s then slev else 10
+        if level s /= lev
+                then do
+                        lift $ rawSystem "xrandr" [ "--output", x_out, "--gamma", "1:1:" ++
+                                (level_str lev), "--brightness", level_str lev ]
+                        put $ RandRState { active = active s, level = lev }
+                else return ()
         where level_str lev
                 | lev >= 10     = "1.0"
                 | otherwise     = "0." ++ show lev
@@ -70,13 +104,17 @@ xRandrOutputs = do
                 co = fmap (\ws -> (head ws, ws !! 1)) fl
         return $ fmap fst $ filter (\p -> (==) "connected" (snd p)) co
 
-updateDisplayLevel :: TimeZone -> LongitudeWest -> LatitudeNorth -> [ XRandrOutput ] -> IO ()
+-- updateDisplayLevel :: TimeZone -> LongitudeWest -> LatitudeNorth -> [ XRandrOutput ] -> IO ()
+updateDisplayLevel :: TimeZone -> LongitudeWest -> LatitudeNorth -> [ XRandrOutput ] -> DisplayState RandRState
 updateDisplayLevel tz long lat x_Outputs = do
-        now <- getCurrentTime
+        now <- lift $ getCurrentTime
         let localtime = utcToLocalTime tz now
         let [ sunrise_time, sunset_time ] =
                 fmap (dayMinutes . getSunTime tz long lat now) [ sunrise, sunset ]
-        mapM_ (xRandrSetLevel $ getLightLevel (dayMinutes localtime, sunrise_time, sunset_time)) x_Outputs
+        state <- get
+        let lev = getLightLevel (active state) (dayMinutes localtime, sunrise_time, sunset_time)
+        mapM_ (xRandrSetLevel $ lev) x_Outputs
+        get
 
 -- main = do
 --         tz <- getCurrentTimeZone

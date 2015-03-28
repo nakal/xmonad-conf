@@ -10,6 +10,8 @@ import System.IO
 import Text.Printf
 import RandR
 import Command.CommandPipe
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.State
 
 type CPUUsed = Int
 type CPUTotal = Int
@@ -144,8 +146,9 @@ displayStats dzen cpu coreloads mem (net_rx,net_tx) homedir = do
                 "^fg(yellow) ^pa(460) " ++ datestr
         hFlush dzen
 
-gatherLoop :: Handle -> Handle -> (TimeZone, Double, Double) -> [ XRandrOutput ] -> CPULoad -> [ CPULoad ] -> NetLoad -> FilePath -> String -> IO()
-gatherLoop dzen cmdpipe (tz, long, lat) x_Outputs lastcpu lastcoreloads lastnet homedir iface = do
+gatherLoop :: Handle -> Handle -> (TimeZone, Double, Double) -> [ XRandrOutput ] -> CPULoad -> [ CPULoad ]
+        -> NetLoad -> FilePath -> String -> RandRState -> IO()
+gatherLoop dzen cmdpipe (tz, long, lat) x_Outputs lastcpu lastcoreloads lastnet homedir iface randrstate = do
         cpuload <- getCPULoad
         coreloads <- allCoreLoads
         mem <- fmap getMemPercent getMemLoad
@@ -153,15 +156,12 @@ gatherLoop dzen cmdpipe (tz, long, lat) x_Outputs lastcpu lastcoreloads lastnet 
         displayStats dzen (getCPUPercent (lastcpu,cpuload))
                 (getBusyCPUs (lastcoreloads,coreloads)) mem
                 (getNetSpeeds (lastnet, netload)) homedir
-        if (long >= -180.0 && lat >= -180.0) then
-                updateDisplayLevel tz long lat x_Outputs
-                else
-                        return ()
-        pipe_still_open <- pollCommands cmdpipe
+        s <- evalStateT (updateDisplayLevel tz long lat x_Outputs) randrstate
+        (pipe_still_open, ns) <- runStateT (pollCommands cmdpipe) s
         if pipe_still_open
                 then do
                         threadDelay 1000000
-                        gatherLoop dzen cmdpipe (tz, long, lat) x_Outputs cpuload coreloads netload homedir iface
+                        gatherLoop dzen cmdpipe (tz, long, lat) x_Outputs cpuload coreloads netload homedir iface ns
                 else
                         return ()
 
@@ -174,18 +174,26 @@ startFreeBSD homedir iface long lat pipe = do
          coreloadsinit <- allCoreLoads
          netinit <- getNetLoad iface
          h <- bindCommandPipe pipe
-         gatherLoop stdout h (tz, long, lat) x_Outputs cpuinit coreloadsinit netinit homedir iface
+         let initstate = if (long >= -180.0 && lat >= -180.0) then randRInitState else randRInitNopState
+         gatherLoop stdout h (tz, long, lat) x_Outputs cpuinit coreloadsinit netinit homedir iface initstate
 
-pollCommands :: Handle -> IO Bool
+pollCommands :: Handle -> DisplayState Bool
 pollCommands h = do
-        (cmd, eof) <- getPipeCommandLine h
+        (cmd, eof) <- lift $ getPipeCommandLine h
         case (cmd,eof) of
                 (Nothing,True)  ->
                         do
-                                hClose h
+                                lift $ hClose h
                                 return False
-                (Just cmd,False) -> hPutStrLn stderr ("FreeBSDStatusBar received command \"" ++ cmd ++ "\"") >> return True
+                (Just cmd,False) -> execCommand cmd >> return True
                 _ -> return True
+
+execCommand :: String -> DisplayState ()
+execCommand cmd = do
+        s <- get
+        case cmd of
+                "shade_toggle" -> put $ RandRState { active = not $ active s, level = level s }
+                _              -> return ()
 
 installSignals :: FilePath -> IO ()
 installSignals pipe = do
