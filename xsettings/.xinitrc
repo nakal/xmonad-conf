@@ -19,6 +19,9 @@ xscreensaver -no-splash &
 DEFAULT_SESSION=xmonad
 GPG_AGENT="gpg-agent --daemon"
 
+# Hack for mutt
+export GPG_AGENT_INFO="$HOME/.gnupg/S.gpg-agent:0:1"
+
 case $1 in
 spectrwm)
 	exec $GPG_AGENT spectrwm >> ~/.xsession-errors 2>&1
