@@ -311,6 +311,7 @@ myManageHook wsnames = manageDocks <+> composeAll
     , className =? "Darktable"		--> doShift  (getWorkspace "gfx")
     , className =? "Firefox"		--> doShift  (getWorkspace "web")
     , title =? "weechat"		--> doShift  (getWorkspace "irc")
+    , title =? "mutt"		        --> doShift  (getWorkspace "com")
     , isPrefixOf "libreoffice" <$> className	--> doShift (getWorkspace "ofc")
     , isPrefixOf "newwin - " <$> resource	--> doShift (getWorkspace "win")
     , resource  =? "desktop_window"	--> doIgnore

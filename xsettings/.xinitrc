@@ -1,4 +1,5 @@
 export LANG="de_DE.UTF-8"
+export TERM="screen-256color"
 ulimit -c unlimited
 #export LC_ALL="de_DE.UTF-8"
 
