@@ -9,7 +9,7 @@ type WorkspaceName = String
 type NetInterfaceName = String
 type ExecuteCommand = ( String, [ String ] )
 
-defaultWorkspaceNames = ["web","com","dev","gfx","ofc","","irc","",""]
+defaultWorkspaceNames = ["web","com","dev","gfx","ofc","","","",""]
 defaultNetInterfaceName = "re0"
 
 data HostConfiguration = HostConfiguration {

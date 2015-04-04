@@ -80,7 +80,7 @@ don't like it, set both values to `-200.0`.
 HostConfiguration {
         longitude = 10.447683333333,
         latitude = 51.163375,
-        workspaceNames = [ "web","com","dev","gfx","ofc","","irc","",""],
+        workspaceNames = [ "web","com","dev","gfx","ofc","","","",""],
         netInterfaceName = "em0",
         autostartPrograms = [
 		("hsetroot",["-fill","~/.wallpapers/liquid-1600x1200.jpg"]),
@@ -100,7 +100,7 @@ It looks like this:
 defaultHostConfiguration = HostConfiguration {
         longitude = -200.0,
         latitude = -200.0,
-        workspaceNames = ["web","com","dev","gfx","ofc","","irc","",""],
+        workspaceNames = ["web","com","dev","gfx","ofc","","","",""],
         netInterfaceName = "re0",
         autostartPrograms = []
         }

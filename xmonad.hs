@@ -29,6 +29,7 @@ import XMonad.Config.Desktop ( desktopLayoutModifiers )
 import XMonad.Layout.Reflect ( reflectHoriz )
 import XMonad.Hooks.ManageDocks
 import XMonad.Actions.CycleWS
+import XMonad.Hooks.InsertPosition
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
@@ -271,12 +272,10 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 --
---myLayout = onWorkspace "6:gfx" gimpLayout $ onWorkspace "3:com" imLayout $ smartBorders (desktopLayoutModifiers (resizableTile ||| Mirror resizableTile ||| Full))
-myLayout wsnames = onWorkspace (workspace "gfx") gimpLayout $ onWorkspace (workspace "com") imLayout $ smartBorders $ avoidStruts $ desktopLayoutModifiers (resizableTile ||| Mirror resizableTile ||| Full)
+myLayout wsnames = onWorkspace (workspace "gfx") gimpLayout $ smartBorders $ avoidStruts $ desktopLayoutModifiers (resizableTile ||| Mirror resizableTile ||| Full)
     where
     resizableTile = Tall nmaster delta ratio
     gimpLayout = avoidStruts $ withIM (0.12) (Role "gimp-toolbox") $ reflectHoriz $ withIM (0.15) (Role "gimp-dock") $ gridIM (0.15) (Role "gimp-dock") ||| resizableTile
-    imLayout = avoidStruts $ withIM (0.12) (Role "buddy_list") $ reflectHoriz $ withIM (0.30) (Or (Role "conversation") (Title "weechat")) $ Full
     nmaster = 1
     ratio = toRational (2/(1+sqrt(5)::Double))
     delta = 3/100
@@ -310,8 +309,8 @@ myManageHook wsnames = manageDocks <+> composeAll
     , className =? "Inkscape"		--> doShift  (getWorkspace "gfx")
     , className =? "Darktable"		--> doShift  (getWorkspace "gfx")
     , className =? "Firefox"		--> doShift  (getWorkspace "web")
-    , title =? "weechat"		--> doShift  (getWorkspace "irc")
-    , title =? "mutt"		        --> doShift  (getWorkspace "com")
+    , title =? "weechat"		--> insertPosition End Older <+> doShift  (getWorkspace "com")
+    , title =? "mutt"		        --> insertPosition Master Newer <+> doShift  (getWorkspace "com")
     , isPrefixOf "libreoffice" <$> className	--> doShift (getWorkspace "ofc")
     , isPrefixOf "newwin - " <$> resource	--> doShift (getWorkspace "win")
     , resource  =? "desktop_window"	--> doIgnore
