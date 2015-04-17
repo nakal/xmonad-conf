@@ -30,6 +30,7 @@ import XMonad.Layout.Reflect ( reflectHoriz )
 import XMonad.Hooks.ManageDocks
 import XMonad.Actions.CycleWS
 import XMonad.Hooks.InsertPosition
+import XMonad.Hooks.FadeInactive
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
@@ -52,7 +53,7 @@ myClickJustFocuses :: Bool
 myClickJustFocuses = False
 
 -- Width of the window border in pixels
-myBorderWidth   = 1
+myBorderWidth   = 0
 
 -- modMask lets you specify which modkey you want to use. The default
 -- is mod1Mask ("left alt").  You may also consider using mod3Mask
@@ -335,8 +336,9 @@ myEventHook = docksEventHook
 -- See the 'XMonad.Hooks.DynamicLog' extension for examples.
 --
 myLogHook :: Handle -> FilePath -> X ()
-myLogHook dzenbar homedir =
-	dynamicLogWithPP $ defaultPP {
+myLogHook dzenbar homedir = do
+	fadeInactiveLogHook fadeAmount
+        dynamicLogWithPP $ defaultPP {
 		ppCurrent           =   dzenColor "#ffffff" "#202020" . pad
 		, ppVisible           =   dzenColor "lightblue" "#202020" . pad
 		, ppHidden            =   dzenColor "lightblue" "#202020" . pad
@@ -357,6 +359,7 @@ myLogHook dzenbar homedir =
 		, ppTitle             =   (" " ++) . dzenColor "yellow" "#202020" . dzenEscape
 		, ppOutput            =   hPutStrLn dzenbar
 	}
+        where fadeAmount = 0.8
 
 -- left hand side, workspaces and layouts
 myXmonadBar :: Int -> String

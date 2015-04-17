@@ -8,6 +8,7 @@ xsetroot -cursor_name left_ptr
 setxkbmap -symbols "us_alt(de)"
 xmodmap -e "pointer = 1 2 3 4 5 6 7 0 0"
 xscreensaver -no-splash &
+xcompmgr -F -D 15 -r 0 -f > /dev/null 2>&1 &
 
 #CUSTOM_SESSION=$HOME/.spectrwm/src/spectrwm/linux/spectrwm
 #if [ -x "$CUSTOM_SESSION" ]; then
