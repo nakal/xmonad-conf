@@ -17,6 +17,7 @@ data HostConfiguration = HostConfiguration {
         latitude :: Double                           ,
         workspaceNames :: [ WorkspaceName ]          ,
         netInterfaceName :: NetInterfaceName         ,
+        windowTransparency :: Rational               ,
         autostartPrograms :: [ ExecuteCommand ]
         }
         deriving ( Read, Show )
@@ -27,6 +28,7 @@ defaultHostConfiguration = HostConfiguration {
         latitude = -200.0                               ,
         workspaceNames = defaultWorkspaceNames          ,
         netInterfaceName = defaultNetInterfaceName      ,
+        windowTransparency = 8 / 10                     ,
         autostartPrograms = []
         }
 

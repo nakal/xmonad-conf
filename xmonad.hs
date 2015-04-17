@@ -335,9 +335,9 @@ myEventHook = docksEventHook
 -- Perform an arbitrary action on each internal state change or X event.
 -- See the 'XMonad.Hooks.DynamicLog' extension for examples.
 --
-myLogHook :: Handle -> FilePath -> X ()
-myLogHook dzenbar homedir = do
-	fadeInactiveLogHook fadeAmount
+myLogHook :: Handle -> FilePath -> HostConfiguration -> X ()
+myLogHook dzenbar homedir conf = do
+	fadeInactiveLogHook $ windowTransparency conf
         dynamicLogWithPP $ defaultPP {
 		ppCurrent           =   dzenColor "#ffffff" "#202020" . pad
 		, ppVisible           =   dzenColor "lightblue" "#202020" . pad
@@ -359,7 +359,6 @@ myLogHook dzenbar homedir = do
 		, ppTitle             =   (" " ++) . dzenColor "yellow" "#202020" . dzenEscape
 		, ppOutput            =   hPutStrLn dzenbar
 	}
-        where fadeAmount = 0.8
 
 -- left hand side, workspaces and layouts
 myXmonadBar :: Int -> String
@@ -383,7 +382,7 @@ xconfig conf dzenbar homedir screenwidth = defaultConfig
 			layoutHook         = myLayout wsnames,
 			manageHook         = myManageHook wsnames,
 			handleEventHook    = myEventHook,
-			logHook            = myLogHook dzenbar homedir >> fadeInactiveLogHook 0xdddddddd,
+			logHook            = myLogHook dzenbar homedir conf,
 			startupHook        = startup homedir screenwidth conf
 		}
                 where wsnames = workspaceNames conf
