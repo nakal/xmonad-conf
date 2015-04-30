@@ -1,4 +1,5 @@
 include "/usr/local/share/themes/oxygen-gtk/gtk-2.0/gtkrc"
+#include "/usr/local/share/themes/Clearlooks/gtk-2.0/gtkrc"
 gtk-icon-theme-name = "HumanAzul"
 
 gtk-fallback-icon-theme="gnome"
