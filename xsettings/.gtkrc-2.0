@@ -1,9 +1,9 @@
 include "/usr/local/share/themes/oxygen-gtk/gtk-2.0/gtkrc"
 #include "/usr/local/share/themes/Clearlooks/gtk-2.0/gtkrc"
-gtk-icon-theme-name = "HumanAzul"
+gtk-icon-theme-name = "Faenza"
 
 gtk-fallback-icon-theme="gnome"
-gtk-font-name="Roboto Condensed Light 11"
+gtk-font-name="Fira Sans Regular 11"
 gtk-cursor-theme-name="gnome"
 gtk-toolbar-style=GTK_TOOLBAR_ICONS
 gtk-toolbar-icon-size=GTK_ICON_SIZE_LARGE_TOOLBAR
@@ -14,4 +14,4 @@ gtk-enable-input-feedback-sounds=0
 gtk-xft-antialias=1
 gtk-xft-hinting=1
 gtk-xft-hintstyle="hintfull"
-gtk-xft-rgba="bgr"
+gtk-xft-rgba="gbr"
