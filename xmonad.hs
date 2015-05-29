@@ -161,9 +161,9 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Expand the master area
     , ((modm,               xK_l     ), sendMessage Expand)
 
-    , ((modm,               xK_s     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -t server1 'tmux -2 new-session'" )
-    , ((modm .|. shiftMask, xK_s     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -t server2 'tmux -2 new-session'" )
-    , ((modm .|. shiftMask, xK_y     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -t yuni 'tmux -2 new-session'" )
+    , ((modm,               xK_s     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -Y -t server1 'tmux -2 new-session'" )
+    , ((modm .|. shiftMask, xK_s     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -Y -t server2 'tmux -2 new-session'" )
+    , ((modm .|. shiftMask, xK_y     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -Y -t yuni 'tmux -2 new-session'" )
 
     -- Push window back into tiling
     , ((modm,               xK_t     ), withFocused $ windows . W.sink)
