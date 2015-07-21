@@ -308,6 +308,7 @@ myManageHook wsnames = manageDocks <+> composeAll
     , className =? "VBoxSDL"		--> doShift  (getWorkspace "win")
     , className =? "Gimp"		--> doShift  (getWorkspace "gfx")
     , className =? "Inkscape"		--> doShift  (getWorkspace "gfx")
+    , className =? "Dia"		--> doShift  (getWorkspace "gfx")
     , className =? "Darktable"		--> doShift  (getWorkspace "gfx")
     , className =? "Firefox"		--> doShift  (getWorkspace "web")
     , title =? "weechat"		--> insertPosition End Older <+> doShift  (getWorkspace "com")
