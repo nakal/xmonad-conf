@@ -28,7 +28,7 @@ defaultHostConfiguration = HostConfiguration {
         latitude = -200.0                               ,
         workspaceNames = defaultWorkspaceNames          ,
         netInterfaceName = defaultNetInterfaceName      ,
-        windowTransparency = 8 / 10                     ,
+        windowTransparency = 5 / 10                     ,
         autostartPrograms = []
         }
 
