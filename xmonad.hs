@@ -295,29 +295,33 @@ myLayout wsnames = onWorkspace (workspace "gfx") gimpLayout $ smartBorders $ avo
 -- and click on the client you're interested in.
 --
 -- To match on the WM_NAME, you can use 'title' in the same way that
--- 'className' and 'resource' are used below.
+-- 'className' and 'appName' are used below.
 --
-myManageHook wsnames = manageDocks <+> composeAll
-    [ className =? "MPlayer"		--> doFloat
-    , className =? "XMessage"		--> doFloat
-    , className =? "Zenity"		--> doFloat
-    , className =? "Iceweasel"		--> doShift  (getWorkspace "web")
-    , className =? "Firefox"		--> doShift  (getWorkspace "web")
-    , className =? "Claws-mail"		--> doShift  (getWorkspace "com")
-    , className =? "Pidgin"		--> doShift  (getWorkspace "com")
-    , className =? "VBoxSDL"		--> doShift  (getWorkspace "win")
-    , className =? "Gimp"		--> doShift  (getWorkspace "gfx")
-    , className =? "Inkscape"		--> doShift  (getWorkspace "gfx")
-    , className =? "Dia"		--> doShift  (getWorkspace "gfx")
-    , className =? "Darktable"		--> doShift  (getWorkspace "gfx")
-    , className =? "Firefox"		--> doShift  (getWorkspace "web")
-    , title =? "weechat"		--> insertPosition End Older <+> doShift  (getWorkspace "com")
-    , title =? "mutt"		        --> insertPosition Master Newer <+> doShift  (getWorkspace "com")
-    , isPrefixOf "libreoffice" <$> className	--> doShift (getWorkspace "ofc")
-    , isPrefixOf "newwin - " <$> resource	--> doShift (getWorkspace "win")
-    , resource  =? "desktop_window"	--> doIgnore
-    , resource  =? "kdesktop"		--> doIgnore ]
-	where getWorkspace name = getWorkspaceName wsnames name
+myManageHook :: [ String ] -> Query (Endo WindowSet)
+myManageHook wsnames =
+        manageDocks <+> composeAll
+                [ className =? "MPlayer"		--> doFloat
+                , className =? "XMessage"		--> doFloat
+                , className =? "Zenity"		        --> doFloat
+                , className =? "Iceweasel"		--> doShift  (getWorkspace "web")
+                , className =? "Firefox"		--> doShift  (getWorkspace "web")
+                , className =? "Claws-mail"		--> doShift  (getWorkspace "com")
+                , className =? "Pidgin"		        --> doShift  (getWorkspace "com")
+                , className =? "VBoxSDL"		--> doShift  (getWorkspace "win")
+                , className =? "Gimp"		        --> doShift  (getWorkspace "gfx")
+                , className =? "Inkscape"		--> doShift  (getWorkspace "gfx")
+                , className =? "Dia"		        --> doShift  (getWorkspace "gfx")
+                , className =? "Darktable"		--> doShift  (getWorkspace "gfx")
+                , className =? "Firefox"		--> doShift  (getWorkspace "web")
+                , title =? "weechat"		        --> insertPosition End Older <+> doShift  (getWorkspace "com")
+                , title =? "mutt"		        --> insertPosition Master Newer <+> doShift  (getWorkspace "com")
+                , isPrefixOf "libreoffice" <$> className	--> doShift (getWorkspace "ofc")
+                , isPrefixOf "LibreOffice" <$> title            --> doShift (getWorkspace "ofc")
+                , appName =? "libreoffice"                      --> doShift (getWorkspace "ofc")
+                , isPrefixOf "newwin - " <$> appName	        --> doShift (getWorkspace "win")
+                , appName  =? "desktop_window"	                --> doIgnore
+                , appName  =? "kdesktop"		        --> doIgnore ]
+                        where getWorkspace name = getWorkspaceName wsnames name
 
 ------------------------------------------------------------------------
 -- Event handling
