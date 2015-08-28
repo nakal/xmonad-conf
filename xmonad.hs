@@ -7,6 +7,8 @@
 -- Normally, you'd only override those defaults you care about.
 --
 
+{-# LANGUAGE FlexibleContexts #-}
+
 import XMonad
 import Data.Monoid
 import Data.List

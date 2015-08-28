@@ -35,8 +35,8 @@ defaultHostConfiguration = HostConfiguration {
 readHostConfiguration :: FilePath -> IO HostConfiguration
 readHostConfiguration homedir = do
         host <- myHostName
-	let confpath = homedir ++ "/.xmonad/conf/" ++ host ++ ".hs"
-	confexists <- doesFileExist confpath
+        let confpath = homedir ++ "/.xmonad/conf/" ++ host ++ ".hs"
+        confexists <- doesFileExist confpath
         if confexists then do
                         contents <- readFile confpath
                         let parseresult = reads contents :: [ ( HostConfiguration, String ) ]
