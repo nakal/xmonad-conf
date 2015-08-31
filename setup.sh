@@ -34,7 +34,7 @@ $SHELLSETUP || (echo "Submodule shell-setup failed. Aborting." && exit 1)
 OS=`uname -s`
 if [ "$OS" = "FreeBSD" ]; then
 	echo "[Xmonad setup] Checking packages..."
-	pkg info slim sudo gtk2 xterm xscreensaver \
+	pkg info slim sudo gtk2 rxvt-unicode xscreensaver \
 		hs-xmonad hs-network hs-xmonad-contrib \
 		firefox gimp libreoffice dmenu gmrun \
 		dzen2 weechat-devel zenity claws-mail \

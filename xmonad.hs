@@ -44,7 +44,7 @@ import SysInfo.StatusBar
 import SysInfo.StatusBarType
 
 -- xterm as default terminal in Xmonad
-myTerminal      = "xterm"
+myTerminal      = "urxvt"
 
 -- Whether focus follows the mouse pointer.
 myFocusFollowsMouse :: Bool
