@@ -14,7 +14,7 @@ xterm*charClass: 33:48,36-38:48,43-47:48,58:48,61:48,63-64:48,126:48
 
 ! ******************** urxvt settings ********************
 
-urxvt*font: xft:Inconsolata:pixelsize=16
+urxvt*font: xft:Inconsolata:pixelsize=17
 urxvt*locale: UTF-8
 urxvt*dynamicColors: true
 urxvt*saveLines: 1024
