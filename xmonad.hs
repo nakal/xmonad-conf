@@ -43,7 +43,7 @@ import HostConfiguration
 import SysInfo.StatusBar
 import SysInfo.StatusBarType
 
--- xterm as default terminal in Xmonad
+-- default terminal in Xmonad
 myTerminal      = "urxvt"
 
 -- Whether focus follows the mouse pointer.
