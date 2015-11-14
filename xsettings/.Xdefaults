@@ -23,3 +23,4 @@ urxvt*foreground: darkgray
 urxvt*metaSendsEscape: true
 urxvt*scrollBar: false
 urxvt*letterSpace: -1
+urxvt*iso14755: false
