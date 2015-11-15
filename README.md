@@ -1,6 +1,6 @@
 # nakal's Xmonad (plus desktop) configuration
 
-![Desktop screenshot](https://lh6.googleusercontent.com/-_agYnJZ3xm0/VSN3kaSl2BI/AAAAAAAAGUM/dudQcf0K28A/w1534-h863-no/xmonad-desktop.png)
+![Desktop screenshot](https://lh3.googleusercontent.com/CwSSxw7j_M_3IQxqRf59plphtkdH-EGaIyoE-dq6zJzj9_K2eXTtUDvCMt14ZFlDjC8dZeRsYGFS1VQNWiyXkUsLHPomWyqOpMRUTrJNr8TgrC0DltEeC_-CFW9AInAWzCafa6t3sFutrp2ngb66CXwN7ZU_BjNDw9O6KyT6dOJSwihgTBJ9xn5lBN-jJF5x9ms8rCQ-b1Gk3_oOKaKmKDDc-FJTQN0R-39vxir46USkYqDCgBGZdZLTnUDBr0CUs6SVwn3PC1WyeouNfFTlJaSsnuPnOA-eIMrRUF9QXp3yxQyz6aU_eA6sWzppkkh6qPMPaGGmKJ4Oovah9TiXvkUNOCKdtJ-958G46sscFXwceqrce6od-KYuW6q6ESSnCb-_daA1HMpPgNgIKXngTGwKo5SaRwCC4p5XmB-S-jLevWpYgaPifiEVznSU7EGhS2ZooGoeIMM5u-FCL7ulOLTfzP6624IOLCV9h-MjoU00Py3jwdP2n17iiQ1lnsmP9PZ5WIGj9ZzAy3blaTShHLwGxg8tjcjgBAwMdJ1cgFk=w1695-h953-no)
 
 [Xmonad](http://xmonad.org/) is a minimalistic tiled window manager for Xorg.
 
