@@ -37,7 +37,7 @@ if [ "$OS" = "FreeBSD" ]; then
 	pkg info slim sudo gtk2 rxvt-unicode xscreensaver \
 		hs-xmonad hs-network hs-xmonad-contrib \
 		firefox gimp libreoffice dmenu gmrun \
-		dzen2 weechat-devel zenity claws-mail \
+		dzen2 weechat zenity claws-mail \
 		gtk-oxygen-engine xrdb xsetroot setxkbmap gnupg \
 		xmodmap hsetroot inconsolata-ttf fira fantasque-sans-mono \
 		> /dev/null
