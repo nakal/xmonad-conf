@@ -110,7 +110,7 @@ filterSeconds str =
 
 getTimeAndDate :: IO String
 getTimeAndDate = do
-        str <- fmap words $ readProcess "/bin/date" [] []
+        str <- fmap words $ readProcess "/bin/date" ["+%a %e %b %Y %H:%M"] []
         let f1 = fmap filterSeconds $ filter isNotTimezone str
         return $ unwords f1
 
