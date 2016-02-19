@@ -102,6 +102,9 @@ netspeed x
 isNotTimezone :: String -> Bool
 isNotTimezone str = not $ foldr (\x -> (&&) (isUpper x)) True str
 
+endsWithDot :: String -> Bool
+endsWithDot str = (length str > 0) && (last str) == '.'
+
 filterSeconds :: String -> String
 filterSeconds str =
         if fmap isDigit str == [True,True,False,True,True,False,True,True] &&
@@ -111,7 +114,7 @@ filterSeconds str =
 getTimeAndDate :: IO String
 getTimeAndDate = do
         str <- fmap words $ readProcess "/bin/date" ["+%a %e %b %Y %H:%M"] []
-        let f1 = fmap filterSeconds $ filter isNotTimezone str
+        let f1 = fmap (\s -> if (endsWithDot s) then (init s) else s) $ fmap filterSeconds $ filter isNotTimezone str
         return $ unwords f1
 
 getVolume :: IO Int
