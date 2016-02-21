@@ -43,10 +43,7 @@ doing any harm, proceed with these steps:
    `~/.xmonad/setup.sh`. If not you will need
    to check the dependencies by yourself and comment out the
    `pkg info` check at the beginning of the script.
-4. Add this line (or similar) to your `sudo` configuration:
-```
-myuser ALL=(ALL) NOPASSWD: /sbin/shutdown
-```
+4. Add this line (or similar) to your `sudo` configuration: `myuser ALL=(ALL) NOPASSWD: /sbin/shutdown`.
 5. Optional: install the keyboard layout.
 
 ## Host-specific fine tuning
