@@ -118,11 +118,10 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm, xK_BackSpace     ), sendCommandToPipe "shade_toggle")
 
     -- shutdown
-    , ((modm .|. shiftMask, xK_BackSpace),
-		(focusedHasProperty $ ClassName "VBoxSDL") >>= \p ->
-			if (not p) then spawn "~/.xmonad/scripts/shutdown.sh"
-				else return ()
-	)
+    , vboxProtectedBinding (modm .|. shiftMask, xK_BackSpace) "~/.xmonad/scripts/shutdown.sh"
+
+    -- reboot
+    , vboxProtectedBinding (controlMask .|. shiftMask, xK_BackSpace) "~/.xmonad/scripts/reboot.sh"
 
     -- close focused window
     , ((modm .|. shiftMask, xK_c     ), kill)
@@ -223,6 +222,13 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
         , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 
+vboxProtectedBinding (m,k) action =
+    ((m, k),
+     (focusedHasProperty $ ClassName "VBoxSDL") >>= \p ->
+        if (not p)
+                then spawn action
+                else return ()
+    )
 
 sendCommandToPipe :: String -> X()
 sendCommandToPipe cmd = do
