@@ -59,12 +59,17 @@ else
 	echo "-> Xmonad is ok, good."
 fi
 echo "Checking dzen2..."
-dzen2 -v | grep -q XFT
-if [ $? -ne 0 ]; then
-	echo "*** dzen2 appears to be too old and does not support XFT."
-	exit 1
+if [ "x$DISPLAY" = "x" ]; then
+	echo "??? skipping dzen2, no X server running."
+	echo "??? assuming dzen2 works fine."
 else
-	echo "-> XFT found, good."
+	dzen2 -v | grep -q XFT
+	if [ $? -ne 0 ]; then
+		echo "*** dzen2 appears to be too old and does not support XFT."
+		exit 1
+	else
+		echo "-> XFT found, good."
+	fi
 fi
 
 cd $HOME
