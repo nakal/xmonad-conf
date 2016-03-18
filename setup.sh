@@ -36,14 +36,18 @@ if [ "$OS" = "FreeBSD" ]; then
 	echo "[Xmonad setup] Checking packages..."
 	pkg info slim sudo gtk2 rxvt-unicode xscreensaver \
 		hs-xmonad hs-network hs-xmonad-contrib \
-		firefox gimp libreoffice dmenu gmrun \
-		dzen2 weechat zenity claws-mail \
+		firefox dmenu gmrun dzen2 weechat zenity claws-mail \
 		gtk-oxygen-engine xrdb xsetroot setxkbmap gnupg \
 		xmodmap hsetroot inconsolata-ttf fira fantasque-sans-mono \
 		> /dev/null
 	if [ $? -ne 0 ]; then
 		echo "ERROR: Missing packages for setup (for X)."
 		exit 1
+	fi
+	echo "[Xmonad setup] Checking recommended packages..."
+	pkg info gimp libreoffice weechat > /dev/null
+	if [ $? -ne 0 ]; then
+		echo "WARNING: Some recommended packages are not installed."
 	fi
 else
 	echo "[Xmonad setup] WARNING: Skipped checking packages..."
