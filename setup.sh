@@ -74,7 +74,7 @@ fi
 
 cd $HOME
 REMOVE_FILES=".xinitrc .Xdefaults .gtkrc-2.0 \
-	.config/gtk-3.0/settings.ini \
+	.config/gtk-3.0/settings.ini .config/user-dirs.dirs \
 	"
 
 for df in $REMOVE_FILES; do
@@ -93,6 +93,10 @@ echo "[Xmonad setup] Reinstalling softlinks..."
 ln -s $SCRIPT_HOME/xsettings/.xinitrc .
 ln -s $SCRIPT_HOME/xsettings/.Xdefaults .
 ln -s $SCRIPT_HOME/xsettings/.gtkrc-2.0 .
+
+mkdir -p $HOME/.config
+cd $HOME/.config
+ln -s $SCRIPT_HOME/xsettings/user-dirs.dirs .
 
 mkdir -p $HOME/.config/gtk-3.0
 cd $HOME/.config/gtk-3.0
