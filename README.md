@@ -14,7 +14,6 @@ Included fine tuning has been done for (e.g.):
 	* GTK+ 2 & 3
 	* dzen2
 		* improved configuration for `FreeBSD`
-			* Circadian rhythm support
 * login manager:
 	* slim
 	* session management
@@ -70,17 +69,9 @@ This configuration will make 9 desktops with the given names. It will take
 `em0` as the interface to watch network load and on startup it will also
 start firefox and claws-mail. It will also set the wallpaper with the
 given arguments (just so you can see how to pass arguments).
-The first and second option sets the geological position, it will be
-used to eliminate
-[the blue screen effect at night](https://en.wikipedia.org/wiki/Light_effects_on_circadian_rhythm)
-to respect your
-circadian rhythm. The screen will turn yellowish, when the night comes. If you
-don't like it, set both values to `-200.0`.
 
 ```
 HostConfiguration {
-        longitude = 10.447683333333,
-        latitude = 51.163375,
         workspaceNames = [ "web","com","dev","gfx","ofc","","","",""],
         netInterfaceName = "em0",
         autostartPrograms = [
@@ -99,8 +90,6 @@ Read/Show) or it will be safely skipped and the defaults will be used.
 It looks like this:
 ```
 defaultHostConfiguration = HostConfiguration {
-        longitude = -200.0,
-        latitude = -200.0,
         workspaceNames = ["web","com","dev","gfx","ofc","","","",""],
         netInterfaceName = "re0",
         autostartPrograms = []

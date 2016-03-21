@@ -37,7 +37,6 @@ import XMonad.Hooks.FadeInactive
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
-import Command.CommandPipe
 import Dzen.Tools
 import HostConfiguration
 import SysInfo.StatusBar
@@ -114,8 +113,6 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
     -- screensaver
     , ((mod1Mask .|. controlMask, xK_l     ), spawn "xscreensaver-command -lock")
-
-    , ((modm, xK_BackSpace     ), sendCommandToPipe "shade_toggle")
 
     -- shutdown
     , vboxProtectedBinding (modm .|. shiftMask, xK_BackSpace) "~/.xmonad/scripts/shutdown.sh"
@@ -230,27 +227,6 @@ vboxProtectedBinding (m,k) action =
                 else return ()
     )
 
-sendCommandToPipe :: String -> X()
-sendCommandToPipe cmd = do
-        sb <- statusBarGet
-        case gettype sb of
-                FreeBSDBar ->
-                        do
-                                h <- getPipeHandle
-                                io $ sendPipeCommandLine h cmd
-                _          ->     return ()
-
-getPipeHandle :: X Handle
-getPipeHandle = do
-        sb <- statusBarGet
-        case gethandle sb of
-                Just h  ->      return h
-                Nothing ->
-                        do
-                                h <- io $ connectCommandPipe $ getpath sb
-                                statusBarSetHandle sb h
-                                return h
-
 ------------------------------------------------------------------------
 -- Mouse bindings: default actions bound to mouse events
 --
@@ -350,7 +326,6 @@ myEventHook = docksEventHook
 --
 myLogHook :: Handle -> FilePath -> HostConfiguration -> X ()
 myLogHook dzenbar homedir conf = do
-	fadeInactiveLogHook $ windowTransparency conf
         dynamicLogWithPP $ defaultPP {
 		ppCurrent           =   dzenColor "#ffffff" "#202020" . pad
 		, ppVisible           =   dzenColor "lightblue" "#202020" . pad
@@ -404,7 +379,7 @@ xconfig conf dzenbar homedir screenwidth = defaultConfig
 startup :: FilePath -> Int -> HostConfiguration -> X()
 startup homedir screenwidth conf = do
         statusbartype <- startStatusBar homedir screenwidth conf
-        statusBarPut $ StatusBarStatus statusbartype Nothing (pipeFileName homedir)
+        statusBarPut $ StatusBarStatus statusbartype Nothing
         autostartAllPrograms $ autostartPrograms conf
         return ()
 

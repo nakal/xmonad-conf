@@ -13,22 +13,16 @@ defaultWorkspaceNames = ["web","com","dev","gfx","ofc","","","",""]
 defaultNetInterfaceName = "re0"
 
 data HostConfiguration = HostConfiguration {
-        longitude :: Double                          ,
-        latitude :: Double                           ,
         workspaceNames :: [ WorkspaceName ]          ,
         netInterfaceName :: NetInterfaceName         ,
-        windowTransparency :: Rational               ,
         autostartPrograms :: [ ExecuteCommand ]
         }
         deriving ( Read, Show )
 
 defaultHostConfiguration :: HostConfiguration
 defaultHostConfiguration = HostConfiguration {
-        longitude = -200.0                              ,
-        latitude = -200.0                               ,
         workspaceNames = defaultWorkspaceNames          ,
         netInterfaceName = defaultNetInterfaceName      ,
-        windowTransparency = 5 / 10                     ,
         autostartPrograms = []
         }
 

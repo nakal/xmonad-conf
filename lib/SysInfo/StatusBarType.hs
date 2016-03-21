@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
 module SysInfo.StatusBarType
-        (StatusBarStatus(StatusBarStatus, gettype, gethandle, getpath)
+        (StatusBarStatus(StatusBarStatus, gettype, gethandle)
         ,StatusBarType(ConkyBar,FreeBSDBar)
         ,statusBarPut
         ,statusBarGet
@@ -18,11 +18,10 @@ data StatusBarType = NoBar | ConkyBar | FreeBSDBar
 data StatusBarStatus = StatusBarStatus
         {gettype :: StatusBarType
         ,gethandle :: Maybe Handle
-        ,getpath :: FilePath
         } deriving Typeable
 
 instance ExtensionClass StatusBarStatus where
-        initialValue = StatusBarStatus NoBar Nothing ""
+        initialValue = StatusBarStatus NoBar Nothing
 
 statusBarPut :: StatusBarStatus -> X()
 statusBarPut = XS.put

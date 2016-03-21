@@ -8,8 +8,6 @@ import System.Posix.Signals
 import System.Process
 import System.IO
 import Text.Printf
-import RandR
-import Command.CommandPipe
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 
@@ -149,9 +147,9 @@ displayStats dzen cpu coreloads mem (net_rx,net_tx) homedir = do
                 "^fg(yellow) ^pa(460) " ++ datestr
         hFlush dzen
 
-gatherLoop :: Handle -> Handle -> (TimeZone, Double, Double) -> [ XRandrOutput ] -> CPULoad -> [ CPULoad ]
-        -> NetLoad -> FilePath -> String -> RandRState -> IO()
-gatherLoop dzen cmdpipe (tz, long, lat) x_Outputs lastcpu lastcoreloads lastnet homedir iface randrstate = do
+gatherLoop :: Handle -> TimeZone -> CPULoad -> [ CPULoad ]
+        -> NetLoad -> FilePath -> String -> IO()
+gatherLoop dzen tz lastcpu lastcoreloads lastnet homedir iface = do
         cpuload <- getCPULoad
         coreloads <- allCoreLoads
         mem <- fmap getMemPercent getMemLoad
@@ -159,66 +157,30 @@ gatherLoop dzen cmdpipe (tz, long, lat) x_Outputs lastcpu lastcoreloads lastnet 
         displayStats dzen (getCPUPercent (lastcpu,cpuload))
                 (getBusyCPUs (lastcoreloads,coreloads)) mem
                 (getNetSpeeds (lastnet, netload)) homedir
-        s <- evalStateT (updateDisplayLevel tz long lat x_Outputs) randrstate
-        (pipe_still_open, ns) <- runStateT (pollCommands cmdpipe) s
-        if pipe_still_open
-                then do
-                        threadDelay 1000000
-                        gatherLoop dzen cmdpipe (tz, long, lat) x_Outputs cpuload coreloads netload homedir iface ns
-                else
-                        return ()
+        threadDelay 1000000
+        gatherLoop dzen tz cpuload coreloads netload homedir iface
 
-startFreeBSD :: FilePath -> String -> Double -> Double -> FilePath -> IO()
-startFreeBSD homedir iface long lat pipe = do
+startFreeBSD :: FilePath -> String -> IO()
+startFreeBSD homedir iface = do
          -- setEnv "LC_NUMERIC" "C"
-         x_Outputs <- xRandrOutputs
          tz <- getCurrentTimeZone
          cpuinit <- getCPULoad
          coreloadsinit <- allCoreLoads
          netinit <- getNetLoad iface
-         h <- bindCommandPipe pipe
-         let initstate = if (long >= -180.0 && lat >= -180.0) then randRInitState else randRInitNopState
-         gatherLoop stdout h (tz, long, lat) x_Outputs cpuinit coreloadsinit netinit homedir iface initstate
+         gatherLoop stdout tz cpuinit coreloadsinit netinit homedir iface
 
-pollCommands :: Handle -> DisplayState Bool
-pollCommands h = do
-        (cmd, eof) <- lift $ getPipeCommandLine h
-        case (cmd,eof) of
-                (Nothing,True)  ->
-                        do
-                                lift $ hClose h
-                                return False
-                (Just cmd,False) -> execCommand cmd >> return True
-                _ -> return True
-
-execCommand :: String -> DisplayState ()
-execCommand cmd = do
-        s <- get
-        case cmd of
-                "shade_toggle" -> put $ RandRState { active = not $ active s, level = level s }
-                _              -> return ()
-
-installSignals :: FilePath -> IO ()
-installSignals pipe = do
+installSignals :: IO ()
+installSignals = do
         ppid <- myThreadId
-        mapM_ (\sig -> installHandler sig (Catch $ trap ppid pipe) Nothing)
-                [ lostConnection, keyboardSignal, softwareTermination, openEndedPipe ]
+        mapM_ (\sig -> installHandler sig (Catch $ trap ppid) Nothing)
+                [ lostConnection, keyboardSignal, softwareTermination ]
 
-trap tid pipe = do
-        deleteNamedPipe pipe
+trap tid = do
         throwTo tid ExitSuccess
 
 main :: IO()
 main = do
         args <- getArgs
         case args of
-                [ homedir, iface, longitude, latitude ]
-                        -> do
-                                let long = - (read longitude :: Double)
-                                    lat = read latitude :: Double
-                                    pipe = pipeFileName homedir
-                                installSignals pipe
-                                makeNamedPipe pipe
-                                startFreeBSD homedir iface long lat pipe
-                                deleteNamedPipe pipe
-                _       -> error "Error in parameters."
+                [ homedir, iface ]      -> startFreeBSD homedir iface
+                _                       -> error "Error in parameters."
