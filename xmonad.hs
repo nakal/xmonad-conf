@@ -266,6 +266,10 @@ myLayout wsnames = onWorkspace (workspace "gfx") gimpLayout $ smartBorders $ avo
     delta = 3/100
     workspace wsname = getWorkspaceName wsnames wsname
 
+-- | Unfloat a window (sink)
+doUnfloat :: ManageHook
+doUnfloat = ask >>= \w -> doF $ W.sink w
+
 ------------------------------------------------------------------------
 -- Window rules:
 
@@ -292,6 +296,7 @@ myManageHook wsnames =
                 , className =? "Claws-mail"		--> doShift  (getWorkspace "com")
                 , className =? "Pidgin"		        --> doShift  (getWorkspace "com")
                 , className =? "VBoxSDL"		--> doShift  (getWorkspace "win")
+                , className =? "rdesktop"		--> doUnfloat <+> doShift  (getWorkspace "win")
                 , className =? "Gimp"		        --> doShift  (getWorkspace "gfx")
                 , className =? "Inkscape"		--> doShift  (getWorkspace "gfx")
                 , className =? "Dia"		        --> doShift  (getWorkspace "gfx")
