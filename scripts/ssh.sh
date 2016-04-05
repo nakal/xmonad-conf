@@ -1,7 +1,12 @@
 #!/bin/sh
 
+TERMINAL="$1"
+if [ -z "$TERMINAL" ]; then
+	TERMINAL="xterm"
+fi
+
 CACHE_DIR="$HOME/.cache/xmonad-conf"
-CACHE_FILE="$CACHE_DIR/rdesktop-last.txt"
+CACHE_FILE="$CACHE_DIR/ssh-last.txt"
 
 DEFAULT=`test -r "$CACHE_FILE" && cat "$CACHE_FILE" | awk '!seen[$0]++' | tail -n 10`
 
@@ -12,18 +17,18 @@ for l in $DEFAULT; do
 	SELECTED="FALSE"
 done
 
-INPUT=`zenity --list --radiolist --text "rdesktop connection:" --column "" --column "Logins" $LOGINS`
+INPUT=`zenity --list --radiolist --text "SSH connection:" --column "" --column "Logins" $LOGINS`
 if [ $? -ne 0 ]; then
-	INPUT=`zenity --entry --text "New rdesktop connection:\n[user@]hostname[:port]?"`
+	INPUT=`zenity --entry --text "New SSH connection:\n[user@]hostname[:port]?"`
 	if [ $? -ne 0 ]; then
 		exit 0
 	fi
 fi
 
-USER_OPT=`echo "$INPUT" | sed 's/^[^@]*$//; s/\(.*\)@.*/\1/; /^$/q ; s/^/-u /'`
-HOSTNAME=`echo "$INPUT" | sed 's/^.*@//'`
+SSH_LOGIN=`echo "$INPUT" | sed 's/:[^:]*$//'`
+SSH_OPT=`echo "$INPUT" | sed 's/^.*://; /^$/q; s/^/-p /'`
 
-if [ -z "$HOSTNAME" ]; then
+if [ -z "$SSH_LOGIN" ]; then
 	exit 0
 fi
 
@@ -34,4 +39,4 @@ mkdir -p "$CACHE_DIR" && ( echo "$INPUT" > "$CACHE_FILE" ;
 			fi
 		done )
 
-exec rdesktop $USER_OPT -g 1600x960 -K "$HOSTNAME"
+exec $TERMINAL -e ssh $SSH_OPT "$SSH_LOGIN"

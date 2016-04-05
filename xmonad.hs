@@ -161,6 +161,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
     , ((modm,               xK_s     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -Y -t server1 'tmux -2 new-session'" )
     , ((modm .|. shiftMask, xK_s     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -Y -t server2 'tmux -2 new-session'" )
+    , ((controlMask .|. shiftMask, xK_s     ), spawn "~/.xmonad/scripts/ssh.sh" )
     , ((modm .|. shiftMask, xK_y     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -Y -t yuni 'tmux -2 new-session'" )
     , ((modm,               xK_z     ), spawn "~/.xmonad/scripts/rdesktop.sh" )
 
