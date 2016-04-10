@@ -11,9 +11,11 @@ type ExecuteCommand = ( String, [ String ] )
 
 defaultWorkspaceNames = ["web","com","dev","gfx","ofc","","","",""]
 defaultNetInterfaceName = "re0"
+defaultTerminal = "xterm"
 
 data HostConfiguration = HostConfiguration {
         workspaceNames :: [ WorkspaceName ]          ,
+        terminal :: FilePath                  ,
         netInterfaceName :: NetInterfaceName         ,
         autostartPrograms :: [ ExecuteCommand ]
         }
@@ -22,6 +24,7 @@ data HostConfiguration = HostConfiguration {
 defaultHostConfiguration :: HostConfiguration
 defaultHostConfiguration = HostConfiguration {
         workspaceNames = defaultWorkspaceNames          ,
+        terminal = defaultTerminal                      ,
         netInterfaceName = defaultNetInterfaceName      ,
         autostartPrograms = []
         }

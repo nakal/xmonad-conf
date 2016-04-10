@@ -38,12 +38,9 @@ import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
 import Dzen.Tools
-import HostConfiguration
+import qualified HostConfiguration        as HC
 import SysInfo.StatusBar
 import SysInfo.StatusBarType
-
--- default terminal in Xmonad
-myTerminal      = "urxvt"
 
 -- Whether focus follows the mouse pointer.
 myFocusFollowsMouse :: Bool
@@ -331,7 +328,7 @@ myEventHook = docksEventHook
 -- Perform an arbitrary action on each internal state change or X event.
 -- See the 'XMonad.Hooks.DynamicLog' extension for examples.
 --
-myLogHook :: Handle -> FilePath -> HostConfiguration -> X ()
+myLogHook :: Handle -> FilePath -> HC.HostConfiguration -> X ()
 myLogHook dzenbar homedir conf = do
         dynamicLogWithPP $ defaultPP {
 		ppCurrent           =   dzenColor "#ffffff" "#202020" . pad
@@ -362,7 +359,7 @@ myXmonadBar screenwidth = dzenExec ++ " -x 0 -ta l -w " ++
 
 xconfig conf dzenbar homedir screenwidth = defaultConfig
 		{
-			terminal           = myTerminal,
+			terminal           = HC.terminal conf,
 			focusFollowsMouse  = myFocusFollowsMouse,
 			clickJustFocuses   = myClickJustFocuses,
 			borderWidth        = myBorderWidth,
@@ -380,17 +377,17 @@ xconfig conf dzenbar homedir screenwidth = defaultConfig
 			logHook            = myLogHook dzenbar homedir conf,
 			startupHook        = startup homedir screenwidth conf
 		}
-                where wsnames = workspaceNames conf
+                where wsnames = HC.workspaceNames conf
 
 -- startup hook reading and executing .startup file
-startup :: FilePath -> Int -> HostConfiguration -> X()
+startup :: FilePath -> Int -> HC.HostConfiguration -> X()
 startup homedir screenwidth conf = do
         statusbartype <- startStatusBar homedir screenwidth conf
         statusBarPut $ StatusBarStatus statusbartype Nothing
-        autostartAllPrograms $ autostartPrograms conf
+        autostartAllPrograms $ HC.autostartPrograms conf
         return ()
 
-autostartAllPrograms :: [ ExecuteCommand ] -> X ()
+autostartAllPrograms :: [ HC.ExecuteCommand ] -> X ()
 autostartAllPrograms =
         mapM_ execprog
         where execprog prog = spawn $ (fst prog) ++ " " ++ (unwords $ snd prog)
@@ -398,7 +395,9 @@ autostartAllPrograms =
 main = do
 	homedir <- getHomeDirectory
 	screenwidth <- readScreenWidthIO
+        hPutStrLn stderr $ "Screen width: " ++ show screenwidth
 	dzenbar <- spawnPipe $ myXmonadBar screenwidth
-        conf <- readHostConfiguration homedir
+        hPutStrLn stderr "Dzen bar started."
+        conf <- HC.readHostConfiguration homedir
         hPutStrLn stderr $ show conf
 	xmonad $ xconfig conf dzenbar homedir screenwidth

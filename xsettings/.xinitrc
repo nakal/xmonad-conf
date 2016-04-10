@@ -22,6 +22,8 @@ GPG_AGENT="gpg-agent --daemon"
 # Hack for mutt
 export GPG_AGENT_INFO="$HOME/.gnupg/S.gpg-agent:0:1"
 
+echo "START SESSION: $1" `date` >> ~/.xsession-errors
+
 case $1 in
 spectrwm)
 	exec $GPG_AGENT spectrwm >> ~/.xsession-errors 2>&1

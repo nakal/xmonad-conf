@@ -1,6 +1,5 @@
 xmonad.errors
-xmonad-x86_64-freebsd
-xmonad-x86_64-linux
+xmonad-x86_64-*
 *.hi
 *.o
 .*.swp
