@@ -289,26 +289,26 @@ myManageHook wsnames =
         manageDocks <+> composeAll
                 [ className =? "MPlayer"		--> doFloat
                 , className =? "XMessage"		--> doFloat
-                , className =? "Zenity"		        --> doFloat
+                , className =? "Zenity"                 --> doFloat
                 , className =? "Iceweasel"		--> doShift  (getWorkspace "web")
                 , className =? "Firefox"		--> doShift  (getWorkspace "web")
                 , className =? "Claws-mail"		--> doShift  (getWorkspace "com")
-                , className =? "Pidgin"		        --> doShift  (getWorkspace "com")
+                , className =? "Pidgin"                 --> doShift  (getWorkspace "com")
                 , className =? "VBoxSDL"		--> doShift  (getWorkspace "win")
                 , className =? "rdesktop"		--> doUnfloat <+> doShift  (getWorkspace "win")
-                , className =? "Gimp"		        --> doShift  (getWorkspace "gfx")
+                , className =? "Gimp"                   --> doShift  (getWorkspace "gfx")
                 , className =? "Inkscape"		--> doShift  (getWorkspace "gfx")
-                , className =? "Dia"		        --> doShift  (getWorkspace "gfx")
+                , className =? "Dia"                    --> doShift  (getWorkspace "gfx")
                 , className =? "Darktable"		--> doShift  (getWorkspace "gfx")
                 , className =? "Firefox"		--> doShift  (getWorkspace "web")
-                , title =? "weechat"		        --> insertPosition End Older <+> doShift  (getWorkspace "com")
-                , title =? "mutt"		        --> insertPosition Master Newer <+> doShift  (getWorkspace "com")
+                , title =? "weechat"                    --> insertPosition End Older <+> doShift  (getWorkspace "com")
+                , title =? "mutt"                       --> insertPosition Master Newer <+> doShift  (getWorkspace "com")
                 , isPrefixOf "libreoffice" <$> className	--> doShift (getWorkspace "ofc")
                 , isPrefixOf "LibreOffice" <$> title            --> doShift (getWorkspace "ofc")
                 , appName =? "libreoffice"                      --> doShift (getWorkspace "ofc")
-                , isPrefixOf "newwin - " <$> appName	        --> doShift (getWorkspace "win")
-                , appName  =? "desktop_window"	                --> doIgnore
-                , appName  =? "kdesktop"		        --> doIgnore ]
+                , isPrefixOf "newwin - " <$> appName            --> doShift (getWorkspace "win")
+                , appName  =? "desktop_window"                  --> doIgnore
+                , appName  =? "kdesktop"                        --> doIgnore ]
                         where getWorkspace name = getWorkspaceName wsnames name
 
 ------------------------------------------------------------------------
@@ -329,35 +329,27 @@ myEventHook = docksEventHook
 -- See the 'XMonad.Hooks.DynamicLog' extension for examples.
 --
 myLogHook :: Handle -> FilePath -> HC.HostConfiguration -> X ()
-myLogHook dzenbar homedir conf = do
-        dynamicLogWithPP $ defaultPP {
-		ppCurrent           =   dzenColor "#ffffff" "#202020" . pad
-		, ppVisible           =   dzenColor "lightblue" "#202020" . pad
-		, ppHidden            =   dzenColor "lightblue" "#202020" . pad
-		, ppHiddenNoWindows   =   dzenColor "#7b7b7b" "#202020" . pad
-		, ppUrgent            =   dzenColor "#ff0000" "#202020" . pad
-		, ppWsSep             =   " "
-		, ppSep               =   "  |  "
-		, ppLayout            =   dzenColor "lightblue" "#202020" .
-		(\x -> case x of
-		 "Tall"             ->      "^i(" ++ (dzenBitmap homedir "tall") ++ ")"
-		 "ResizableTall"             ->      "^i(" ++ (dzenBitmap homedir "tall") ++ ")"
-		 "Mirror Tall"      ->      "^i(" ++ (dzenBitmap homedir "mtall") ++ ")"
-		 "Mirror ResizableTall"      ->      "^i(" ++ (dzenBitmap homedir "mtall") ++ ")"
-		 "Full"                      ->      "^i(" ++ (dzenBitmap homedir "full") ++ ")"
-		 "Simple Float"              ->      "~"
-		 _                           ->      x
-		)
-		, ppTitle             =   (" " ++) . dzenColor "yellow" "#202020" . dzenEscape
-		, ppOutput            =   hPutStrLn dzenbar
+myLogHook xmobar homedir conf = do
+        dynamicLogWithPP $
+                defaultPP {
+                        ppCurrent           =   xmobarColor "#ffffff" "#202020" . pad
+                        , ppVisible           =   xmobarColor "lightblue" "#202020" . pad
+                        , ppHidden            =   xmobarColor "lightblue" "#202020" . pad
+                        , ppHiddenNoWindows   =   xmobarColor "#7b7b7b" "#202020" . pad
+                        , ppUrgent            =   xmobarColor "#ff0000" "#202020" . pad
+                        , ppWsSep             =   " "
+                        , ppSep               =   "  |  "
+                        , ppLayout            =   xmobarColor "lightblue" "#202020"
+                        , ppTitle             =   (" " ++) . xmobarColor "yellow" "#202020" . xmobarStrip
+                        , ppOutput            =   hPutStrLn xmobar
 	}
 
--- left hand side, workspaces and layouts
-myXmonadBar :: Int -> String
-myXmonadBar screenwidth = dzenExec ++ " -x 0 -ta l -w " ++
-        (show $ myXmonadBarWidth screenwidth)
+xmobarExec = "xmobar -f \"xft:" ++ dzenFont ++ "\" -B '#202020' -F '#FFFFFF'"
 
-xconfig conf dzenbar homedir screenwidth = defaultConfig
+myXmonadBar :: Int -> String
+myXmonadBar _ = xmobarExec
+
+xconfig conf xmobar homedir screenwidth = defaultConfig
 		{
 			terminal           = HC.terminal conf,
 			focusFollowsMouse  = myFocusFollowsMouse,
@@ -374,7 +366,7 @@ xconfig conf dzenbar homedir screenwidth = defaultConfig
 			layoutHook         = myLayout wsnames,
 			manageHook         = myManageHook wsnames,
 			handleEventHook    = myEventHook,
-			logHook            = myLogHook dzenbar homedir conf,
+			logHook            = myLogHook xmobar homedir conf,
 			startupHook        = startup homedir screenwidth conf
 		}
                 where wsnames = HC.workspaceNames conf
@@ -396,8 +388,8 @@ main = do
 	homedir <- getHomeDirectory
 	screenwidth <- readScreenWidthIO
         hPutStrLn stderr $ "Screen width: " ++ show screenwidth
-	dzenbar <- spawnPipe $ myXmonadBar screenwidth
-        hPutStrLn stderr "Dzen bar started."
+	xmobar <- spawnPipe $ myXmonadBar screenwidth
+        hPutStrLn stderr "Xmobar started."
         conf <- HC.readHostConfiguration homedir
         hPutStrLn stderr $ show conf
-	xmonad $ xconfig conf dzenbar homedir screenwidth
+	xmonad $ xconfig conf xmobar homedir screenwidth
