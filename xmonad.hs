@@ -344,10 +344,10 @@ myLogHook xmobar homedir conf = do
                         , ppOutput            =   hPutStrLn xmobar
 	}
 
-xmobarExec = "xmobar -f \"xft:" ++ dzenFont ++ "\" -B '#202020' -F '#FFFFFF'"
 
-myXmonadBar :: Int -> String
-myXmonadBar _ = xmobarExec
+myXmonadBar :: String
+myXmonadBar = "xmobar -f \"xft:" ++ dzenFont ++ "\"" ++
+        " -B '#202020' -F '#FFFFFF' -t \"%UnsafeStdinReader%\""
 
 xconfig conf xmobar homedir screenwidth = defaultConfig
 		{
@@ -386,10 +386,10 @@ autostartAllPrograms =
 
 main = do
 	homedir <- getHomeDirectory
-	screenwidth <- readScreenWidthIO
-        hPutStrLn stderr $ "Screen width: " ++ show screenwidth
-	xmobar <- spawnPipe $ myXmonadBar screenwidth
+	xmobar <- spawnPipe myXmonadBar
         hPutStrLn stderr "Xmobar started."
         conf <- HC.readHostConfiguration homedir
         hPutStrLn stderr $ show conf
+	screenwidth <- readScreenWidthIO
+        hPutStrLn stderr $ "Screen width: " ++ show screenwidth
 	xmonad $ xconfig conf xmobar homedir screenwidth
