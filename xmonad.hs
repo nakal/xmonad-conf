@@ -59,6 +59,12 @@ myBorderWidth   = 2
 -- "windows key" is usually mod4Mask.
 myModMask = mod4Mask
 
+-- xdotool needs to map an Xmonad action to the correct
+-- modifier key. This needs to be kept in sync with
+-- the above myModMask to work correctly.
+-- Super is the "windows key" for xdotool
+myXDoToolKey = "Super"
+
 -- This function numbers the workspace names
 numberedWorkspaces :: [ String ] -> [ String ]
 numberedWorkspaces wsnames = zipWith (++) (map show [1..]) $ map appendName wsnames
@@ -181,7 +187,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
 
     -- Restart xmonad
-    , ((modm              , xK_q     ), spawn "killall dzen2; cd ~/.xmonad/lib/Exec && make ; xmonad --recompile && xmonad --restart")
+    , ((modm              , xK_q     ), spawn "killall dzen2; killall xmobar; cd ~/.xmonad/lib/Exec && make ; xmonad --recompile && xmonad --restart")
 
     , ((0              , xK_KP_Insert     ), toggleWS )
     , ((0              , xK_KP_Add     ), nextWS )
@@ -333,21 +339,25 @@ myLogHook xmobar homedir conf = do
         dynamicLogWithPP $
                 defaultPP {
                         ppCurrent           =   xmobarColor "#ffffff" "#202020" . pad
-                        , ppVisible           =   xmobarColor "lightblue" "#202020" . pad
-                        , ppHidden            =   xmobarColor "lightblue" "#202020" . pad
-                        , ppHiddenNoWindows   =   xmobarColor "#7b7b7b" "#202020" . pad
-                        , ppUrgent            =   xmobarColor "#ff0000" "#202020" . pad
+                        , ppVisible           =   xmobarColor "lightblue" "#202020" . pad . addAction
+                        , ppHidden            =   xmobarColor "lightblue" "#202020" . pad . addAction
+                        , ppHiddenNoWindows   =   xmobarColor "#7b7b7b" "#202020" . pad . addAction
+                        , ppUrgent            =   xmobarColor "#ff0000" "#202020" . pad . addAction
                         , ppWsSep             =   " "
                         , ppSep               =   "  |  "
                         , ppLayout            =   xmobarColor "lightblue" "#202020"
                         , ppTitle             =   (" " ++) . xmobarColor "yellow" "#202020" . xmobarStrip
                         , ppOutput            =   hPutStrLn xmobar
 	}
+        where
+                addAction wrkspc = "<action=`xdotool key " ++ myXDoToolKey ++
+                        "+" ++ (take 1 wrkspc) ++ "`>" ++  wrkspc ++ "</action>"
 
 
 myXmonadBar :: String
 myXmonadBar = "xmobar -f \"xft:" ++ dzenFont ++ "\"" ++
-        " -B '#202020' -F '#FFFFFF' -t \"%UnsafeStdinReader%\""
+        " -B '#202020' -F '#FFFFFF' -c '[Run UnsafeStdinReader]' -t '%UnsafeStdinReader%'"
+-- myXmonadBar = "cat"
 
 xconfig conf xmobar homedir screenwidth = defaultConfig
 		{
