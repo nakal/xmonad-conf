@@ -7,10 +7,10 @@ SWAPTOTAL=`echo $SWAPINFO | sed s+^[^/]*/++`
 
 SWAPPERC=`expr 100 \* $SWAPUSED / $SWAPTOTAL`
 
-if [ $SWAPPERC -le 33 ]; then
+if [ $SWAPPERC -lt 20 ]; then
 	echo "$SWAPPERC%"
 else
-	if [ $SWAPPERC -lt 80 ]; then
+	if [ $SWAPPERC -lt 50 ]; then
 		echo "<fc=#c08000>$SWAPPERC%</fc>"
 	else
 		echo "<fc=#c04040>$SWAPPERC%</fc>"

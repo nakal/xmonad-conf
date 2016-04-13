@@ -1,10 +1,10 @@
 #!/bin/sh
 
-MEMTOTAL=`sysctl -n vm.stats.vm.v_page_count`
-MEMFREE=`sysctl -n vm.stats.vm.v_free_count`
-MEMINACT=`sysctl -n vm.stats.vm.v_inactive_count`
+MEMTOTAL=`/sbin/sysctl -n vm.stats.vm.v_page_count`
+MEMFREE=`/sbin/sysctl -n vm.stats.vm.v_free_count`
+MEMINACT=`/sbin/sysctl -n vm.stats.vm.v_inactive_count`
 
-MEMPERC=`expr 100 \* \( $MEMFREE + $MEMINACT \) / $MEMTOTAL`
+MEMPERC=`expr \( $MEMTOTAL - $MEMFREE + $MEMINACT \) \* 100 / $MEMTOTAL`
 
 if [ $MEMPERC -le 33 ]; then
 	echo "$MEMPERC%"
