@@ -356,7 +356,7 @@ myLogHook xmobar homedir conf = do
 
 myXmonadBar :: String
 myXmonadBar = "xmobar -f \"xft:" ++ dzenFont ++ "\"" ++
-        " -B '#202020' -F '#FFFFFF' -c '[Run UnsafeStdinReader]' -t '%UnsafeStdinReader%'"
+        " -B '#202020' -F 'lightblue' -c '[Run UnsafeStdinReader, Run Com \".xmonad/scripts/xmobar/freebsd-swap.sh\" [] \"swap\" 10, Run Com \"date\" [\"+%a %e %b %Y %H:%M\"] \"date\" 0]' -t '%UnsafeStdinReader% }{ <icon=mem.xbm/> %swap%   <fc=yellow>%date%</fc>' -i .xmonad/dzen2"
 -- myXmonadBar = "cat"
 
 xconfig conf xmobar homedir screenwidth = defaultConfig
@@ -384,8 +384,8 @@ xconfig conf xmobar homedir screenwidth = defaultConfig
 -- startup hook reading and executing .startup file
 startup :: FilePath -> Int -> HC.HostConfiguration -> X()
 startup homedir screenwidth conf = do
-        statusbartype <- startStatusBar homedir screenwidth conf
-        statusBarPut $ StatusBarStatus statusbartype Nothing
+        -- statusbartype <- startStatusBar homedir screenwidth conf
+        -- statusBarPut $ StatusBarStatus statusbartype Nothing
         autostartAllPrograms $ HC.autostartPrograms conf
         return ()
 
@@ -396,8 +396,8 @@ autostartAllPrograms =
 
 main = do
 	homedir <- getHomeDirectory
+        hPutStrLn stderr $ "xmobar command string: " ++ myXmonadBar
 	xmobar <- spawnPipe myXmonadBar
-        hPutStrLn stderr "Xmobar started."
         conf <- HC.readHostConfiguration homedir
         hPutStrLn stderr $ show conf
 	screenwidth <- readScreenWidthIO
