@@ -10,7 +10,7 @@ dzenFont :: String
 dzenFont = "Inconsolata:size=12:bold"
 
 dzenExec :: String
-dzenExec = "dzen2 -e '' -y 0 -h 24 -fg '#FFFFFF' -bg '#202020' -fn '" ++ dzenFont ++ "'"
+dzenExec = "dzen2 -e '' -y 0 -h 20 -fg '#FFFFFF' -bg '#202020' -fn '" ++ dzenFont ++ "'"
 
 myXmonadBarWidth :: Int -> Int
 myXmonadBarWidth screenwidth = screenwidth - myStatusBarWidth screenwidth
