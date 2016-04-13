@@ -134,18 +134,18 @@ hotMemColor perc
         | otherwise             = "red"
 
 displayStats :: Handle -> Int -> (Int,Int) -> Int -> (String,String) -> FilePath -> IO()
-displayStats dzen cpu coreloads mem (net_rx,net_tx) homedir = do
+displayStats pipe cpu coreloads mem (net_rx,net_tx) homedir = do
         datestr <- getTimeAndDate
         vol <- getVolume
-        hPutStrLn dzen $ "^fg(white)^pa(80) |  " ++
-                "^fg(lightblue)^i(" ++ homedir ++ "/.xmonad/dzen2/cpu.xbm) ^fg(" ++ hotCPUColor coreloads ++ ")" ++ (show cpu) ++ "% " ++
-                "^fg(lightblue)^pa(170) ^i(" ++ homedir ++ "/.xmonad/dzen2/mem.xbm) ^fg(" ++ hotMemColor mem ++ ")" ++ (show mem) ++ "% " ++
-                "^fg(lightblue)^pa(235) ^i(" ++ homedir ++ "/.xmonad/dzen2/net_wired.xbm) " ++
-                "^fg(lightblue)^pa(250) ^i(" ++ homedir ++ "/.xmonad/dzen2/net_down_03.xbm)" ++ net_rx ++ "   " ++
-                "^fg(lightblue)^pa(325) ^i(" ++ homedir ++ "/.xmonad/dzen2/net_up_03.xbm)" ++ net_tx ++ "   " ++
-                "^fg(lightblue)^pa(400) ^i(" ++ homedir ++ "/.xmonad/dzen2/volume.xbm) " ++ (show vol) ++ "% " ++
-                "^fg(yellow) ^pa(460) " ++ datestr
-        hFlush dzen
+        hPutStrLn pipe $
+                "<image=cpu.xbm/><fc=" ++ hotCPUColor coreloads ++ "> " ++ (show cpu) ++ "%</fc> " ++
+                "<image=mem.xbm/><fc=" ++ hotMemColor mem ++ "> " ++ (show mem) ++ "%</fc> " ++
+                "<image=net_wired.xbm/>" ++
+                "<image=net_down_03.xbm/> " ++ net_rx ++ "   " ++
+                "<image=net_up_03.xbm/> " ++ net_tx ++ "   " ++
+                "<image=volume.xbm/> " ++ (show vol) ++ "% " ++
+                "<fc=yellow>" ++ datestr ++ "</fc>"
+        hFlush pipe
 
 gatherLoop :: Handle -> TimeZone -> CPULoad -> [ CPULoad ]
         -> NetLoad -> FilePath -> String -> IO()
