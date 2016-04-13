@@ -187,7 +187,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
 
     -- Restart xmonad
-    , ((modm              , xK_q     ), spawn "killall dzen2; killall xmobar; cd ~/.xmonad/lib/Exec && make ; xmonad --recompile && xmonad --restart")
+    , ((modm              , xK_q     ), spawn "pkill xmobar; xmonad --recompile && xmonad --restart")
 
     , ((0              , xK_KP_Insert     ), toggleWS )
     , ((0              , xK_KP_Add     ), nextWS )
@@ -345,7 +345,17 @@ myLogHook xmobar homedir conf = do
                         , ppUrgent            =   xmobarColor "#ff0000" "#202020" . pad . addAction
                         , ppWsSep             =   " "
                         , ppSep               =   "  |  "
-                        , ppLayout            =   xmobarColor "lightblue" "#202020"
+                        , ppLayout            =
+                                \x -> "<action=`xdotool key " ++ myXDoToolKey ++ "+space`>" ++
+                                        (case x of
+                                        "Tall"             ->      "<icon=tall.xbm/>"
+                                        "ResizableTall"    ->      "<icon=tall.xbm/>"
+                                        "Mirror Tall"      ->      "<icon=mtall.xbm/>"
+                                        "Mirror ResizableTall"      ->      "<icon=mtall.xbm/>"
+                                        "Full"                      ->      "<icon=full.xbm/>"
+                                        "Simple Float"              ->      "~"
+                                        _                           ->      x
+                                        ) ++ "</action>"
                         , ppTitle             =   (" " ++) . xmobarColor "yellow" "#202020" . xmobarStrip
                         , ppOutput            =   hPutStrLn xmobar
 	}
@@ -356,7 +366,7 @@ myLogHook xmobar homedir conf = do
 
 myXmonadBar :: String
 myXmonadBar = "xmobar -f \"xft:" ++ dzenFont ++ "\"" ++
-        " -B '#202020' -F 'lightblue' -c '[Run UnsafeStdinReader, Run Com \".xmonad/scripts/xmobar/freebsd-swap.sh\" [] \"swap\" 10, Run Com \"date\" [\"+%a %e %b %Y %H:%M\"] \"date\" 0]' -t '%UnsafeStdinReader% }{ <icon=mem.xbm/> %swap%   <fc=yellow>%date%</fc>' -i .xmonad/dzen2"
+        " -B '#202020' -F 'lightblue' -c '[Run UnsafeStdinReader, Run Com \".xmonad/scripts/xmobar/freebsd-swap.sh\" [] \"swap\" 10, Run Com \"date\" [\"+%a %e %b %Y %H:%M\"] \"date\" 0]' -t '%UnsafeStdinReader% }{ <icon=mem.xbm/> %swap%   <fc=yellow>%date%</fc>' -i .xmonad/icons"
 -- myXmonadBar = "cat"
 
 xconfig conf xmobar homedir screenwidth = defaultConfig

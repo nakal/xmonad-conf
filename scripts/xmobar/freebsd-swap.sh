@@ -10,7 +10,7 @@ SWAPPERC=`expr 100 \* $SWAPUSED / $SWAPTOTAL`
 #echo $PATH
 
 if [ $SWAPPERC -le 33 ]; then
-	echo "<fc=#008000>$SWAPPERC%</fc>"
+	echo "$SWAPPERC%"
 else
 	if [ $SWAPPERC -lt 80 ]; then
 		echo "<fc=#c08000>$SWAPPERC%</fc>"
