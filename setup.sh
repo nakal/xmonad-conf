@@ -36,7 +36,7 @@ if [ "$OS" = "FreeBSD" ]; then
 	echo "[Xmonad setup] Checking packages..."
 	pkg info slim sudo gtk2 rxvt-unicode xscreensaver \
 		hs-xmonad hs-network hs-xmonad-contrib hs-xmobar \
-		firefox dmenu gmrun dzen2 weechat zenity claws-mail \
+		firefox dmenu gmrun weechat zenity claws-mail \
 		gtk-oxygen-engine xrdb xsetroot setxkbmap gnupg \
 		xmodmap hsetroot inconsolata-ttf fira fantasque-sans-mono \
 		> /dev/null

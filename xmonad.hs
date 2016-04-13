@@ -78,16 +78,6 @@ getWorkspaceName wsnames name = case name `elemIndex` wsnames of
 	Nothing	-> show $ length wsnames
 	Just x	-> (show $ x+1) ++ ":" ++ name
 
--- readScreenWidth :: Display -> X Int
--- readScreenWidth dpy = fromIntegral $ displayWidth dpy $ defaultScreen dpy
-
-readScreenWidthIO :: IO Int
-readScreenWidthIO = do
-	display <- openDisplay ""
-	let width = fromIntegral $ displayWidth display (defaultScreen display)
-	return width
-
-
 -- Border colors for unfocused and focused windows, respectively.
 myNormalBorderColor  = "#dddddd"
 myFocusedBorderColor = "#ff0000"
@@ -369,7 +359,7 @@ myXmonadBar = "xmobar -f \"xft:" ++ dzenFont ++ "\"" ++
         " -B '#202020' -F 'lightblue' -c '[Run UnsafeStdinReader, Run Com \".xmonad/scripts/xmobar/freebsd-swap.sh\" [] \"swap\" 10, Run Com \"date\" [\"+%a %e %b %Y %H:%M\"] \"date\" 0]' -t '%UnsafeStdinReader% }{ <icon=mem.xbm/> %swap%   <fc=yellow>%date%</fc>' -i .xmonad/icons"
 -- myXmonadBar = "cat"
 
-xconfig conf xmobar homedir screenwidth = defaultConfig
+xconfig conf xmobar homedir = defaultConfig
 		{
 			terminal           = HC.terminal conf,
 			focusFollowsMouse  = myFocusFollowsMouse,
@@ -387,17 +377,14 @@ xconfig conf xmobar homedir screenwidth = defaultConfig
 			manageHook         = myManageHook wsnames,
 			handleEventHook    = myEventHook,
 			logHook            = myLogHook xmobar homedir conf,
-			startupHook        = startup homedir screenwidth conf
+			startupHook        = startup conf
 		}
                 where wsnames = HC.workspaceNames conf
 
 -- startup hook reading and executing .startup file
-startup :: FilePath -> Int -> HC.HostConfiguration -> X()
-startup homedir screenwidth conf = do
-        -- statusbartype <- startStatusBar homedir screenwidth conf
-        -- statusBarPut $ StatusBarStatus statusbartype Nothing
+startup :: HC.HostConfiguration -> X()
+startup conf =
         autostartAllPrograms $ HC.autostartPrograms conf
-        return ()
 
 autostartAllPrograms :: [ HC.ExecuteCommand ] -> X ()
 autostartAllPrograms =
@@ -410,6 +397,4 @@ main = do
 	xmobar <- spawnPipe myXmonadBar
         conf <- HC.readHostConfiguration homedir
         hPutStrLn stderr $ show conf
-	screenwidth <- readScreenWidthIO
-        hPutStrLn stderr $ "Screen width: " ++ show screenwidth
-	xmonad $ xconfig conf xmobar homedir screenwidth
+	xmonad $ xconfig conf xmobar homedir
