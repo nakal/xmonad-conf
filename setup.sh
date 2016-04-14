@@ -39,6 +39,7 @@ if [ "$OS" = "FreeBSD" ]; then
 		firefox dmenu gmrun weechat zenity claws-mail \
 		gtk-oxygen-engine xrdb xsetroot setxkbmap gnupg \
 		xmodmap hsetroot inconsolata-ttf fira fantasque-sans-mono \
+		xdotool \
 		> /dev/null
 	if [ $? -ne 0 ]; then
 		echo "ERROR: Missing packages for setup (for X)."
