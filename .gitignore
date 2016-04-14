@@ -3,6 +3,5 @@ xmonad-x86_64-*
 *.hi
 *.o
 .*.swp
-conkyrc
 conf/
-lib/Exec/FreeBSDStatusBar
+lib/SysInfoBar

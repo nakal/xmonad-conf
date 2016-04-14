@@ -1,12 +1,11 @@
 
-module SysInfoBar (
-        startSysInfoBar
-        )
-        where
-
 import Control.Concurrent
 import Data.Char
 import Data.Time
+import System.Directory
+import System.Environment
+import System.Exit
+import System.Posix.Signals
 import System.Process
 import System.IO
 import Text.Printf
@@ -33,9 +32,7 @@ getSysCtlValues names =  fmap lines $ readProcess "/sbin/sysctl" ("-n":names) []
 
 getCPULoad :: IO CPULoad
 getCPULoad = do
-        putStrLn "GET CPU LOAD"
         loadv <- getSysCtlCombinedValue "kern.cp_time"
-        putStrLn "GET CPU LOAD2"
         return $ getSingleCPULoad loadv
 
 getSingleCPULoad :: [ String ] -> CPULoad
@@ -142,12 +139,12 @@ displayStats pipe cpu coreloads mem (net_rx,net_tx) = do
         datestr <- getTimeAndDate
         vol <- getVolume
         hPutStrLn pipe $
-                "<image=cpu.xbm/><fc=" ++ hotCPUColor coreloads ++ "> " ++ (show cpu) ++ "%</fc> " ++
-                "<image=mem.xbm/><fc=" ++ hotMemColor mem ++ "> " ++ (show mem) ++ "%</fc> " ++
-                "<image=net_wired.xbm/>" ++
-                "<image=net_down_03.xbm/> " ++ net_rx ++ "   " ++
-                "<image=net_up_03.xbm/> " ++ net_tx ++ "   " ++
-                "<image=volume.xbm/> " ++ (show vol) ++ "% " ++
+                "<icon=cpu.xbm/><fc=" ++ hotCPUColor coreloads ++ "> " ++ (show cpu) ++ "%</fc>   " ++
+                "<icon=mem.xbm/><fc=" ++ hotMemColor mem ++ "> " ++ (show mem) ++ "%</fc>   " ++
+                "<icon=net_wired.xbm/> " ++
+                "<icon=net_down_03.xbm/> " ++ net_rx ++ "   " ++
+                "<icon=net_up_03.xbm/> " ++ net_tx ++ "   " ++
+                "<icon=volume.xbm/> " ++ (show vol) ++ "%   " ++
                 "<fc=yellow>" ++ datestr ++ "</fc>"
         hFlush pipe
 
@@ -164,25 +161,43 @@ gatherLoop pipe tz lastcpu lastcoreloads lastnet iface = do
         threadDelay 1000000
         gatherLoop pipe tz cpuload coreloads netload iface
 
-startFreeBSD :: Handle -> HC.HostConfiguration -> IO()
-startFreeBSD pipe conf = do
+startFreeBSD :: String -> Handle -> IO()
+startFreeBSD iface pipe = do
          -- setEnv "LC_NUMERIC" "C"
          tz <- getCurrentTimeZone
          cpuinit <- getCPULoad
          coreloadsinit <- allCoreLoads
          netinit <- getNetLoad iface
          gatherLoop pipe tz cpuinit coreloadsinit netinit iface
-         where iface = HC.netInterfaceName conf
 
 spawnPipe :: [ String ] -> IO Handle
 spawnPipe cmd = do
         (Just hin, _, _, _) <- createProcess (proc (head cmd) (tail cmd)){ std_in = CreatePipe }
         return hin
 
-xmobarSysInfo :: [ String ]
-xmobarSysInfo = [ "xmobar", ".xmonad/sysinfo_xmobar.rc" ]
+xmobarSysInfo :: FilePath -> [ String ]
+xmobarSysInfo homedir = [ "xmobar", homedir ++ "/.xmonad/sysinfo_xmobar.rc" ]
 
 startSysInfoBar :: HC.HostConfiguration -> IO()
 startSysInfoBar conf = do
-        pipe <- spawnPipe xmobarSysInfo
-        startFreeBSD pipe conf
+        installSignals
+        homedir <- getHomeDirectory
+        putStrLn $ show $ xmobarSysInfo homedir
+        pipe <- spawnPipe $ xmobarSysInfo homedir
+        startFreeBSD (HC.netInterfaceName conf) pipe
+
+installSignals :: IO ()
+installSignals = do
+        ppid <- myThreadId
+        mapM_ (\sig -> installHandler sig (Catch $ trap ppid) Nothing)
+                [ lostConnection, keyboardSignal, softwareTermination, processStatusChanged ]
+
+trap tid = do
+        throwTo tid ExitSuccess
+
+main = do
+        homedir <- getHomeDirectory
+        args <- getArgs
+        case args of
+                [ iface ]      -> spawnPipe (xmobarSysInfo homedir) >>= startFreeBSD iface
+                _                       -> error "Error in parameters."

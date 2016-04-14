@@ -39,7 +39,6 @@ import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
 import qualified HostConfiguration      as HC
-import qualified SysInfoBar             as SysInfo
 
 -- Whether focus follows the mouse pointer.
 myFocusFollowsMouse :: Bool
@@ -179,7 +178,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
 
     -- Restart xmonad
-    , ((modm              , xK_q     ), spawn "pkill xmobar; xmonad --recompile && xmonad --restart")
+    , ((modm              , xK_q     ), spawn "pkill xmobar; cd ~/.xmonad/lib ; ghc --make SysInfoBar.hs && xmonad --recompile && xmonad --restart")
 
     , ((0              , xK_KP_Insert     ), toggleWS )
     , ((0              , xK_KP_Add     ), nextWS )
@@ -377,26 +376,19 @@ xconfig conf xmobar = defaultConfig
 			manageHook         = myManageHook wsnames,
 			handleEventHook    = myEventHook,
 			logHook            = myLogHook xmobar conf,
-			startupHook        = startup conf
+			startupHook        = autostartAllPrograms conf
 		}
                 where wsnames = HC.workspaceNames conf
 
--- startup hook reading and executing .startup file
-startup :: HC.HostConfiguration -> X()
-startup conf =
-        autostartAllPrograms $ HC.autostartPrograms conf
-
-autostartAllPrograms :: [ HC.ExecuteCommand ] -> X ()
-autostartAllPrograms =
-        mapM_ execprog
+autostartAllPrograms :: HC.HostConfiguration -> X ()
+autostartAllPrograms conf = do
+        spawn $ "~/.xmonad/lib/SysInfoBar " ++ HC.netInterfaceName conf
+        mapM_ execprog $ HC.autostartPrograms conf
         where execprog prog = spawn $ (fst prog) ++ " " ++ (unwords $ snd prog)
 
 main = do
 	homedir <- getHomeDirectory
         conf <- HC.readHostConfiguration homedir
         hPutStrLn stderr $ show conf
-        forkIO $ do
-                SysInfo.startSysInfoBar conf
-                putStrLn "SysInfoBar exited!"
 	xmobar <- spawnPipe myXmonadBar
 	xmonad $ xconfig conf xmobar
