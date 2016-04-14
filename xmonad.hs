@@ -356,7 +356,7 @@ myLogHook xmobar homedir conf = do
 
 myXmonadBar :: String
 myXmonadBar = "xmobar -f \"xft:" ++ dzenFont ++ "\"" ++
-        " -B '#202020' -F 'lightblue' -c '[Run UnsafeStdinReader, Run Com \".xmonad/scripts/xmobar/freebsd-memory.sh\" [] \"mem\" 10, Run Com \".xmonad/scripts/xmobar/freebsd-swap.sh\" [] \"swap\" 10, Run Com \"date\" [\"+%a %e %b %Y %H:%M\"] \"date\" 0]' -t '%UnsafeStdinReader% }{| <icon=mem.xbm/> %mem% <icon=mem.xbm/> %swap%   <fc=yellow>%date%</fc>' -i .xmonad/icons"
+        " -B '#202020' -F 'lightblue' -c '[Run UnsafeStdinReader, Run Com \".xmonad/scripts/xmobar/freebsd-memory.sh\" [] \"mem\" 10, Run Com \".xmonad/scripts/xmobar/freebsd-swap.sh\" [] \"swap\" 10, Run Com \"date\" [\"+%a %e %b %Y %H:%M\"] \"date\" 10]' -t '%UnsafeStdinReader% }{| <icon=mem.xbm/> %mem% <icon=mem.xbm/> %swap%   <fc=yellow>%date%</fc>' -i .xmonad/icons"
 -- myXmonadBar = "cat"
 
 xconfig conf xmobar homedir = defaultConfig
