@@ -133,8 +133,8 @@ hotMemColor perc
         | perc < 80             = "orange"
         | otherwise             = "red"
 
-displayStats :: Handle -> Int -> (Int,Int) -> Int -> (String,String) -> FilePath -> IO()
-displayStats pipe cpu coreloads mem (net_rx,net_tx) homedir = do
+displayStats :: Handle -> Int -> (Int,Int) -> Int -> (String,String) -> IO()
+displayStats pipe cpu coreloads mem (net_rx,net_tx) = do
         datestr <- getTimeAndDate
         vol <- getVolume
         hPutStrLn pipe $
@@ -148,26 +148,26 @@ displayStats pipe cpu coreloads mem (net_rx,net_tx) homedir = do
         hFlush pipe
 
 gatherLoop :: Handle -> TimeZone -> CPULoad -> [ CPULoad ]
-        -> NetLoad -> FilePath -> String -> IO()
-gatherLoop dzen tz lastcpu lastcoreloads lastnet homedir iface = do
+        -> NetLoad -> String -> IO()
+gatherLoop dzen tz lastcpu lastcoreloads lastnet iface = do
         cpuload <- getCPULoad
         coreloads <- allCoreLoads
         mem <- fmap getMemPercent getMemLoad
         netload <- getNetLoad iface
         displayStats dzen (getCPUPercent (lastcpu,cpuload))
                 (getBusyCPUs (lastcoreloads,coreloads)) mem
-                (getNetSpeeds (lastnet, netload)) homedir
+                (getNetSpeeds (lastnet, netload))
         threadDelay 1000000
-        gatherLoop dzen tz cpuload coreloads netload homedir iface
+        gatherLoop dzen tz cpuload coreloads netload iface
 
-startFreeBSD :: FilePath -> String -> IO()
-startFreeBSD homedir iface = do
+startFreeBSD :: String -> IO()
+startFreeBSD iface = do
          -- setEnv "LC_NUMERIC" "C"
          tz <- getCurrentTimeZone
          cpuinit <- getCPULoad
          coreloadsinit <- allCoreLoads
          netinit <- getNetLoad iface
-         gatherLoop stdout tz cpuinit coreloadsinit netinit homedir iface
+         gatherLoop stdout tz cpuinit coreloadsinit netinit iface
 
 installSignals :: IO ()
 installSignals = do
@@ -182,5 +182,5 @@ main :: IO()
 main = do
         args <- getArgs
         case args of
-                [ homedir, iface ]      -> startFreeBSD homedir iface
-                _                       -> error "Error in parameters."
+                [ iface ]      -> startFreeBSD iface
+                _              -> error "Error in parameters."
