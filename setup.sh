@@ -62,6 +62,8 @@ if [ $? -ne 0 ]; then
 else
 	echo "-> Xmonad is ok, good."
 fi
+
+# dzen2 is still needed for mail notifications
 echo "Checking dzen2..."
 if [ "x$DISPLAY" = "x" ]; then
 	echo "??? skipping dzen2, no X server running."

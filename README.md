@@ -12,8 +12,6 @@ Included fine tuning has been done for (e.g.):
 * X settings:
 	* Xorg Xdefaults
 	* GTK+ 2 & 3
-	* dzen2
-		* improved configuration for `FreeBSD`
 * login manager:
 	* slim
 	* session management
@@ -53,9 +51,9 @@ Xmonad will look for a configuration there that is named
 
 ### Workspaces and Layouts
 
-The workspaces mentioned here have all 3 letters to keep the `dzen2` workspace
+The workspaces mentioned here have all 3 letters to keep the `xmobar` workspace
 bar short. They are also merged with their number as prefix when shown in the
-dzenbar.  You can use the names which are already defined to specify a certain
+dock.  You can use the names which are already defined to specify a certain
 workspace layout.
 
 The `com` layout is best used with `pidgin` and `claws-mail`. `gfx` is
@@ -73,6 +71,7 @@ given arguments (just so you can see how to pass arguments).
 ```
 HostConfiguration {
         workspaceNames = [ "web","com","dev","gfx","ofc","","","",""],
+        terminal = "urxvt",
         netInterfaceName = "em0",
         autostartPrograms = [
 		("hsetroot",["-fill","~/.wallpapers/liquid-1600x1200.jpg"]),
@@ -91,6 +90,7 @@ It looks like this:
 ```
 defaultHostConfiguration = HostConfiguration {
         workspaceNames = ["web","com","dev","gfx","ofc","","","",""],
+        terminal = "xterm",
         netInterfaceName = "re0",
         autostartPrograms = []
         }
