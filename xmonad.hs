@@ -13,6 +13,7 @@ import XMonad
 import Data.Monoid
 import Data.List
 import Control.Applicative ((<$>))
+import Control.Concurrent (forkIO)
 import System.IO
 import System.Exit
 import System.Directory
@@ -37,10 +38,8 @@ import XMonad.Hooks.FadeInactive
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
-import Dzen.Tools
-import qualified HostConfiguration        as HC
-import SysInfo.StatusBar
-import SysInfo.StatusBarType
+import qualified HostConfiguration      as HC
+import qualified SysInfoBar             as SysInfo
 
 -- Whether focus follows the mouse pointer.
 myFocusFollowsMouse :: Bool
@@ -64,6 +63,9 @@ myModMask = mod4Mask
 -- the above myModMask to work correctly.
 -- Super is the "windows key" for xdotool
 myXDoToolKey = "Super"
+
+defaultFont :: String
+defaultFont = "Inconsolata:size=12:bold"
 
 -- This function numbers the workspace names
 numberedWorkspaces :: [ String ] -> [ String ]
@@ -92,7 +94,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((controlMask .|. shiftMask, xK_Return), spawn $ XMonad.terminal conf) -- plain terminal without tmux
 
     -- launch dmenu
-    , ((modm,               xK_p     ), spawn $ "dmenu_run -nb '#202020' -nf lightcyan -sb yellow -sf black -fn '" ++ dzenFont ++ "'")
+    , ((modm,               xK_p     ), spawn $ "dmenu_run -nb '#202020' -nf lightcyan -sb yellow -sf black -fn '" ++ defaultFont ++ "'")
 
     -- launch gmrun
     , ((modm .|. shiftMask, xK_p     ), spawn "gmrun")
@@ -324,8 +326,8 @@ myEventHook = docksEventHook
 -- Perform an arbitrary action on each internal state change or X event.
 -- See the 'XMonad.Hooks.DynamicLog' extension for examples.
 --
-myLogHook :: Handle -> FilePath -> HC.HostConfiguration -> X ()
-myLogHook xmobar homedir conf = do
+myLogHook :: Handle -> HC.HostConfiguration -> X ()
+myLogHook xmobar conf = do
         dynamicLogWithPP $
                 defaultPP {
                         ppCurrent           =   xmobarColor "#ffffff" "#202020" . pad
@@ -355,11 +357,9 @@ myLogHook xmobar homedir conf = do
 
 
 myXmonadBar :: String
-myXmonadBar = "xmobar -f \"xft:" ++ dzenFont ++ "\"" ++
-        " -B '#202020' -F 'lightblue' -c '[Run UnsafeStdinReader, Run Com \".xmonad/scripts/xmobar/freebsd-memory.sh\" [] \"mem\" 10, Run Com \".xmonad/scripts/xmobar/freebsd-swap.sh\" [] \"swap\" 10, Run Com \"date\" [\"+%a %e %b %Y %H:%M\"] \"date\" 10]' -t '%UnsafeStdinReader% }{| <icon=mem.xbm/> %mem% <icon=mem.xbm/> %swap%   <fc=yellow>%date%</fc>' -i .xmonad/icons"
--- myXmonadBar = "cat"
+myXmonadBar = "xmobar .xmonad/workspaces_xmobar.rc"
 
-xconfig conf xmobar homedir = defaultConfig
+xconfig conf xmobar = defaultConfig
 		{
 			terminal           = HC.terminal conf,
 			focusFollowsMouse  = myFocusFollowsMouse,
@@ -376,7 +376,7 @@ xconfig conf xmobar homedir = defaultConfig
 			layoutHook         = myLayout wsnames,
 			manageHook         = myManageHook wsnames,
 			handleEventHook    = myEventHook,
-			logHook            = myLogHook xmobar homedir conf,
+			logHook            = myLogHook xmobar conf,
 			startupHook        = startup conf
 		}
                 where wsnames = HC.workspaceNames conf
@@ -393,8 +393,10 @@ autostartAllPrograms =
 
 main = do
 	homedir <- getHomeDirectory
-        hPutStrLn stderr $ "xmobar command string: " ++ myXmonadBar
-	xmobar <- spawnPipe myXmonadBar
         conf <- HC.readHostConfiguration homedir
         hPutStrLn stderr $ show conf
-	xmonad $ xconfig conf xmobar homedir
+        forkIO $ do
+                SysInfo.startSysInfoBar conf
+                putStrLn "SysInfoBar exited!"
+	xmobar <- spawnPipe myXmonadBar
+	xmonad $ xconfig conf xmobar

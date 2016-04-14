@@ -1,15 +1,17 @@
 
+module SysInfoBar (
+        startSysInfoBar
+        )
+        where
+
 import Control.Concurrent
 import Data.Char
 import Data.Time
-import System.Environment
-import System.Exit
-import System.Posix.Signals
 import System.Process
 import System.IO
 import Text.Printf
-import Control.Monad.Trans.Class
-import Control.Monad.Trans.State
+
+import qualified HostConfiguration as HC
 
 type CPUUsed = Int
 type CPUTotal = Int
@@ -31,7 +33,9 @@ getSysCtlValues names =  fmap lines $ readProcess "/sbin/sysctl" ("-n":names) []
 
 getCPULoad :: IO CPULoad
 getCPULoad = do
+        putStrLn "GET CPU LOAD"
         loadv <- getSysCtlCombinedValue "kern.cp_time"
+        putStrLn "GET CPU LOAD2"
         return $ getSingleCPULoad loadv
 
 getSingleCPULoad :: [ String ] -> CPULoad
@@ -149,38 +153,36 @@ displayStats pipe cpu coreloads mem (net_rx,net_tx) = do
 
 gatherLoop :: Handle -> TimeZone -> CPULoad -> [ CPULoad ]
         -> NetLoad -> String -> IO()
-gatherLoop dzen tz lastcpu lastcoreloads lastnet iface = do
+gatherLoop pipe tz lastcpu lastcoreloads lastnet iface = do
         cpuload <- getCPULoad
         coreloads <- allCoreLoads
         mem <- fmap getMemPercent getMemLoad
         netload <- getNetLoad iface
-        displayStats dzen (getCPUPercent (lastcpu,cpuload))
+        displayStats pipe (getCPUPercent (lastcpu,cpuload))
                 (getBusyCPUs (lastcoreloads,coreloads)) mem
                 (getNetSpeeds (lastnet, netload))
         threadDelay 1000000
-        gatherLoop dzen tz cpuload coreloads netload iface
+        gatherLoop pipe tz cpuload coreloads netload iface
 
-startFreeBSD :: String -> IO()
-startFreeBSD iface = do
+startFreeBSD :: Handle -> HC.HostConfiguration -> IO()
+startFreeBSD pipe conf = do
          -- setEnv "LC_NUMERIC" "C"
          tz <- getCurrentTimeZone
          cpuinit <- getCPULoad
          coreloadsinit <- allCoreLoads
          netinit <- getNetLoad iface
-         gatherLoop stdout tz cpuinit coreloadsinit netinit iface
+         gatherLoop pipe tz cpuinit coreloadsinit netinit iface
+         where iface = HC.netInterfaceName conf
 
-installSignals :: IO ()
-installSignals = do
-        ppid <- myThreadId
-        mapM_ (\sig -> installHandler sig (Catch $ trap ppid) Nothing)
-                [ lostConnection, keyboardSignal, softwareTermination ]
+spawnPipe :: [ String ] -> IO Handle
+spawnPipe cmd = do
+        (Just hin, _, _, _) <- createProcess (proc (head cmd) (tail cmd)){ std_in = CreatePipe }
+        return hin
 
-trap tid = do
-        throwTo tid ExitSuccess
+xmobarSysInfo :: [ String ]
+xmobarSysInfo = [ "xmobar", ".xmonad/sysinfo_xmobar.rc" ]
 
-main :: IO()
-main = do
-        args <- getArgs
-        case args of
-                [ iface ]      -> startFreeBSD iface
-                _              -> error "Error in parameters."
+startSysInfoBar :: HC.HostConfiguration -> IO()
+startSysInfoBar conf = do
+        pipe <- spawnPipe xmobarSysInfo
+        startFreeBSD pipe conf

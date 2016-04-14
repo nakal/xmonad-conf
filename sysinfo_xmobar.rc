@@ -1,0 +1,28 @@
+Config {
+
+     font =         "xft:Inconsolata:size=12:bold:antialias=true"
+   , additionalFonts = []
+   , bgColor =      "#202020"
+   , fgColor =      "lightblue"
+   , alpha = 255
+   , position =     TopW R 35
+   , border =       NoBorder
+   , borderColor =  "black"
+
+   , sepChar =  "%"
+   , alignSep = "}{"
+   , template = "}{ %UnsafeStdinReader%"
+
+   , textOffset = -1
+   , iconOffset = -1
+   , iconRoot = ".xmonad/icons"
+
+   , lowerOnStart =     True
+   , hideOnStart =      False
+   , allDesktops =      True
+   , overrideRedirect = True
+   , pickBroadest =     False
+   , persistent =       True
+
+   , commands = [ Run UnsafeStdinReader ]
+}
