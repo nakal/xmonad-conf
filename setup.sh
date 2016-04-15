@@ -72,8 +72,7 @@ if [ "x$DISPLAY" = "x" ]; then
 else
 	dzen2 -v | grep -q XFT
 	if [ $? -ne 0 ]; then
-		echo "*** dzen2 appears to be too old and does not support XFT."
-		exit 1
+		echo "*** Warning: dzen2 appears to be too old and does not support XFT."
 	else
 		echo "-> XFT found, good."
 	fi
