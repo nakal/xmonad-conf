@@ -109,9 +109,21 @@ mkdir -p $HOME/.config/gtk-3.0
 cd $HOME/.config/gtk-3.0
 ln -s $SCRIPT_HOME/xsettings/settings.ini .
 
+echo Preparing SysInfoBar...
+cd $HOME/.xmonad/lib
+ghc --make SysInfoBar.hs
+if [ $? -ne 0 ]; then
+	echo "*** Building SysInfoBar binary failed"
+	exit 1
+fi
+
 cd $HOME
 echo Preparing xmonad...
 xmonad --recompile
+if [ $? -ne 0 ]; then
+	echo "*** Building xmonad failed"
+	exit 1
+fi
 
 echo "-----------------------------------------------------------------"
 echo "[Xmonad setup] Finished successfully."
