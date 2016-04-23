@@ -4,6 +4,7 @@ module HostConfiguration where
 import Control.Applicative ((<$>))
 import Network.BSD
 import System.Directory
+import System.IO
 
 type WorkspaceName = String
 type NetInterfaceName = String
@@ -34,12 +35,19 @@ readHostConfiguration homedir = do
         host <- myHostName
         let confpath = homedir ++ "/.xmonad/conf/" ++ host ++ ".hs"
         confexists <- doesFileExist confpath
+        hPutStr stderr $ "Reading " ++ confpath ++ " "
         if confexists then do
                         contents <- readFile confpath
                         let parseresult = reads contents :: [ ( HostConfiguration, String ) ]
-                        if null parseresult then return defaultHostConfiguration
-                                else return $ fst $ head parseresult
-                else return defaultHostConfiguration
+                        if null parseresult then do
+                                        hPutStrLn stderr "failed to parse, using defaults."
+                                        return defaultHostConfiguration
+                                else do
+                                        hPutStrLn stderr "ok."
+                                        return $ fst $ head parseresult
+                else do
+                        hPutStrLn stderr "failed, using defaults."
+                        return defaultHostConfiguration
 
 myHostName :: IO String
 myHostName = takeWhile (/= '.') <$> getHostName

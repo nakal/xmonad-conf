@@ -8,6 +8,7 @@ import System.Exit
 import System.Posix.Signals
 import System.Process
 import System.IO
+import System.Info
 import Text.Printf
 
 import qualified HostConfiguration as HC
@@ -24,11 +25,21 @@ type NetRx = Int
 type NetTx = Int
 data NetLoad = NetLoad NetRx NetTx
 
+type CPUIdle = Int
+type MemUsed = Int
+data VMStat = VMStat CPUIdle MemUsed MemFree
+
 getSysCtlCombinedValue :: String -> IO [ String ]
 getSysCtlCombinedValue name =  fmap words $ readProcess "/sbin/sysctl" [ "-n", name ] []
 
 getSysCtlValues :: [ String ] -> IO [ String ]
 getSysCtlValues names =  fmap lines $ readProcess "/sbin/sysctl" ("-n":names) []
+
+getVMStat :: IO VMStat
+getVMStat = do
+        str <- readProcess "/usr/bin/vmstat" [] []
+        let l = words $ last $ lines str
+        return $ VMStat (read $ last l) (read $ l !! 3) (read $ l !! 4)
 
 getCPULoad :: IO CPULoad
 getCPULoad = do
@@ -75,6 +86,19 @@ getNetLoad iface = do
                         let rr = words $ head ls
                             rx = read $ rr !! 7
                             tx = read $ rr !! 10
+                        in
+                                return $ NetLoad rx tx
+
+getOpenBSDNetLoad :: String -> IO NetLoad
+getOpenBSDNetLoad iface = do
+        str <- readProcess "/usr/bin/netstat" ["-i", "-I", iface, "-b"] []
+        let ls = tail $ lines str
+        if (null ls) then
+                return $ NetLoad 0 0
+                else
+                        let rr = words $ head ls
+                            rx = read $ rr !! 4
+                            tx = read $ rr !! 5
                         in
                                 return $ NetLoad rx tx
 
@@ -134,10 +158,9 @@ hotMemColor perc
         | perc < 80             = "orange"
         | otherwise             = "red"
 
-displayStats :: Handle -> Int -> (Int,Int) -> Int -> (String,String) -> IO()
-displayStats pipe cpu coreloads mem (net_rx,net_tx) = do
+displayStats :: Handle -> Int -> (Int,Int) -> Int -> (String,String) -> Int -> IO()
+displayStats pipe cpu coreloads mem (net_rx,net_tx) vol = do
         datestr <- getTimeAndDate
-        vol <- getVolume
         hPutStrLn pipe $
                 "<icon=cpu.xbm/><fc=" ++ hotCPUColor coreloads ++ "> " ++ (show cpu) ++ "%</fc>   " ++
                 "<icon=mem.xbm/><fc=" ++ hotMemColor mem ++ "> " ++ (show mem) ++ "%</fc>   " ++
@@ -148,18 +171,19 @@ displayStats pipe cpu coreloads mem (net_rx,net_tx) = do
                 "<fc=yellow>" ++ datestr ++ "</fc>"
         hFlush pipe
 
-gatherLoop :: Handle -> TimeZone -> CPULoad -> [ CPULoad ]
+gatherLoopFreeBSD :: Handle -> TimeZone -> CPULoad -> [ CPULoad ]
         -> NetLoad -> String -> IO()
-gatherLoop pipe tz lastcpu lastcoreloads lastnet iface = do
+gatherLoopFreeBSD pipe tz lastcpu lastcoreloads lastnet iface = do
         cpuload <- getCPULoad
         coreloads <- allCoreLoads
         mem <- fmap getMemPercent getMemLoad
         netload <- getNetLoad iface
+        vol <- getVolume
         displayStats pipe (getCPUPercent (lastcpu,cpuload))
                 (getBusyCPUs (lastcoreloads,coreloads)) mem
-                (getNetSpeeds (lastnet, netload))
+                (getNetSpeeds (lastnet, netload)) vol
         threadDelay 1000000
-        gatherLoop pipe tz cpuload coreloads netload iface
+        gatherLoopFreeBSD pipe tz cpuload coreloads netload iface
 
 startFreeBSD :: String -> Handle -> IO()
 startFreeBSD iface pipe = do
@@ -168,7 +192,35 @@ startFreeBSD iface pipe = do
          cpuinit <- getCPULoad
          coreloadsinit <- allCoreLoads
          netinit <- getNetLoad iface
-         gatherLoop pipe tz cpuinit coreloadsinit netinit iface
+         gatherLoopFreeBSD pipe tz cpuinit coreloadsinit netinit iface
+
+getOpenBSDCPUPercent :: VMStat -> Int
+getOpenBSDCPUPercent (VMStat id _ _) = 100 - id
+
+getHotness :: VMStat -> (Int, Int)
+getHotness (VMStat id _ _)
+        | id > 66              = (0, 2)
+        | id > 33              = (1, 2)
+        | otherwise            = (2, 2)
+
+getOpenBSDMemPercent :: VMStat -> Int
+getOpenBSDMemPercent (VMStat _ u f) = (u * 100) `div` f
+
+gatherLoopOpenBSD :: Handle -> TimeZone -> VMStat -> NetLoad -> String -> IO()
+gatherLoopOpenBSD pipe tz lastvmstat lastnet iface = do
+        vmstat <- getVMStat
+        netload <- getOpenBSDNetLoad iface
+        displayStats pipe (getOpenBSDCPUPercent vmstat) (getHotness vmstat)
+                (getOpenBSDMemPercent vmstat) (getNetSpeeds (lastnet, netload)) 0
+        threadDelay 1000000
+        gatherLoopOpenBSD pipe tz vmstat netload iface
+
+startOpenBSD :: String -> Handle -> IO()
+startOpenBSD iface pipe = do
+         tz <- getCurrentTimeZone
+         vmstat <- getVMStat
+         netload <- getOpenBSDNetLoad iface
+         gatherLoopOpenBSD pipe tz vmstat netload iface
 
 spawnPipe :: [ String ] -> IO Handle
 spawnPipe cmd = do
@@ -177,14 +229,6 @@ spawnPipe cmd = do
 
 xmobarSysInfo :: FilePath -> [ String ]
 xmobarSysInfo homedir = [ "xmobar", homedir ++ "/.xmonad/sysinfo_xmobar.rc" ]
-
-startSysInfoBar :: HC.HostConfiguration -> IO()
-startSysInfoBar conf = do
-        installSignals
-        homedir <- getHomeDirectory
-        putStrLn $ show $ xmobarSysInfo homedir
-        pipe <- spawnPipe $ xmobarSysInfo homedir
-        startFreeBSD (HC.netInterfaceName conf) pipe
 
 installSignals :: IO ()
 installSignals = do
@@ -199,5 +243,10 @@ main = do
         homedir <- getHomeDirectory
         args <- getArgs
         case args of
-                [ iface ]      -> spawnPipe (xmobarSysInfo homedir) >>= startFreeBSD iface
-                _                       -> error "Error in parameters."
+                [ iface ]      -> spawnPipe (xmobarSysInfo homedir) >>= (
+                        case os of
+                                "freebsd" -> startFreeBSD iface
+                                "openbsd" -> startOpenBSD iface
+                                _         -> error $ "Unknown operating system " ++ os
+                        )
+                _              -> error "Error in parameters."
