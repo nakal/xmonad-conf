@@ -6,5 +6,6 @@ OS=`uname -s`
 
 case "$OS" in
 "FreeBSD") exec sudo /sbin/shutdown -p now ;;
+"OpenBSD") exec doas /sbin/shutdown -p now ;;
 *) exec sudo /sbin/shutdown -h now ;;
 esac
