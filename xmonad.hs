@@ -302,6 +302,7 @@ myManageHook wsnames =
                 , className =? "Firefox"		--> doShift  (getWorkspace "web")
                 , title =? "weechat"                    --> insertPosition End Older <+> doShift  (getWorkspace "com")
                 , title =? "mutt"                       --> insertPosition Master Newer <+> doShift  (getWorkspace "com")
+                , isPrefixOf "OpenOffice" <$> className	--> doShift (getWorkspace "ofc")
                 , isPrefixOf "libreoffice" <$> className	--> doShift (getWorkspace "ofc")
                 , isPrefixOf "LibreOffice" <$> title            --> doShift (getWorkspace "ofc")
                 , appName =? "libreoffice"                      --> doShift (getWorkspace "ofc")
