@@ -10,6 +10,7 @@ import System.Process
 import System.IO
 import System.Info
 import Text.Printf
+import Text.Read
 
 import qualified HostConfiguration as HC
 
@@ -34,12 +35,6 @@ getSysCtlCombinedValue name =  fmap words $ readProcess "/sbin/sysctl" [ "-n", n
 
 getSysCtlValues :: [ String ] -> IO [ String ]
 getSysCtlValues names =  fmap lines $ readProcess "/sbin/sysctl" ("-n":names) []
-
-getVMStat :: IO VMStat
-getVMStat = do
-        str <- readProcess "/usr/bin/vmstat" [] []
-        let l = words $ last $ lines str
-        return $ VMStat (read $ last l) (read $ l !! 3) (read $ l !! 4)
 
 getCPULoad :: IO CPULoad
 getCPULoad = do
@@ -206,21 +201,40 @@ getHotness (VMStat id _ _)
 getOpenBSDMemPercent :: VMStat -> Int
 getOpenBSDMemPercent (VMStat _ u f) = (u * 100) `div` f
 
-gatherLoopOpenBSD :: Handle -> TimeZone -> VMStat -> NetLoad -> String -> IO()
-gatherLoopOpenBSD pipe tz lastvmstat lastnet iface = do
-        vmstat <- getVMStat
+gatherLoopOpenBSD :: Handle -> TimeZone -> Handle -> VMStat -> NetLoad -> String -> IO()
+gatherLoopOpenBSD pipe tz vmstatpipe lastvmstat lastnet iface = do
+        vmstat <- getVMStat vmstatpipe lastvmstat
         netload <- getOpenBSDNetLoad iface
         displayStats pipe (getOpenBSDCPUPercent vmstat) (getHotness vmstat)
                 (getOpenBSDMemPercent vmstat) (getNetSpeeds (lastnet, netload)) 0
         threadDelay 1000000
-        gatherLoopOpenBSD pipe tz vmstat netload iface
+        gatherLoopOpenBSD pipe tz vmstatpipe vmstat netload iface
+
+spawnVMStat :: IO Handle
+spawnVMStat = do
+        (_, Just hout, _, _) <- createProcess (proc "vmstat" ["1"]){ std_out = CreatePipe }
+        hGetLine hout
+        hGetLine hout
+        return hout
+
+getVMStat :: Handle -> VMStat -> IO VMStat
+getVMStat vmstatpipe lastvmstat = do
+        ready <- hReady vmstatpipe
+        if not ready then
+                return lastvmstat
+                else do
+                        l <- fmap words $ hGetLine vmstatpipe
+                        getVMStat vmstatpipe $ case readMaybe (head l) :: Maybe Int of
+                                Nothing -> lastvmstat
+                                _       -> VMStat (read $ last l) (read $ l !! 3) (read $ l !! 4)
 
 startOpenBSD :: String -> Handle -> IO()
 startOpenBSD iface pipe = do
          tz <- getCurrentTimeZone
-         vmstat <- getVMStat
+         vmstatpipe <- spawnVMStat
+         vmstat <- getVMStat vmstatpipe (VMStat 0 0 0)
          netload <- getOpenBSDNetLoad iface
-         gatherLoopOpenBSD pipe tz vmstat netload iface
+         gatherLoopOpenBSD pipe tz vmstatpipe vmstat netload iface
 
 spawnPipe :: [ String ] -> IO Handle
 spawnPipe cmd = do
