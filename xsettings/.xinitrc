@@ -3,6 +3,7 @@ export TERM="screen-256color"
 ulimit -c unlimited
 #export LC_ALL="de_DE.UTF-8"
 
+xset +fp /usr/X11R6/lib/X11/fonts/fantasque-sans,/usr/local/share/fonts/Inconsolata,/usr/local/share/fonts/terminus,/usr/local/share/fonts/ghostscript,/usr/local/share/fonts/fira
 xrdb -merge ~/.Xdefaults
 xsetroot -cursor_name left_ptr
 setxkbmap -symbols "us_alt(de)"
