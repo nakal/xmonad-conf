@@ -5,7 +5,7 @@ ulimit -c unlimited
 
 xset +fp /usr/X11R6/lib/X11/fonts/fantasque-sans,/usr/local/share/fonts/Inconsolata,/usr/local/share/fonts/terminus,/usr/local/share/fonts/ghostscript,/usr/local/share/fonts/fira
 xrdb -merge ~/.Xdefaults
-xsetroot -cursor_name left_ptr
+xsetroot -cursor_name left_ptr -solid black
 setxkbmap -symbols "us_alt(de)"
 xmodmap -e "pointer = 1 2 3 4 5 6 7 0 0"
 xscreensaver -no-splash &
