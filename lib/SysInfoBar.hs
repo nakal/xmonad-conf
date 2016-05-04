@@ -23,8 +23,8 @@ type MemTotal = Int
 type MemFree = Int
 data VMStat = VMStatOpenBSD CPUIdle MemUsed MemFree | VMStatFreeBSD CPUIdle MemTotal MemFree
 
-getNetLoad :: String -> IO NetLoad
-getNetLoad iface = do
+getFreeBSDNetLoad :: String -> IO NetLoad
+getFreeBSDNetLoad iface = do
         str <- readProcess "/usr/bin/netstat" ["-i", "-I", iface, "-bW"] []
         let ls = tail $ lines str
         if (null ls) then
@@ -111,29 +111,29 @@ displayStats pipe vmstat (net_rx,net_tx) vol = do
                 "<fc=yellow>" ++ datestr ++ "</fc>"
         hFlush pipe
 
-gatherLoop :: IO Int -> Handle -> Handle -> VMStat
+gatherLoop :: (String -> IO NetLoad) -> IO Int -> Handle -> Handle -> VMStat
         -> NetLoad -> String -> IO()
-gatherLoop volfunc pipe vmstatpipe lastvmstat lastnet iface = do
+gatherLoop netloadfunc volfunc pipe vmstatpipe lastvmstat lastnet iface = do
         vmstat <- getVMStat vmstatpipe lastvmstat
-        netload <- getNetLoad iface
+        netload <- netloadfunc iface
         vol <- volfunc
         displayStats pipe vmstat (getNetSpeeds (lastnet, netload)) vol
         threadDelay 1000000
-        gatherLoop volfunc pipe vmstatpipe vmstat netload iface
+        gatherLoop netloadfunc volfunc pipe vmstatpipe vmstat netload iface
 
 startFreeBSD :: String -> Handle -> IO()
 startFreeBSD iface pipe = do
          vmstatpipe <- spawnVMStat [ "-H" ]
          vmstat <- getVMStat vmstatpipe (VMStatFreeBSD 0 0 0)
-         netinit <- getNetLoad iface
-         gatherLoop getVolume pipe vmstatpipe vmstat netinit iface
+         netinit <- getFreeBSDNetLoad iface
+         gatherLoop getFreeBSDNetLoad getVolume pipe vmstatpipe vmstat netinit iface
 
 startOpenBSD :: String -> Handle -> IO()
 startOpenBSD iface pipe = do
          vmstatpipe <- spawnVMStat []
          vmstat <- getVMStat vmstatpipe (VMStatOpenBSD 0 0 0)
          netload <- getOpenBSDNetLoad iface
-         gatherLoop (return 0) pipe vmstatpipe vmstat netload iface
+         gatherLoop getOpenBSDNetLoad (return 0) pipe vmstatpipe vmstat netload iface
 
 getCPUPercent :: VMStat -> Int
 getCPUPercent (VMStatOpenBSD idle _ _) = 100 - idle
