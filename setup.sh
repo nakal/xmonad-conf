@@ -38,7 +38,7 @@ if [ "$OS" = "FreeBSD" ]; then
 		hs-xmonad hs-network hs-xmonad-contrib hs-xmobar \
 		firefox dmenu gmrun weechat zenity claws-mail \
 		gtk-oxygen-engine xrdb xsetroot setxkbmap gnupg \
-		xmodmap hsetroot inconsolata-ttf fira fantasque-sans-mono \
+		xmodmap hsetroot fira fantasque-sans-mono \
 		xdotool xfe \
 		> /dev/null
 	if [ $? -ne 0 ]; then

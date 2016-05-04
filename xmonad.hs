@@ -64,7 +64,7 @@ myModMask = mod4Mask
 myXDoToolKey = "Super"
 
 defaultFont :: String
-defaultFont = "Inconsolata:size=12:bold"
+defaultFont = "Fantasque Sans Mono:size=12:bold"
 
 -- This function numbers the workspace names
 numberedWorkspaces :: [ String ] -> [ String ]
@@ -80,7 +80,7 @@ getWorkspaceName wsnames name = case name `elemIndex` wsnames of
 	Just x	-> (show $ x+1) ++ ":" ++ name
 
 -- Border colors for unfocused and focused windows, respectively.
-myNormalBorderColor  = "#dddddd"
+myNormalBorderColor  = "#606060"
 myFocusedBorderColor = "#ff0000"
 
 ------------------------------------------------------------------------

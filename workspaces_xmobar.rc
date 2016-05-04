@@ -1,6 +1,6 @@
 Config {
 
-     font =         "xft:Inconsolata:size=12:bold:antialias=true"
+     font =         "xft:Fantasque Sans Mono:size=12:bold:antialias=true"
    , additionalFonts = []
    , bgColor =      "#202020"
    , fgColor =      "lightblue"

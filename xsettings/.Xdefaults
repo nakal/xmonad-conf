@@ -6,7 +6,7 @@
 ! ******************** xterm settings ********************
 
 XTerm*renderFont: true
-XTerm*faceName: Inconsolata
+XTerm*faceName: Fantasque Sans Mono
 XTerm*faceSize: 13
 XTerm*locale: UTF-8
 XTerm*dynamicColors: true
