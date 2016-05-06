@@ -330,13 +330,14 @@ myEventHook = docksEventHook
 --
 myLogHook :: Handle -> HC.HostConfiguration -> X ()
 myLogHook xmobar conf = do
+        prevws <- prevWorkspace
         dynamicLogWithPP $
                 defaultPP {
                         ppCurrent           =   xmobarColor "#ffffff" "#202020" . pad
-                        , ppVisible           =   xmobarColor "lightblue" "#202020" . pad . addAction
-                        , ppHidden            =   xmobarColor "lightblue" "#202020" . pad . addAction
-                        , ppHiddenNoWindows   =   xmobarColor "#7b7b7b" "#202020" . pad . addAction
-                        , ppUrgent            =   xmobarColor "#ff0000" "#202020" . pad . addAction
+                        , ppVisible           =   xmobarWorkspace "lightblue" "#202020"
+                        , ppHidden            =   xmobarWorkspace "lightblue" "#202020"
+                        , ppHiddenNoWindows   =   xmobarWorkspace "#7b7b7b" "#202020"
+                        , ppUrgent            =   xmobarWorkspace "#ff0000" "#202020"
                         , ppWsSep             =   " "
                         , ppSep               =   "  |  "
                         , ppLayout            =
@@ -353,10 +354,21 @@ myLogHook xmobar conf = do
                         , ppTitle             =   (" " ++) . xmobarColor "yellow" "#202020" . xmobarStrip
                         , ppOutput            =   hPutStrLn xmobar
 	}
-        where
-                addAction wrkspc = "<action=`xdotool key " ++ myXDoToolKey ++
-                        "+" ++ (take 1 wrkspc) ++ "`>" ++  wrkspc ++ "</action>"
 
+prevWorkspace :: X (Maybe WorkspaceId)
+prevWorkspace = do
+        lst <- gets $ W.hidden . windowset
+        case lst of
+                [] -> return Nothing
+                x:xs -> return $ Just $ W.tag x
+
+xmobarWorkspace :: String -> String -> WorkspaceId -> String
+xmobarWorkspace fg bg =
+        xmobarColor fg bg . pad . addAction
+        where addAction wrkspc = "<action=`xdotool key " ++ myXDoToolKey ++
+                "+" ++ (take 1 wrkspc) ++ "`>" ++  wrkspc ++ "</action>"
+
+-- markIfLastWorkspace :: WorkspaceId -> WorkspaceId -> String
 
 myXmonadBar :: String
 myXmonadBar = "xmobar .xmonad/workspaces_xmobar.rc"

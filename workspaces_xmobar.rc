@@ -1,7 +1,7 @@
 Config {
 
      font =         "xft:Fantasque Sans Mono:size=12:bold:antialias=true"
-   , additionalFonts = []
+     additionalFonts = [ "xft:Fantasque Sans Mono:size=12:bold:antialias=true:oblique" ]
    , bgColor =      "#202020"
    , fgColor =      "lightblue"
    , alpha = 255
