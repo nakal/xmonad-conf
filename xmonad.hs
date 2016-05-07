@@ -334,10 +334,10 @@ myLogHook xmobar conf = do
         dynamicLogWithPP $
                 defaultPP {
                         ppCurrent           =   xmobarColor "#ffffff" "#202020" . pad
-                        , ppVisible           =   xmobarWorkspace "lightblue" "#202020"
-                        , ppHidden            =   xmobarWorkspace "lightblue" "#202020"
-                        , ppHiddenNoWindows   =   xmobarWorkspace "#7b7b7b" "#202020"
-                        , ppUrgent            =   xmobarWorkspace "#ff0000" "#202020"
+                        , ppVisible           =   xmobarWorkspace "lightblue" "#202020" Nothing
+                        , ppHidden            =   xmobarWorkspace "lightblue" "#202020" prevws
+                        , ppHiddenNoWindows   =   xmobarWorkspace "#7b7b7b" "#202020" prevws
+                        , ppUrgent            =   xmobarWorkspace "#ff0000" "#202020" prevws
                         , ppWsSep             =   " "
                         , ppSep               =   "  |  "
                         , ppLayout            =
@@ -362,13 +362,17 @@ prevWorkspace = do
                 [] -> return Nothing
                 x:xs -> return $ Just $ W.tag x
 
-xmobarWorkspace :: String -> String -> WorkspaceId -> String
-xmobarWorkspace fg bg =
+xmobarWorkspace :: String -> String -> Maybe WorkspaceId -> WorkspaceId -> String
+xmobarWorkspace fg bg prevws =
         xmobarColor fg bg . pad . addAction
-        where addAction wrkspc = "<action=`xdotool key " ++ myXDoToolKey ++
-                "+" ++ (take 1 wrkspc) ++ "`>" ++  wrkspc ++ "</action>"
-
--- markIfLastWorkspace :: WorkspaceId -> WorkspaceId -> String
+        where
+                addAction wrkspc = "<action=`xdotool key " ++ myXDoToolKey ++
+                        "+" ++ (take 1 wrkspc) ++ "`>" ++
+                        (markPrevious prevws wrkspc) ++ "</action>"
+                markPrevious prevws wrkspc = case prevws of
+                        Just w      -> if w == wrkspc then "<fn=1>" ++ w ++ "</fn>"
+                                        else wrkspc
+                        _           -> wrkspc
 
 myXmonadBar :: String
 myXmonadBar = "xmobar .xmonad/workspaces_xmobar.rc"
