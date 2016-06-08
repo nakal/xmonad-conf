@@ -16,6 +16,7 @@ XTerm*foreground: darkgray
 XTerm*metaSendsEscape: true
 XTerm*scrollBar: false
 XTerm*charClass: 33:48,36-38:48,43-47:48,58:48,61:48,63-64:48,126:48
+XTerm*cursorColor: orange
 
 ! ******************** urxvt settings ********************
 
@@ -29,6 +30,7 @@ urxvt*metaSendsEscape: true
 urxvt*scrollBar: false
 urxvt*letterSpace: -1
 urxvt*iso14755: false
+urxvt*cursorColor: orange
 
 Rxvt*font: xft:Fantasque Sans Mono:pixelsize=17
 Rxvt*locale: UTF-8
@@ -40,3 +42,4 @@ Rxvt*metaSendsEscape: true
 Rxvt*scrollBar: false
 Rxvt*letterSpace: -1
 Rxvt*iso14755: false
+Rxvt*cursorColor: orange
