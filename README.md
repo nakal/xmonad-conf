@@ -1,6 +1,6 @@
 # nakal's Xmonad (plus desktop) configuration
 
-![Desktop screenshot](https://photos.google.com/share/AF1QipNPQD2i2CDAa0MB9zP6OfHzeOEtB6oUFHZaVB_nuGM2azxDBa2m0RPYWyTIS5Bv3A/photo/AF1QipO-do_EOXjjU5KDsOg3VLPCjInm4SifS44dZE_q?key=YTlTd3dkUi1Na1RKMEpjNThVeDhxTWhZWkkyZTZR)
+![Desktop screenshot](https://photos.google.com/share/AF1QipPEwAfucM_1Kr_APAaq6LpHls_T-e_OBHCHp-lv_mDsm0xq-Y-wthEgqxDW1PHuWA/photo/AF1QipPQCsV7XSN5JErwVe25DxTjHRGMyJGH5KEUOtp9?key=UlJRYmsyYy1LbVpDWVFFR0R1U3liUDVYMm9JRzhn)
 
 [Xmonad](http://xmonad.org/) is a minimalistic tiled window manager for Xorg.
 
@@ -10,11 +10,18 @@ configuration, but also some additional goodies for a usable desktop.
 Included fine tuning has been done for (e.g.):
 
 * X settings:
-	* Xorg Xdefaults
+	* Xorg Xdefaults and fonts
 	* GTK+ 2 & 3
+	* session management
+	* dialogs for
+		* SSH
+		* rdesktop
+		* VirtualBox
 * login manager:
 	* slim
-	* session management
+* xmobar:
+	* desktop bar
+	* sysinfo bar
 
 ## Small warning
 
@@ -30,8 +37,7 @@ important data.
 
 ## Installation instructions
 
-For those who read the warnings above and have confidence that I am not
-doing any harm, proceed with these steps:
+For those who read the warnings above, proceed with these steps:
 
 0. **Make a backup of your $HOME** (optional, but you never know!)
 1. Clone the project.
