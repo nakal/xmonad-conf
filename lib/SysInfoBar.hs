@@ -19,10 +19,13 @@ type NetRx = Int
 type NetTx = Int
 data NetLoad = NetLoad NetRx NetTx
 
-type CPUIdle = Int
+type CPUUsed = Int
+type CPUTotal = Int
+data CPULoad = CPULoad CPUUsed CPUTotal
+
 type MemTotal = Int
 type MemFree = Int
-data VMStat = VMStat CPUIdle MemTotal MemFree
+data MemStat = MemStat MemTotal MemFree
 
 getFreeBSDNetLoad :: String -> IO NetLoad
 getFreeBSDNetLoad iface = do
@@ -37,18 +40,18 @@ getFreeBSDNetLoad iface = do
                         in
                                 return $ NetLoad rx tx
 
-getOpenBSDNetLoad :: String -> IO NetLoad
-getOpenBSDNetLoad iface = do
-        str <- readProcess "/usr/bin/netstat" ["-i", "-I", iface, "-b"] []
-        let ls = tail $ lines str
-        if (null ls) then
-                return $ NetLoad 0 0
-                else
-                        let rr = words $ head ls
-                            rx = read $ rr !! 4
-                            tx = read $ rr !! 5
-                        in
-                                return $ NetLoad rx tx
+-- getOpenBSDNetLoad :: String -> IO NetLoad
+-- getOpenBSDNetLoad iface = do
+--         str <- readProcess "/usr/bin/netstat" ["-i", "-I", iface, "-b"] []
+--         let ls = tail $ lines str
+--         if (null ls) then
+--                 return $ NetLoad 0 0
+--                 else
+--                         let rr = words $ head ls
+--                             rx = read $ rr !! 4
+--                             tx = read $ rr !! 5
+--                         in
+--                                 return $ NetLoad rx tx
 
 getNetSpeeds :: (NetLoad,NetLoad) -> (String,String)
 getNetSpeeds (NetLoad oldrx oldtx, NetLoad currx curtx) =
@@ -85,26 +88,25 @@ getVolume = do
         let (left,d:right) = span (/= ':') $ drop 4 str
         return $ (read left + read right) `div` 2
 
-hotCPUColor :: VMStat -> String
-hotCPUColor vmstat
-        | perc < 30             = "lightblue"
-        | perc <= 80            = "orange"
+hotCPUColor :: Int -> String
+hotCPUColor perc
+        | perc < 33             = "lightblue"
+        | perc < 66             = "orange"
         | otherwise             = "red"
-        where perc = getCPUPercent vmstat
 
-hotMemColor :: VMStat -> String
-hotMemColor vmstat
+hotMemColor :: MemStat -> String
+hotMemColor memstat
         | perc < 60             = "lightblue"
         | perc < 80             = "orange"
         | otherwise             = "red"
-        where perc = getMemPercent vmstat
+        where perc = getMemPercent memstat
 
-displayStats :: Handle -> VMStat -> (String,String) -> Int -> IO()
-displayStats pipe vmstat (net_rx,net_tx) vol = do
+displayStats :: Handle -> Int -> MemStat -> (String,String) -> Int -> IO()
+displayStats pipe cpuperc memstat (net_rx,net_tx) vol = do
         datestr <- getTimeAndDate
         hPutStrLn pipe $
-                "<icon=cpu.xbm/><fc=" ++ hotCPUColor vmstat ++ "> " ++ (show $ getCPUPercent vmstat) ++ "%</fc>   " ++
-                "<icon=mem.xbm/><fc=" ++ hotMemColor vmstat ++ "> " ++ (show $ getMemPercent vmstat) ++ "%</fc>   " ++
+                "<icon=cpu.xbm/><fc=" ++ hotCPUColor cpuperc ++ "> " ++ (show cpuperc) ++ "%</fc>   " ++
+                "<icon=mem.xbm/><fc=" ++ hotMemColor memstat ++ "> " ++ (show $ getMemPercent memstat) ++ "%</fc>   " ++
                 "<icon=net_wired.xbm/> " ++
                 "<icon=net_down_03.xbm/> " ++ net_rx ++ "   " ++
                 "<icon=net_up_03.xbm/> " ++ net_tx ++ "   " ++
@@ -112,38 +114,48 @@ displayStats pipe vmstat (net_rx,net_tx) vol = do
                 "<fc=yellow>" ++ datestr ++ "</fc>"
         hFlush pipe
 
-gatherLoop :: (OID, Int, OID) -> (String -> IO NetLoad) -> IO Int -> Handle
+gatherLoop :: (OID, Int, OID) -> CPULoad -> (String -> IO NetLoad) -> IO Int -> Handle
         -> NetLoad -> String -> IO()
-gatherLoop (oid_cpuidle, memtotal, oid_memused) netloadfunc volfunc pipe lastnet iface = do
-        vmstat <- getVMStat (oid_cpuidle, memtotal, oid_memused)
+gatherLoop (oid_cpuload, memtotal, oid_memused) oldcpuload netloadfunc volfunc pipe lastnet iface = do
+        cpuload <- getCPULoad oid_cpuload
+        memstat <- getMemStat (memtotal, oid_memused)
         netload <- netloadfunc iface
         vol <- volfunc
-        displayStats pipe vmstat (getNetSpeeds (lastnet, netload)) vol
+        displayStats pipe (getCPUPercent (oldcpuload, cpuload)) memstat (getNetSpeeds (lastnet, netload)) vol
         threadDelay 1000000
-        gatherLoop (oid_cpuidle, memtotal, oid_memused) netloadfunc volfunc pipe netload iface
+        gatherLoop (oid_cpuload, memtotal, oid_memused) cpuload netloadfunc volfunc pipe netload iface
 
 startBSD :: String -> Handle -> IO()
 startBSD iface pipe = do
-         oid_cpuload <- sysctlNameToOid "vm.loadavg"
-         oid_memtotal <- sysctlNameToOid "hw.physmem"
-         oid_pagesize <- sysctlNameToOid "vm.stats.vm.v_page_size"
-         oid_memfree <- sysctlNameToOid "vm.stats.vm.v_free_count"
-         netinit <- getFreeBSDNetLoad iface
-         memtotal <- sysctlReadUQuad oid_memtotal
-         pagesize <- sysctlReadUQuad oid_pagesize
-         gatherLoop (oid_cpuload, fromIntegral (memtotal `div` pagesize), oid_memfree) getFreeBSDNetLoad getVolume pipe netinit iface
+        oid_cpuload <- sysctlNameToOid "kern.cp_time"
+        oid_memtotal <- sysctlNameToOid "vm.stats.vm.v_page_count"
+        oid_memfree <- sysctlNameToOid "vm.stats.vm.v_free_count"
+        cpuload <- getCPULoad oid_cpuload
+        netinit <- getFreeBSDNetLoad iface
+        memtotal <- sysctlReadUInt oid_memtotal
+        gatherLoop (oid_cpuload, fromIntegral memtotal, oid_memfree) cpuload getFreeBSDNetLoad getVolume pipe netinit iface
 
-getCPUPercent :: VMStat -> Int
-getCPUPercent (VMStat load _ _) = 0
+getCPUPercent :: (CPULoad,CPULoad) -> Int
+getCPUPercent (CPULoad oldused oldtotal, CPULoad curused curtotal) =
+        let     deltatotal = curtotal - oldtotal
+                deltaused = curused - oldused
+                in if deltatotal > 0 then (100*deltaused) `div` deltatotal else 0
 
-getMemPercent :: VMStat -> Int
-getMemPercent (VMStat _ total free) = 100 - ((free * 100) `div` total)
+getMemPercent :: MemStat -> Int
+getMemPercent (MemStat total free) = 100 - ((free * 100) `div` total)
 
-getVMStat :: (OID, Int, OID) -> IO VMStat
-getVMStat (oid_cpuload, memtotal, oid_memfree) = do
-        cpuloads <- sysctlReadString oid_cpuload
+getMemStat :: (Int, OID) -> IO MemStat
+getMemStat (memtotal, oid_memfree) = do
         memfree <- sysctlReadUInt oid_memfree
-        return $ VMStat 0 memtotal (fromIntegral memfree)
+        return $ MemStat memtotal (fromIntegral memfree)
+
+getCPULoad :: OID -> IO CPULoad
+getCPULoad oid_cpuload = do
+        cpuloads2 <- sysctlPeekArray oid_cpuload :: IO [Word64]
+        let     cpuloads = fmap fromIntegral cpuloads2
+                total = sum cpuloads
+                used = total - last cpuloads
+                in return $ CPULoad used total
 
 spawnPipe :: [ String ] -> IO Handle
 spawnPipe cmd = do
@@ -169,7 +181,7 @@ main = do
                 [ iface ]      -> spawnPipe (xmobarSysInfo homedir) >>= (
                         case os of
                                 "freebsd" -> startBSD iface
-                                "openbsd" -> startBSD iface
+                                -- "openbsd" -> startBSD iface
                                 _         -> error $ "Unknown operating system " ++ os
                         )
                 _              -> error "Error in parameters."
