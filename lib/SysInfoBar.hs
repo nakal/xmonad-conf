@@ -1,6 +1,8 @@
 
 import Control.Concurrent
 import Data.Char
+import Data.Word
+import System.BSD.Sysctl
 import System.Directory
 import System.Environment
 import System.Exit
@@ -18,10 +20,9 @@ type NetTx = Int
 data NetLoad = NetLoad NetRx NetTx
 
 type CPUIdle = Int
-type MemUsed = Int
 type MemTotal = Int
 type MemFree = Int
-data VMStat = VMStatOpenBSD CPUIdle MemUsed MemFree | VMStatFreeBSD CPUIdle MemTotal MemFree
+data VMStat = VMStat CPUIdle MemTotal MemFree
 
 getFreeBSDNetLoad :: String -> IO NetLoad
 getFreeBSDNetLoad iface = do
@@ -111,62 +112,38 @@ displayStats pipe vmstat (net_rx,net_tx) vol = do
                 "<fc=yellow>" ++ datestr ++ "</fc>"
         hFlush pipe
 
-gatherLoop :: (String -> IO NetLoad) -> IO Int -> Handle -> Handle -> VMStat
+gatherLoop :: (OID, Int, OID) -> (String -> IO NetLoad) -> IO Int -> Handle
         -> NetLoad -> String -> IO()
-gatherLoop netloadfunc volfunc pipe vmstatpipe lastvmstat lastnet iface = do
-        vmstat <- getVMStat vmstatpipe lastvmstat
+gatherLoop (oid_cpuidle, memtotal, oid_memused) netloadfunc volfunc pipe lastnet iface = do
+        vmstat <- getVMStat (oid_cpuidle, memtotal, oid_memused)
         netload <- netloadfunc iface
         vol <- volfunc
         displayStats pipe vmstat (getNetSpeeds (lastnet, netload)) vol
         threadDelay 1000000
-        gatherLoop netloadfunc volfunc pipe vmstatpipe vmstat netload iface
+        gatherLoop (oid_cpuidle, memtotal, oid_memused) netloadfunc volfunc pipe netload iface
 
-startFreeBSD :: String -> Handle -> IO()
-startFreeBSD iface pipe = do
-         vmstatpipe <- spawnVMStat [ "-H" ]
-         vmstat <- getVMStat vmstatpipe (VMStatFreeBSD 0 0 0)
+startBSD :: String -> Handle -> IO()
+startBSD iface pipe = do
+         oid_cpuload <- sysctlNameToOid "vm.loadavg"
+         oid_memtotal <- sysctlNameToOid "hw.physmem"
+         oid_pagesize <- sysctlNameToOid "vm.stats.vm.v_page_size"
+         oid_memfree <- sysctlNameToOid "vm.stats.vm.v_free_count"
          netinit <- getFreeBSDNetLoad iface
-         gatherLoop getFreeBSDNetLoad getVolume pipe vmstatpipe vmstat netinit iface
-
-startOpenBSD :: String -> Handle -> IO()
-startOpenBSD iface pipe = do
-         vmstatpipe <- spawnVMStat []
-         vmstat <- getVMStat vmstatpipe (VMStatOpenBSD 0 0 0)
-         netload <- getOpenBSDNetLoad iface
-         gatherLoop getOpenBSDNetLoad (return 0) pipe vmstatpipe vmstat netload iface
+         memtotal <- sysctlReadUQuad oid_memtotal
+         pagesize <- sysctlReadUQuad oid_pagesize
+         gatherLoop (oid_cpuload, fromIntegral (memtotal `div` pagesize), oid_memfree) getFreeBSDNetLoad getVolume pipe netinit iface
 
 getCPUPercent :: VMStat -> Int
-getCPUPercent (VMStatOpenBSD idle _ _) = 100 - idle
-getCPUPercent (VMStatFreeBSD idle _ _) = 100 - idle
+getCPUPercent (VMStat load _ _) = 0
 
 getMemPercent :: VMStat -> Int
-getMemPercent (VMStatOpenBSD _ u f) = (u * 100) `div` f
-getMemPercent (VMStatFreeBSD _ a f)
-        | perc < 0      = 0
-        | perc > 100    = 100
-        | otherwise     =  perc
-        where perc = ((a - f) * 100) `div` a
+getMemPercent (VMStat _ total free) = 100 - ((free * 100) `div` total)
 
-spawnVMStat :: [ String ] -> IO Handle
-spawnVMStat args = do
-        (_, Just hout, _, _) <- createProcess (proc "vmstat" $ args ++ ["1"]){ std_out = CreatePipe }
-        hGetLine hout
-        hGetLine hout
-        return hout
-
-getVMStat :: Handle -> VMStat -> IO VMStat
-getVMStat vmstatpipe lastvmstat = do
-        ready <- hReady vmstatpipe
-        if not ready then
-                return lastvmstat
-                else do
-                        l <- fmap words $ hGetLine vmstatpipe
-                        getVMStat vmstatpipe $ case readMaybe (head l) :: Maybe Int of
-                                Nothing -> lastvmstat
-                                _       -> vmstattype (read $ last l) (read $ l !! 3) (read $ l !! 4)
-        where vmstattype = case lastvmstat of
-                VMStatOpenBSD _ _ _   ->      VMStatOpenBSD
-                VMStatFreeBSD _ _ _   ->      VMStatFreeBSD
+getVMStat :: (OID, Int, OID) -> IO VMStat
+getVMStat (oid_cpuload, memtotal, oid_memfree) = do
+        cpuloads <- sysctlReadString oid_cpuload
+        memfree <- sysctlReadUInt oid_memfree
+        return $ VMStat 0 memtotal (fromIntegral memfree)
 
 spawnPipe :: [ String ] -> IO Handle
 spawnPipe cmd = do
@@ -191,8 +168,8 @@ main = do
         case args of
                 [ iface ]      -> spawnPipe (xmobarSysInfo homedir) >>= (
                         case os of
-                                "freebsd" -> startFreeBSD iface
-                                "openbsd" -> startOpenBSD iface
+                                "freebsd" -> startBSD iface
+                                "openbsd" -> startBSD iface
                                 _         -> error $ "Unknown operating system " ++ os
                         )
                 _              -> error "Error in parameters."
