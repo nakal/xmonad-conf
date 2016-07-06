@@ -10,20 +10,23 @@ type WorkspaceName = String
 type NetInterfaceName = String
 type ExecuteCommand = ( String, [ String ] )
 
+defaultLocale = "en"
 defaultWorkspaceNames = ["web","com","dev","gfx","ofc","","","",""]
 defaultNetInterfaceName = "re0"
 defaultTerminal = "xterm"
 
 data HostConfiguration = HostConfiguration {
-        workspaceNames :: [ WorkspaceName ]          ,
-        terminal :: FilePath                  ,
-        netInterfaceName :: NetInterfaceName         ,
+        locale :: String                        ,
+        workspaceNames :: [ WorkspaceName ]     ,
+        terminal :: FilePath                    ,
+        netInterfaceName :: NetInterfaceName    ,
         autostartPrograms :: [ ExecuteCommand ]
         }
         deriving ( Read, Show )
 
 defaultHostConfiguration :: HostConfiguration
 defaultHostConfiguration = HostConfiguration {
+        locale = defaultLocale                          ,
         workspaceNames = defaultWorkspaceNames          ,
         terminal = defaultTerminal                      ,
         netInterfaceName = defaultNetInterfaceName      ,

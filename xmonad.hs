@@ -401,7 +401,7 @@ xconfig conf xmobar = defaultConfig
 
 autostartAllPrograms :: HC.HostConfiguration -> X ()
 autostartAllPrograms conf = do
-        spawn $ "~/.xmonad/lib/SysInfoBar " ++ HC.netInterfaceName conf
+        spawn $ "~/.xmonad/lib/SysInfoBar " ++ HC.locale conf ++ " " ++ HC.netInterfaceName conf
         mapM_ execprog $ HC.autostartPrograms conf
         where execprog prog = spawn $ (fst prog) ++ " " ++ (unwords $ snd prog)
 

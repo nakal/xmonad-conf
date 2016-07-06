@@ -76,6 +76,7 @@ given arguments (just so you can see how to pass arguments).
 
 ```
 HostConfiguration {
+	locale = "de",
         workspaceNames = [ "web","com","dev","gfx","ofc","","","",""],
         terminal = "urxvt",
         netInterfaceName = "em0",
@@ -95,6 +96,7 @@ Read/Show) or it will be safely skipped and the defaults will be used.
 It looks like this:
 ```
 defaultHostConfiguration = HostConfiguration {
+	locale = "en",
         workspaceNames = ["web","com","dev","gfx","ofc","","","",""],
         terminal = "xterm",
         netInterfaceName = "re0",

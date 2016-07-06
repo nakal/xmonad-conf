@@ -13,7 +13,7 @@ import System.Info
 import Text.Printf
 import Text.Read
 
-import qualified HostConfiguration as HC
+import qualified DateFormatter as DF
 
 type NetRx = Int
 type NetTx = Int
@@ -76,12 +76,6 @@ filterSeconds str =
                 fmap (== ':') str == [False,False,True,False,False,True,False,False] then
                         take 5 str else str
 
-getTimeAndDate :: IO String
-getTimeAndDate = do
-        str <- fmap words $ readProcess "/bin/date" ["+%a %e %b %Y %H:%M"] []
-        let f1 = fmap (\s -> if (endsWithDot s) then (init s) else s) $ fmap filterSeconds $ filter isNotTimezone str
-        return $ unwords f1
-
 getVolume :: IO Int
 getVolume = do
         str <- readProcess "/usr/sbin/mixer" ["-S", "vol"] []
@@ -101,9 +95,9 @@ hotMemColor memstat
         | otherwise             = "red"
         where perc = getMemPercent memstat
 
-displayStats :: Handle -> Int -> MemStat -> (String,String) -> Int -> IO()
-displayStats pipe cpuperc memstat (net_rx,net_tx) vol = do
-        datestr <- getTimeAndDate
+displayStats :: String -> Handle -> Int -> MemStat -> (String,String) -> Int -> IO()
+displayStats locale pipe cpuperc memstat (net_rx,net_tx) vol = do
+        datestr <- DF.getTimeAndDate locale
         hPutStrLn pipe $
                 "<icon=cpu.xbm/><fc=" ++ hotCPUColor cpuperc ++ "> " ++ (show cpuperc) ++ "%</fc>   " ++
                 "<icon=mem.xbm/><fc=" ++ hotMemColor memstat ++ "> " ++ (show $ getMemPercent memstat) ++ "%</fc>   " ++
@@ -114,26 +108,27 @@ displayStats pipe cpuperc memstat (net_rx,net_tx) vol = do
                 "<fc=yellow>" ++ datestr ++ "</fc>"
         hFlush pipe
 
-gatherLoop :: (OID, Int, OID) -> CPULoad -> (String -> IO NetLoad) -> IO Int -> Handle
+gatherLoop :: String -> (OID, Int, OID) -> CPULoad -> (String -> IO NetLoad) -> IO Int -> Handle
         -> NetLoad -> String -> IO()
-gatherLoop (oid_cpuload, memtotal, oid_memused) oldcpuload netloadfunc volfunc pipe lastnet iface = do
+gatherLoop locale (oid_cpuload, memtotal, oid_memused) oldcpuload netloadfunc volfunc pipe lastnet iface = do
         cpuload <- getCPULoad oid_cpuload
         memstat <- getMemStat (memtotal, oid_memused)
         netload <- netloadfunc iface
         vol <- volfunc
-        displayStats pipe (getCPUPercent (oldcpuload, cpuload)) memstat (getNetSpeeds (lastnet, netload)) vol
+        displayStats locale pipe (getCPUPercent (oldcpuload, cpuload)) memstat (getNetSpeeds (lastnet, netload)) vol
         threadDelay 1000000
-        gatherLoop (oid_cpuload, memtotal, oid_memused) cpuload netloadfunc volfunc pipe netload iface
+        gatherLoop locale (oid_cpuload, memtotal, oid_memused) cpuload netloadfunc volfunc pipe netload iface
 
-startBSD :: String -> Handle -> IO()
-startBSD iface pipe = do
+startBSD :: String -> String -> Handle -> IO()
+startBSD locale iface pipe = do
         oid_cpuload <- sysctlNameToOid "kern.cp_time"
         oid_memtotal <- sysctlNameToOid "vm.stats.vm.v_page_count"
         oid_memfree <- sysctlNameToOid "vm.stats.vm.v_free_count"
         cpuload <- getCPULoad oid_cpuload
         netinit <- getFreeBSDNetLoad iface
         memtotal <- sysctlReadUInt oid_memtotal
-        gatherLoop (oid_cpuload, fromIntegral memtotal, oid_memfree) cpuload getFreeBSDNetLoad getVolume pipe netinit iface
+        gatherLoop locale (oid_cpuload, fromIntegral memtotal, oid_memfree)
+                cpuload getFreeBSDNetLoad getVolume pipe netinit iface
 
 getCPUPercent :: (CPULoad,CPULoad) -> Int
 getCPUPercent (CPULoad oldused oldtotal, CPULoad curused curtotal) =
@@ -178,10 +173,9 @@ main = do
         homedir <- getHomeDirectory
         args <- getArgs
         case args of
-                [ iface ]      -> spawnPipe (xmobarSysInfo homedir) >>= (
+                [ locale, iface ]      -> spawnPipe (xmobarSysInfo homedir) >>= (
                         case os of
-                                "freebsd" -> startBSD iface
-                                -- "openbsd" -> startBSD iface
+                                "freebsd" -> startBSD locale iface
                                 _         -> error $ "Unknown operating system " ++ os
                         )
-                _              -> error "Error in parameters."
+                _              -> error "Error in parameters. Need locale and network interface."
