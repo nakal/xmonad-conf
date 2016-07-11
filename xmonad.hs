@@ -292,6 +292,7 @@ myManageHook wsnames =
                 , className =? "Iceweasel"		--> doShift  (getWorkspace "web")
                 , className =? "Firefox"		--> doShift  (getWorkspace "web")
                 , className =? "Claws-mail"		--> doShift  (getWorkspace "com")
+                , className =? "Thunderbird"		--> doShift  (getWorkspace "com")
                 , className =? "Pidgin"                 --> doShift  (getWorkspace "com")
                 , className =? "VBoxSDL"		--> doShift  (getWorkspace "win")
                 , className =? "rdesktop"		--> doUnfloat <+> doShift  (getWorkspace "win")
