@@ -1,6 +1,8 @@
 
 import Control.Concurrent
+import Control.Monad
 import Data.Char
+import Data.Either
 import Data.Word
 import System.BSD.Sysctl
 import System.Directory
@@ -9,6 +11,7 @@ import System.Exit
 import System.Posix.Signals
 import System.Process
 import System.IO
+import System.IO.Error
 import System.Info
 import Text.Printf
 import Text.Read
@@ -26,6 +29,9 @@ data CPULoad = CPULoad CPUUsed CPUTotal
 type MemTotal = Int
 type MemFree = Int
 data MemStat = MemStat MemTotal MemFree
+
+type SwapPercent = Int
+data SwapLoad = SwapLoad SwapPercent
 
 getFreeBSDNetLoad :: String -> IO NetLoad
 getFreeBSDNetLoad iface = do
@@ -108,6 +114,15 @@ displayStats locale pipe cpuperc memstat (net_rx,net_tx) vol = do
                 "<fc=yellow>" ++ datestr ++ "</fc>"
         hFlush pipe
 
+getSwapStats :: IO SwapLoad
+getSwapStats = do
+        swap <- fmap rights $
+                mapM (\nr -> tryIOError (
+                        sysctlNameToOidArgs "vm.swap_info" [ nr ] >>=
+                                sysctlPeekArray :: IO [Word8])) [0..15]
+        putStrLn $ "swap: " ++ show swap
+        return $ SwapLoad 0
+
 gatherLoop :: String -> (OID, Int, OID) -> CPULoad -> (String -> IO NetLoad) -> IO Int -> Handle
         -> NetLoad -> String -> IO()
 gatherLoop locale (oid_cpuload, memtotal, oid_memused) oldcpuload netloadfunc volfunc pipe lastnet iface = do
@@ -115,6 +130,7 @@ gatherLoop locale (oid_cpuload, memtotal, oid_memused) oldcpuload netloadfunc vo
         memstat <- getMemStat (memtotal, oid_memused)
         netload <- netloadfunc iface
         vol <- volfunc
+        -- getSwapStats
         displayStats locale pipe (getCPUPercent (oldcpuload, cpuload)) memstat (getNetSpeeds (lastnet, netload)) vol
         threadDelay 1000000
         gatherLoop locale (oid_cpuload, memtotal, oid_memused) cpuload netloadfunc volfunc pipe netload iface
