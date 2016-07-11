@@ -98,7 +98,7 @@ It looks like this:
 defaultHostConfiguration = HostConfiguration {
 	locale = "en",
         workspaceNames = ["web","com","dev","gfx","ofc","","","",""],
-        terminal = "xterm",
+        terminal = "urxvt",
         netInterfaceName = "re0",
         autostartPrograms = []
         }

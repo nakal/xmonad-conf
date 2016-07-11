@@ -13,7 +13,7 @@ type ExecuteCommand = ( String, [ String ] )
 defaultLocale = "en"
 defaultWorkspaceNames = ["web","com","dev","gfx","ofc","","","",""]
 defaultNetInterfaceName = "re0"
-defaultTerminal = "xterm"
+defaultTerminal = "urxvt"
 
 data HostConfiguration = HostConfiguration {
         locale :: String                        ,
