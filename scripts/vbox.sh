@@ -1,10 +1,5 @@
 #!/bin/sh
 
-TERMINAL="$1"
-if [ -z "$TERMINAL" ]; then
-	TERMINAL="xterm"
-fi
-
 CACHE_DIR="$HOME/.cache/xmonad-conf"
 CACHE_FILE="$CACHE_DIR/vbox-last.txt"
 

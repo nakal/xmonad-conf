@@ -2,7 +2,7 @@
 
 TERMINAL="$1"
 if [ -z "$TERMINAL" ]; then
-	TERMINAL="xterm"
+	TERMINAL="urxvt"
 fi
 
 CACHE_DIR="$HOME/.cache/xmonad-conf"
