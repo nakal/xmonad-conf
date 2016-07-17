@@ -64,10 +64,10 @@ getNetSpeeds (NetLoad oldrx oldtx, NetLoad currx curtx) =
 
 netspeed :: Int -> String
 netspeed x
-        | x > 2 * 1024 ^ 3          =       (printf "% 5.2f" (((fromIntegral x)/(1024^3)) :: Double)) ++ "GB"
-        | x > 2 * 1024 ^ 2          =       (printf "% 5.2f" (((fromIntegral x)/(1024^2)) :: Double)) ++ "MB"
-        | x > 2 * 1024              =       (printf "% 5.2f" (((fromIntegral x)/1024) :: Double)) ++ "kB"
-        | otherwise                 =       (printf "% 5d " x) ++ "B "
+        | x > 2 * 1024 ^ 3          =       printf "% 5.2fGB" (((fromIntegral x)/(1024^3)) :: Double)
+        | x > 2 * 1024 ^ 2          =       printf "% 5.2fMB" (((fromIntegral x)/(1024^2)) :: Double)
+        | x > 2 * 1024              =       printf "% 5.2fkB" (((fromIntegral x)/1024) :: Double)
+        | otherwise                 =       printf "% 5d B " x
 
 isNotTimezone :: String -> Bool
 isNotTimezone str = not $ foldr (\x -> (&&) (isUpper x)) True str
@@ -104,13 +104,13 @@ displayStats :: String -> Handle -> Int -> MemStat -> SwapPercent -> (String,Str
 displayStats locale pipe cpuperc memstat swapperc (net_rx,net_tx) = do
         datestr <- DF.getTimeAndDate locale
         hPutStrLn pipe $
-                "<icon=cpu.xbm/><fc=" ++ hotCPUColor cpuperc ++ "> " ++ (show cpuperc) ++ "%</fc>   " ++
-                "<icon=mem.xbm/><fc=" ++ hotMemColor memstat ++ "> " ++ (show $ getMemPercent memstat) ++ "%</fc>   " ++
-                "<icon=swap.xbm/><fc=" ++ hotSwapColor swapperc ++ "> " ++ (show swapperc) ++ "%</fc>   " ++
-                "<icon=net_wired.xbm/> " ++
-                "<icon=net_down_03.xbm/> " ++ net_rx ++ " " ++
-                "<icon=net_up_03.xbm/> " ++ net_tx ++ " " ++
-                "<fc=yellow>" ++ datestr ++ "</fc>"
+                printf "<icon=cpu.xbm/><fc=%v>% 3v%%</fc>   <icon=mem.xbm/>\
+                        \<fc=%v>% 3v%%</fc>   <icon=swap.xbm/><fc=%v>% 3v%%\
+                        \</fc>   <icon=net_wired.xbm/> <icon=net_down_03.xbm/>\
+                        \% 11v <icon=net_up_03.xbm/>% 11v <fc=yellow>%s</fc>"
+                        (hotCPUColor cpuperc) cpuperc (hotMemColor memstat)
+                        (getMemPercent memstat) (hotSwapColor swapperc)
+                        swapperc net_rx net_tx datestr
         hFlush pipe
 
 getSwapStats :: IO SwapPercent
