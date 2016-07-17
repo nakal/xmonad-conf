@@ -32,42 +32,40 @@ data MemStat = MemStat MemTotal MemFree
 
 type SwapPercent = Int
 
-getFreeBSDNetLoad :: String -> IO NetLoad
-getFreeBSDNetLoad iface = do
-        str <- readProcess "/usr/bin/netstat" ["-i", "-I", iface, "-bW"] []
-        let ls = tail $ lines str
-        if (null ls) then
-                return $ NetLoad 0 0
-                else
-                        let rr = words $ head ls
-                            rx = read $ rr !! 7
-                            tx = read $ rr !! 10
-                        in
-                                return $ NetLoad rx tx
-
--- getOpenBSDNetLoad :: String -> IO NetLoad
--- getOpenBSDNetLoad iface = do
---         str <- readProcess "/usr/bin/netstat" ["-i", "-I", iface, "-b"] []
+-- getNetLoad :: Handle -> IO NetLoad
+-- getNetLoad pipe = do
+--         str <- readProcess "/usr/bin/netstat" ["-i", "-I", iface, "-bW"] []
 --         let ls = tail $ lines str
 --         if (null ls) then
 --                 return $ NetLoad 0 0
 --                 else
 --                         let rr = words $ head ls
---                             rx = read $ rr !! 4
---                             tx = read $ rr !! 5
+--                             rx = read $ rr !! 7
+--                             tx = read $ rr !! 10
 --                         in
 --                                 return $ NetLoad rx tx
 
-getNetSpeeds :: (NetLoad,NetLoad) -> (String,String)
-getNetSpeeds (NetLoad oldrx oldtx, NetLoad currx curtx) =
-        (netspeed $ currx-oldrx, netspeed $ curtx - oldtx)
+getNetLoad :: Handle -> NetLoad -> IO NetLoad
+getNetLoad pipe lastnetload = do
+        ready <- hReady pipe
+        if not ready then
+                return lastnetload
+        else do
+                l <- fmap words $ hGetLine pipe
+                getNetLoad pipe $ case readMaybe (head l) :: Maybe Int of
+                        Nothing -> lastnetload
+                        _       -> NetLoad (read $ l !! 3) (read $ l !! 6)
+
+-- getNetSpeeds :: (NetLoad,NetLoad) -> (String,String)
+-- getNetSpeeds (NetLoad oldrx oldtx, NetLoad currx curtx) =
+--         (netspeed $ currx-oldrx, netspeed $ curtx - oldtx)
 
 netspeed :: Int -> String
 netspeed x
-        | x > 2 * 1024 ^ 3          =       printf "% 5.2fGB" (((fromIntegral x)/(1024^3)) :: Double)
-        | x > 2 * 1024 ^ 2          =       printf "% 5.2fMB" (((fromIntegral x)/(1024^2)) :: Double)
-        | x > 2 * 1024              =       printf "% 5.2fkB" (((fromIntegral x)/1024) :: Double)
-        | otherwise                 =       printf "% 5d B " x
+        | x > 2 * 1024 ^ 3          =       printf "%.2fGB" (((fromIntegral x)/(1024^3)) :: Double)
+        | x > 2 * 1024 ^ 2          =       printf "%.2fMB" (((fromIntegral x)/(1024^2)) :: Double)
+        | x > 2 * 1024              =       printf "%.2fkB" (((fromIntegral x)/1024) :: Double)
+        | otherwise                 =       printf "%d B " x
 
 isNotTimezone :: String -> Bool
 isNotTimezone str = not $ foldr (\x -> (&&) (isUpper x)) True str
@@ -100,8 +98,8 @@ hotSwapColor perc
         | perc < 20             = "orange"
         | otherwise             = "red"
 
-displayStats :: String -> Handle -> Int -> MemStat -> SwapPercent -> (String,String) -> IO()
-displayStats locale pipe cpuperc memstat swapperc (net_rx,net_tx) = do
+displayStats :: String -> Handle -> Int -> MemStat -> SwapPercent -> NetLoad -> IO()
+displayStats locale pipe cpuperc memstat swapperc (NetLoad net_rx net_tx) = do
         datestr <- DF.getTimeAndDate locale
         hPutStrLn pipe $
                 printf "<icon=cpu.xbm/><fc=%v>% 3v%%</fc>   <icon=mem.xbm/>\
@@ -110,7 +108,7 @@ displayStats locale pipe cpuperc memstat swapperc (net_rx,net_tx) = do
                         \% 11v <icon=net_up_03.xbm/>% 11v <fc=yellow>%s</fc>"
                         (hotCPUColor cpuperc) cpuperc (hotMemColor memstat)
                         (getMemPercent memstat) (hotSwapColor swapperc)
-                        swapperc net_rx net_tx datestr
+                        swapperc (netspeed net_rx) (netspeed net_tx) datestr
         hFlush pipe
 
 getSwapStats :: IO SwapPercent
@@ -123,27 +121,28 @@ getSwapStats = do
             used = sum $ fmap (!! 4) swap
         return $ fromIntegral $ (used * 100) `div` tot
 
-gatherLoop :: String -> (OID, Int, OID) -> CPULoad -> (String -> IO NetLoad) -> Handle
-        -> NetLoad -> String -> IO()
-gatherLoop locale (oid_cpuload, memtotal, oid_memused) oldcpuload netloadfunc pipe lastnet iface = do
+gatherLoop :: String -> (OID, Int, OID) -> CPULoad -> Handle -> Handle
+        -> NetLoad -> IO()
+gatherLoop locale (oid_cpuload, memtotal, oid_memused) oldcpuload netstatPipe pipe lastnet = do
         cpuload <- getCPULoad oid_cpuload
         memstat <- getMemStat (memtotal, oid_memused)
-        netload <- netloadfunc iface
+        netload <- getNetLoad netstatPipe lastnet
         swapload <- getSwapStats
-        displayStats locale pipe (getCPUPercent (oldcpuload, cpuload)) memstat swapload (getNetSpeeds (lastnet, netload))
+        displayStats locale pipe (getCPUPercent (oldcpuload, cpuload)) memstat swapload netload
         threadDelay 1000000
-        gatherLoop locale (oid_cpuload, memtotal, oid_memused) cpuload netloadfunc pipe netload iface
+        gatherLoop locale (oid_cpuload, memtotal, oid_memused) cpuload netstatPipe pipe netload
 
 startBSD :: String -> String -> Handle -> IO()
 startBSD locale iface pipe = do
         oid_cpuload <- sysctlNameToOid "kern.cp_time"
         oid_memtotal <- sysctlNameToOid "vm.stats.vm.v_page_count"
         oid_memfree <- sysctlNameToOid "vm.stats.vm.v_free_count"
+        netstatPipe <- spawnNetStat iface
         cpuload <- getCPULoad oid_cpuload
-        netinit <- getFreeBSDNetLoad iface
+        netinit <- getNetLoad netstatPipe (NetLoad 0 0)
         memtotal <- sysctlReadUInt oid_memtotal
         gatherLoop locale (oid_cpuload, fromIntegral memtotal, oid_memfree)
-                cpuload getFreeBSDNetLoad pipe netinit iface
+                cpuload netstatPipe pipe netinit
 
 getCPUPercent :: (CPULoad,CPULoad) -> Int
 getCPUPercent (CPULoad oldused oldtotal, CPULoad curused curtotal) =
@@ -171,6 +170,14 @@ spawnPipe :: [ String ] -> IO Handle
 spawnPipe cmd = do
         (Just hin, _, _, _) <- createProcess (proc (head cmd) (tail cmd)){ std_in = CreatePipe }
         return hin
+
+spawnNetStat :: String -> IO Handle
+spawnNetStat iface = do
+        (_, Just hout, _, _) <- createProcess (proc "netstat"
+                ["-i", "-I", iface, "-bW", "1"]){ std_out = CreatePipe }
+        hGetLine hout
+        hGetLine hout
+        return hout
 
 xmobarSysInfo :: FilePath -> [ String ]
 xmobarSysInfo homedir = [ "xmobar", homedir ++ "/.xmonad/sysinfo_xmobar.rc" ]
