@@ -1,5 +1,14 @@
 #!/bin/sh
 
+checkfont() {
+	FNTS=`fc-list "$1"`
+	if [ -z "$FNTS" ]; then
+		echo "ERROR: $1 is not available."
+		exit 1
+	fi
+	return 0
+}
+
 echo "[Xmonad setup] Looking for my installation directory..."
 SCRIPT_HOME=`dirname $0`
 SCRIPT_HOME=`readlink -f "$SCRIPT_HOME"`
@@ -17,6 +26,10 @@ else
 	echo "Hmm, I cannot find my own directory. Giving up..."
 	exit 1
 fi
+
+echo "[Xmonad setup] Checking fonts..."
+checkfont "FontAwesome"
+checkfont "Fantasque Sans Mono"
 
 # Execute it first
 cd "$SCRIPT_HOME"

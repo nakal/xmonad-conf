@@ -102,10 +102,10 @@ displayStats :: String -> Handle -> Int -> MemStat -> SwapPercent -> NetLoad -> 
 displayStats locale pipe cpuperc memstat swapperc (NetLoad net_rx net_tx) = do
         datestr <- DF.getTimeAndDate locale
         hPutStrLn pipe $
-                printf "<icon=cpu.xbm/><fc=%v>% 3v%%</fc>   <icon=mem.xbm/>\
-                        \<fc=%v>% 3v%%</fc>   <icon=swap.xbm/><fc=%v>% 3v%%\
-                        \</fc>   <icon=net_wired.xbm/> <icon=net_down_03.xbm/>\
-                        \% 11v <icon=net_up_03.xbm/>% 11v <fc=yellow>%s</fc>"
+                printf "<fn=1>\xf21e</fn><fc=%v>% 3v%%</fc>   <fn=1>\xf00a\
+                        \</fn><fc=%v>% 3v%%</fc>   <fn=1>\xf1c0</fn><fc=%v>\
+                        \% 3v%%</fc>   <fn=1>\xf019</fn>\
+                        \% 11v <fn=1>\xf093</fn>% 11v <fc=yellow>%s</fc>"
                         (hotCPUColor cpuperc) cpuperc (hotMemColor memstat)
                         (getMemPercent memstat) (hotSwapColor swapperc)
                         swapperc (netspeed net_rx) (netspeed net_tx) datestr
