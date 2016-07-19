@@ -23,7 +23,7 @@ Included fine tuning has been done for (e.g.):
 	* desktop bar
 	* sysinfo bar
 
-## Small warning
+## Warning
 
 The setup script used here will modify configurations and startup files
 in your home directory. Please be aware of this fact!
@@ -76,7 +76,7 @@ bar short. They are also merged with their number as prefix when shown in the
 dock.  You can use the names which are already defined to specify a certain
 workspace layout.
 
-The `com` layout is best used with `pidgin` and `claws-mail`. `gfx` is
+The `com` layout is best used with `pidgin` and `thunderbird` or `claws-mail`. `gfx` is
 adjusted for `gimp` other applications like `darktable` will be simply shown
 full-screen there. Take a look at the layout definitions and don't forget
 to modify them, especially when changing their names.
@@ -85,7 +85,7 @@ to modify them, especially when changing their names.
 
 This configuration will make 9 desktops with the given names. It will take
 `em0` as the interface to watch network load and on startup it will also
-start firefox and claws-mail. It will also set the wallpaper with the
+start Firefox and Thunderbird. It will also set the wallpaper with the
 given arguments (just so you can see how to pass arguments).
 
 ```
@@ -97,7 +97,7 @@ HostConfiguration {
         autostartPrograms = [
 		("hsetroot",["-fill","~/.wallpapers/liquid-1600x1200.jpg"]),
                 ("firefox",[]),
-                ("claws-mail",[])
+                ("thunderbird",[])
                 ]
         }
 ```
