@@ -1,11 +1,11 @@
 Config {
-	font =         "xft:Fantasque Sans Mono:size=12:bold:antialias=true"
+	font =         "xft:Fantasque Sans Mono:size=13:bold:antialias=true"
 	additionalFonts = [ "xft:FontAwesome",
-		"xft:Fantasque Sans Mono:size=12:bold:antialias=true:oblique"]
+		"xft:Fantasque Sans Mono:size=13:bold:antialias=true:oblique"]
 	, bgColor =      "#202020"
-	, fgColor =      "lightblue"
+	, fgColor =      "#a8ff60"
 	, alpha = 255
-	, position =     TopW L 65
+	, position =     TopW L 60
 	, border =       NoBorder
 	, borderColor =  "black"
 

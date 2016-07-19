@@ -80,8 +80,12 @@ getWorkspaceName wsnames name = case name `elemIndex` wsnames of
 	Just x	-> (show $ x+1) ++ ":" ++ name
 
 -- Border colors for unfocused and focused windows, respectively.
-myNormalBorderColor  = "#606060"
-myFocusedBorderColor = "#ff0000"
+myInactiveColor  = "#606060"
+myBackgroundColor = "#202020"
+myActiveColor = "orange"
+myDefaultColor = "#a8ff60"
+myFocusedBorderColor = myActiveColor
+mySignalColor  = "red"
 
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
@@ -93,7 +97,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((controlMask .|. shiftMask, xK_Return), spawn $ XMonad.terminal conf) -- plain terminal without tmux
 
     -- launch dmenu
-    , ((modm,               xK_p     ), spawn $ "dmenu_run -nb '#202020' -nf lightcyan -sb yellow -sf black -fn '" ++ defaultFont ++ "'")
+    , ((modm,               xK_p     ), spawn $ "dmenu_run -nb '" ++ myBackgroundColor ++ "' -nf '" ++ myInactiveColor ++ "' -sb '" ++ myActiveColor ++ "' -sf black -fn '" ++ defaultFont ++ "'")
 
     -- launch gmrun
     , ((modm .|. shiftMask, xK_p     ), spawn "gmrun")
@@ -326,6 +330,9 @@ myEventHook = docksEventHook
 ------------------------------------------------------------------------
 -- Status bars and logging
 
+myPad :: String -> String
+myPad s = s ++ " "
+
 -- Perform an arbitrary action on each internal state change or X event.
 -- See the 'XMonad.Hooks.DynamicLog' extension for examples.
 --
@@ -334,13 +341,13 @@ myLogHook xmobar conf = do
         prevws <- prevWorkspace
         dynamicLogWithPP $
                 defaultPP {
-                        ppCurrent           =   xmobarColor "#ffffff" "#202020" . pad
-                        , ppVisible           =   xmobarWorkspace "lightblue" "#202020" Nothing
-                        , ppHidden            =   xmobarWorkspace "lightblue" "#202020" prevws
-                        , ppHiddenNoWindows   =   xmobarWorkspace "#7b7b7b" "#202020" prevws
-                        , ppUrgent            =   xmobarWorkspace "#ff0000" "#202020" prevws
+                        ppCurrent           =   xmobarColor myActiveColor myBackgroundColor . myPad
+                        , ppVisible           =   xmobarWorkspace myDefaultColor myBackgroundColor Nothing
+                        , ppHidden            =   xmobarWorkspace myDefaultColor myBackgroundColor prevws
+                        , ppHiddenNoWindows   =   xmobarWorkspace myInactiveColor myBackgroundColor prevws
+                        , ppUrgent            =   xmobarWorkspace mySignalColor myBackgroundColor prevws
                         , ppWsSep             =   " "
-                        , ppSep               =   "  |  "
+                        , ppSep               =   "  <fc=" ++ myInactiveColor ++ "><fn=1>\xf142</fn></fc>  "
                         , ppLayout            =
                                 \x -> "<action=`xdotool key " ++ myXDoToolKey ++ "+space`>" ++
                                         (case x of
@@ -352,7 +359,7 @@ myLogHook xmobar conf = do
                                         "Simple Float"              ->      "<fn=1>\xf24d</fn>"
                                         _                           ->      x
                                         ) ++ "</action>"
-                        , ppTitle             =   (" " ++) . xmobarColor "yellow" "#202020" . xmobarStrip
+                        , ppTitle             =   (" " ++) . xmobarColor myActiveColor myBackgroundColor . xmobarStrip
                         , ppOutput            =   hPutStrLn xmobar
 	}
 
@@ -365,7 +372,7 @@ prevWorkspace = do
 
 xmobarWorkspace :: String -> String -> Maybe WorkspaceId -> WorkspaceId -> String
 xmobarWorkspace fg bg prevws =
-        xmobarColor fg bg . pad . addAction
+        xmobarColor fg bg . myPad . addAction
         where
                 addAction wrkspc = "<action=`xdotool key " ++ myXDoToolKey ++
                         "+" ++ (take 1 wrkspc) ++ "`>" ++
@@ -386,7 +393,7 @@ xconfig conf xmobar = defaultConfig
 			borderWidth        = myBorderWidth,
 			modMask            = myModMask,
 			workspaces         = numberedWorkspaces wsnames,
-			normalBorderColor  = myNormalBorderColor,
+			normalBorderColor  = myInactiveColor,
 			focusedBorderColor = myFocusedBorderColor,
 
 			keys               = myKeys,

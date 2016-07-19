@@ -32,18 +32,9 @@ data MemStat = MemStat MemTotal MemFree
 
 type SwapPercent = Int
 
--- getNetLoad :: Handle -> IO NetLoad
--- getNetLoad pipe = do
---         str <- readProcess "/usr/bin/netstat" ["-i", "-I", iface, "-bW"] []
---         let ls = tail $ lines str
---         if (null ls) then
---                 return $ NetLoad 0 0
---                 else
---                         let rr = words $ head ls
---                             rx = read $ rr !! 7
---                             tx = read $ rr !! 10
---                         in
---                                 return $ NetLoad rx tx
+myActiveColor = "orange"
+myInactiveColor = "#606060"
+myDefaultColor = "#a8ff60"
 
 getNetLoad :: Handle -> NetLoad -> IO NetLoad
 getNetLoad pipe lastnetload = do
@@ -55,10 +46,6 @@ getNetLoad pipe lastnetload = do
                 getNetLoad pipe $ case readMaybe (head l) :: Maybe Int of
                         Nothing -> lastnetload
                         _       -> NetLoad (read $ l !! 3) (read $ l !! 6)
-
--- getNetSpeeds :: (NetLoad,NetLoad) -> (String,String)
--- getNetSpeeds (NetLoad oldrx oldtx, NetLoad currx curtx) =
---         (netspeed $ currx-oldrx, netspeed $ curtx - oldtx)
 
 netspeed :: Int -> String
 netspeed x
@@ -81,20 +68,20 @@ filterSeconds str =
 
 hotCPUColor :: Int -> String
 hotCPUColor perc
-        | perc < 33             = "lightblue"
+        | perc < 33             = myDefaultColor
         | perc < 66             = "orange"
         | otherwise             = "red"
 
 hotMemColor :: MemStat -> String
 hotMemColor memstat
-        | perc < 60             = "lightblue"
+        | perc < 60             = myDefaultColor
         | perc < 80             = "orange"
         | otherwise             = "red"
         where perc = getMemPercent memstat
 
 hotSwapColor :: Int -> String
 hotSwapColor perc
-        | perc < 5             = "lightblue"
+        | perc < 5             = myDefaultColor
         | perc < 20             = "orange"
         | otherwise             = "red"
 
@@ -102,13 +89,16 @@ displayStats :: String -> Handle -> Int -> MemStat -> SwapPercent -> NetLoad -> 
 displayStats locale pipe cpuperc memstat swapperc (NetLoad net_rx net_tx) = do
         datestr <- DF.getTimeAndDate locale
         hPutStrLn pipe $
-                printf "<fn=1>\xf21e</fn><fc=%v>% 3v%%</fc>   <fn=1>\xf00a\
+                printf "<fc=%v><fn=1>\xf142</fn></fc>  <fn=1>\xf21e</fn>\
+                        \<fc=%v>% 3v%%</fc>   <fn=1>\xf00a\
                         \</fn><fc=%v>% 3v%%</fc>   <fn=1>\xf1c0</fn><fc=%v>\
                         \% 3v%%</fc>   <fn=1>\xf019</fn>\
-                        \% 11v <fn=1>\xf093</fn>% 11v <fc=yellow>%s</fc>"
-                        (hotCPUColor cpuperc) cpuperc (hotMemColor memstat)
-                        (getMemPercent memstat) (hotSwapColor swapperc)
-                        swapperc (netspeed net_rx) (netspeed net_tx) datestr
+                        \% 11v <fn=1>\xf093</fn>% 11v <fc=%v><fn=1>\xf142\
+                        \</fn></fc>  <fc=%v>%v</fc>"
+                        myInactiveColor (hotCPUColor cpuperc) cpuperc
+                        (hotMemColor memstat) (getMemPercent memstat)
+                        (hotSwapColor swapperc) swapperc (netspeed net_rx)
+                        (netspeed net_tx) myInactiveColor myActiveColor datestr
         hFlush pipe
 
 getSwapStats :: IO SwapPercent
