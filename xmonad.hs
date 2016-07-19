@@ -344,12 +344,12 @@ myLogHook xmobar conf = do
                         , ppLayout            =
                                 \x -> "<action=`xdotool key " ++ myXDoToolKey ++ "+space`>" ++
                                         (case x of
-                                        "Tall"             ->      "<icon=tall.xbm/>"
-                                        "ResizableTall"    ->      "<icon=tall.xbm/>"
-                                        "Mirror Tall"      ->      "<icon=mtall.xbm/>"
-                                        "Mirror ResizableTall"      ->      "<icon=mtall.xbm/>"
-                                        "Full"                      ->      "<icon=full.xbm/>"
-                                        "Simple Float"              ->      "~"
+                                        "Tall"             ->      "<fn=1>\xf0db</fn>"
+                                        "ResizableTall"    ->      "<fn=1>\xf0db</fn>"
+                                        "Mirror Tall"      ->      "<fn=1>\xf01e</fn>"
+                                        "Mirror ResizableTall"      ->      "<fn=1>\xf01e</fn>"
+                                        "Full"                      ->      "<fn=1>\xf108</fn>"
+                                        "Simple Float"              ->      "<fn=1>\xf24d</fn>"
                                         _                           ->      x
                                         ) ++ "</action>"
                         , ppTitle             =   (" " ++) . xmobarColor "yellow" "#202020" . xmobarStrip
@@ -371,7 +371,7 @@ xmobarWorkspace fg bg prevws =
                         "+" ++ (take 1 wrkspc) ++ "`>" ++
                         (markPrevious prevws wrkspc) ++ "</action>"
                 markPrevious prevws wrkspc = case prevws of
-                        Just w      -> if w == wrkspc then "<fn=1>" ++ w ++ "</fn>"
+                        Just w      -> if w == wrkspc then "<fn=2>" ++ w ++ "</fn>"
                                         else wrkspc
                         _           -> wrkspc
 

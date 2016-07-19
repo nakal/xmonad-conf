@@ -1,5 +1,4 @@
 Config {
-
      font =         "xft:Fantasque Sans Mono:size=12:bold:antialias=true"
    , additionalFonts = [ "xft:FontAwesome" ]
    , bgColor =      "#202020"
