@@ -1,6 +1,6 @@
 # nakal's Xmonad (plus desktop) configuration
 
-![Desktop screenshot](https://photos.google.com/share/AF1QipPEwAfucM_1Kr_APAaq6LpHls_T-e_OBHCHp-lv_mDsm0xq-Y-wthEgqxDW1PHuWA/photo/AF1QipPQCsV7XSN5JErwVe25DxTjHRGMyJGH5KEUOtp9?key=UlJRYmsyYy1LbVpDWVFFR0R1U3liUDVYMm9JRzhn)
+![Desktop screenshot](http://www.sugioarto.com/img/xmonad-screenshot.png)
 
 [Xmonad](http://xmonad.org/) is a minimalistic tiled window manager for Xorg.
 
