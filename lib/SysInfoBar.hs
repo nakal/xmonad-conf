@@ -32,9 +32,9 @@ data MemStat = MemStat MemTotal MemFree
 
 type SwapPercent = Int
 
-myActiveColor = "orange"
+myActiveColor = "#a8ff60"
 myInactiveColor = "#606060"
-myDefaultColor = "#a8ff60"
+myDefaultColor = "orange"
 
 getNetLoad :: Handle -> NetLoad -> IO NetLoad
 getNetLoad pipe lastnetload = do

@@ -82,8 +82,8 @@ getWorkspaceName wsnames name = case name `elemIndex` wsnames of
 -- Border colors for unfocused and focused windows, respectively.
 myInactiveColor  = "#606060"
 myBackgroundColor = "#202020"
-myActiveColor = "orange"
-myDefaultColor = "#a8ff60"
+myActiveColor = "#a8ff60"
+myDefaultColor = "orange"
 myFocusedBorderColor = myActiveColor
 mySignalColor  = "red"
 

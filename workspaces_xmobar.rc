@@ -3,7 +3,7 @@ Config {
 	additionalFonts = [ "xft:FontAwesome",
 		"xft:Fantasque Sans Mono:size=13:bold:antialias=true:oblique"]
 	, bgColor =      "#202020"
-	, fgColor =      "#a8ff60"
+	, fgColor =      "orange"
 	, alpha = 255
 	, position =     TopW L 60
 	, border =       NoBorder
