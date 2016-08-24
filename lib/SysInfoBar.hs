@@ -35,6 +35,8 @@ type SwapPercent = Int
 myActiveColor = "#a8ff60"
 myInactiveColor = "#606060"
 myDefaultColor = "orange"
+myMediumLoadColor = "yellow"
+myHighLoadColor = "red"
 
 getNetLoad :: Handle -> NetLoad -> IO NetLoad
 getNetLoad pipe lastnetload = do
@@ -69,21 +71,21 @@ filterSeconds str =
 hotCPUColor :: Int -> String
 hotCPUColor perc
         | perc < 33             = myDefaultColor
-        | perc < 66             = "orange"
-        | otherwise             = "red"
+        | perc < 66             = myMediumLoadColor
+        | otherwise             = myHighLoadColor
 
 hotMemColor :: MemStat -> String
 hotMemColor memstat
         | perc < 60             = myDefaultColor
-        | perc < 80             = "orange"
-        | otherwise             = "red"
+        | perc < 80             = myMediumLoadColor
+        | otherwise             = myHighLoadColor
         where perc = getMemPercent memstat
 
 hotSwapColor :: Int -> String
 hotSwapColor perc
-        | perc < 5             = myDefaultColor
-        | perc < 20             = "orange"
-        | otherwise             = "red"
+        | perc < 5              = myDefaultColor
+        | perc < 20             = myMediumLoadColor
+        | otherwise             = myHighLoadColor
 
 displayStats :: String -> Handle -> Int -> MemStat -> SwapPercent -> NetLoad -> IO()
 displayStats locale pipe cpuperc memstat swapperc (NetLoad net_rx net_tx) = do
