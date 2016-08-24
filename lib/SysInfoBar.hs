@@ -111,27 +111,28 @@ getSwapStats = do
             used = sum $ fmap (!! 4) swap
         return $ fromIntegral $ (used * 100) `div` tot
 
-gatherLoop :: String -> (OID, Int, OID) -> CPULoad -> Handle -> Handle
+gatherLoop :: String -> (OID, Int, OID, OID) -> CPULoad -> Handle -> Handle
         -> NetLoad -> IO()
-gatherLoop locale (oid_cpuload, memtotal, oid_memused) oldcpuload netstatPipe pipe lastnet = do
+gatherLoop locale (oid_cpuload, memtotal, oid_memfree, oid_meminact) oldcpuload netstatPipe pipe lastnet = do
         cpuload <- getCPULoad oid_cpuload
-        memstat <- getMemStat (memtotal, oid_memused)
+        memstat <- getMemStat (memtotal, oid_memfree, oid_meminact)
         netload <- getNetLoad netstatPipe lastnet
         swapload <- getSwapStats
         displayStats locale pipe (getCPUPercent (oldcpuload, cpuload)) memstat swapload netload
         threadDelay 1000000
-        gatherLoop locale (oid_cpuload, memtotal, oid_memused) cpuload netstatPipe pipe netload
+        gatherLoop locale (oid_cpuload, memtotal, oid_memfree, oid_meminact) cpuload netstatPipe pipe netload
 
 startBSD :: String -> String -> Handle -> IO()
 startBSD locale iface pipe = do
         oid_cpuload <- sysctlNameToOid "kern.cp_time"
         oid_memtotal <- sysctlNameToOid "vm.stats.vm.v_page_count"
         oid_memfree <- sysctlNameToOid "vm.stats.vm.v_free_count"
+        oid_meminact <- sysctlNameToOid "vm.stats.vm.v_inactive_count"
         netstatPipe <- spawnNetStat iface
         cpuload <- getCPULoad oid_cpuload
         netinit <- getNetLoad netstatPipe (NetLoad 0 0)
         memtotal <- sysctlReadUInt oid_memtotal
-        gatherLoop locale (oid_cpuload, fromIntegral memtotal, oid_memfree)
+        gatherLoop locale (oid_cpuload, fromIntegral memtotal, oid_memfree, oid_meminact)
                 cpuload netstatPipe pipe netinit
 
 getCPUPercent :: (CPULoad,CPULoad) -> Int
@@ -143,10 +144,11 @@ getCPUPercent (CPULoad oldused oldtotal, CPULoad curused curtotal) =
 getMemPercent :: MemStat -> Int
 getMemPercent (MemStat total free) = 100 - ((free * 100) `div` total)
 
-getMemStat :: (Int, OID) -> IO MemStat
-getMemStat (memtotal, oid_memfree) = do
+getMemStat :: (Int, OID, OID) -> IO MemStat
+getMemStat (memtotal, oid_memfree, oid_meminact) = do
         memfree <- sysctlReadUInt oid_memfree
-        return $ MemStat memtotal (fromIntegral memfree)
+        meminact <- sysctlReadUInt oid_meminact
+        return $ MemStat memtotal (fromIntegral memfree + fromIntegral meminact)
 
 getCPULoad :: OID -> IO CPULoad
 getCPULoad oid_cpuload = do
