@@ -293,6 +293,7 @@ myManageHook wsnames =
                 [ className =? "MPlayer"		--> doFloat
                 , className =? "XMessage"		--> doFloat
                 , className =? "Zenity"                 --> doFloat
+                , className =? "Dialog"                 --> doFloat
                 , className =? "Iceweasel"		--> doShift  (getWorkspace "web")
                 , className =? "Firefox"		--> doShift  (getWorkspace "web")
                 , className =? "Claws-mail"		--> doShift  (getWorkspace "com")

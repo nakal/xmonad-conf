@@ -1,6 +1,10 @@
 #!/bin/sh
 
-zenity --question --text "Shutdown?" || exit 0
+if [ -z "$@" ]; then
+	exec xterm -class "Dialog" -e $0 x
+fi
+
+dialog --yesno "Shutdown?" 5 40 || exit 0
 
 OS=`uname -s`
 
