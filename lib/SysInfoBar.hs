@@ -111,7 +111,9 @@ getSwapStats = do
                                 sysctlPeekArray :: IO [Word32])) [0..15]
         let tot = sum $ fmap (!! 3) swap
             used = sum $ fmap (!! 4) swap
-        return $ fromIntegral $ (used * 100) `div` tot
+        return $ if tot > 0 then
+                fromIntegral $ (used * 100) `div` tot
+                else 0;
 
 gatherLoop :: String -> (OID, Int, OID, OID) -> CPULoad -> Handle -> Handle
         -> NetLoad -> IO()
