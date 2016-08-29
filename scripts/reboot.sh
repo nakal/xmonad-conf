@@ -1,6 +1,10 @@
 #!/bin/sh
 
-zenity --question --text "Reboot?" || exit 0
+dialog --yesno "Reboot?" 5 40 || exit 0
+
+if [ -z "$@" ]; then
+	exec xterm -class "Dialog" -e $0 x
+fi
 
 OS=`uname -s`
 

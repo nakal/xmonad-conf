@@ -78,20 +78,6 @@ else
 	echo "-> Xmonad is ok, good."
 fi
 
-# dzen2 is still needed for mail notifications
-echo "Checking dzen2..."
-if [ "x$DISPLAY" = "x" ]; then
-	echo "??? skipping dzen2, no X server running."
-	echo "??? assuming dzen2 works fine."
-else
-	dzen2 -v | grep -q XFT
-	if [ $? -ne 0 ]; then
-		echo "*** Warning: dzen2 appears to be too old and does not support XFT."
-	else
-		echo "-> XFT found, good."
-	fi
-fi
-
 cd $HOME
 REMOVE_FILES=".xinitrc .xsession .Xdefaults .gtkrc-2.0 \
 	.config/gtk-3.0/settings.ini .config/user-dirs.dirs \
