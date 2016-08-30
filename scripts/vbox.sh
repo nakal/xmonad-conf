@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if [ -z "$@" ]; then
+	exec xterm -class "Dialog" -e $0 x
+fi
+
 CACHE_DIR="$HOME/.cache/xmonad-conf"
 CACHE_FILE="$CACHE_DIR/vbox-last.txt"
 
@@ -16,16 +20,16 @@ DEFAULT="$DEFAULT $REMAIN"
 rm -f "$VMLISTFILE" "$VMLASTFILE"
 
 VMS=""
-SELECTED="TRUE"
+SELECTED="on"
 for l in $DEFAULT; do
-	VMS="$VMS $SELECTED $l"
-	SELECTED="FALSE"
+	VMS="$VMS $l $SELECTED"
+	SELECTED="off"
 done
 
-INPUT=`zenity --list --radiolist --text "Select VBox VM:" --column "" --column "VM" $VMS`
-if [ $? -ne 0 ]; then
-	exit 0
-fi
+TEMPFILE=`mktemp -t xmonad-script-output`
+dialog --no-items --radiolist "Select VBox VM:" 50 70 45 $VMS 2> "$TEMPFILE" || exit 0
+INPUT=`cat "$TEMPFILE"`
+rm -f "$TEMPFILE"
 
 mkdir -p "$CACHE_DIR" && ( echo "$INPUT" > "$CACHE_FILE" ;
 		for l in $DEFAULT; do
@@ -34,4 +38,6 @@ mkdir -p "$CACHE_DIR" && ( echo "$INPUT" > "$CACHE_FILE" ;
 			fi
 		done )
 
-exec VBoxSDL --startvm "$INPUT" --nograbonclick
+nohup VBoxSDL --startvm "$INPUT" --nograbonclick > /dev/null 2>&1 &
+
+exit 0
