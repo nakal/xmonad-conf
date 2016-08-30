@@ -12,6 +12,7 @@
 import XMonad
 import Data.Monoid
 import Data.List
+import Data.Ratio
 import Control.Applicative ((<$>))
 import Control.Concurrent (forkIO)
 import System.IO
@@ -31,6 +32,7 @@ import XMonad.Layout.ResizableTile
 import XMonad.Config.Desktop ( desktopLayoutModifiers )
 import XMonad.Layout.Reflect ( reflectHoriz )
 import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.Place
 import XMonad.Actions.CycleWS
 import XMonad.Hooks.InsertPosition
 import XMonad.Hooks.FadeInactive
@@ -272,6 +274,12 @@ myLayout wsnames = onWorkspace (workspace "gfx") gimpLayout $ smartBorders $ avo
 doUnfloat :: ManageHook
 doUnfloat = ask >>= \w -> doF $ W.sink w
 
+doCenterFloat :: ManageHook
+doCenterFloat = (placeHook $ fixed (1 % 2, 1 % 2)) <+> doFloat
+
+doNotificationFloat :: ManageHook
+doNotificationFloat = (placeHook $ fixed (19 % 20, 1 % 20)) <+> doFloat
+
 ------------------------------------------------------------------------
 -- Window rules:
 
@@ -290,10 +298,11 @@ doUnfloat = ask >>= \w -> doF $ W.sink w
 myManageHook :: [ String ] -> Query (Endo WindowSet)
 myManageHook wsnames =
         manageDocks <+> composeAll
-                [ className =? "MPlayer"		--> doFloat
-                , className =? "XMessage"		--> doFloat
-                , className =? "Zenity"                 --> doFloat
-                , className =? "Dialog"                 --> doFloat
+                [ className =? "MPlayer"		--> doCenterFloat
+                , className =? "XMessage"		--> doCenterFloat
+                , className =? "Zenity"                 --> doCenterFloat
+                , className =? "xmDialog"               --> doCenterFloat
+                , className =? "xmNotification"         --> doNotificationFloat
                 , className =? "Iceweasel"		--> doShift  (getWorkspace "web")
                 , className =? "Firefox"		--> doShift  (getWorkspace "web")
                 , className =? "Claws-mail"		--> doShift  (getWorkspace "com")

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ -z "$@" ]; then
-	exec xterm -class "Dialog" -e $0 x
+	exec xterm -class "xmDialog" -e $0 x
 fi
 
 dialog --yesno "Shutdown?" 5 40 || exit 0
