@@ -1,10 +1,12 @@
 #!/bin/sh
 
+MYDIR=`dirname $0`
+. $MYDIR/include.sh
+
 if [ -z "$@" ]; then
-	exec xterm -class "xmDialog" -e $0 x
+       exec "$TERMINAL" "$CLASS_OPT" "xmDialog" -e $0 x
 fi
 
-CACHE_DIR="$HOME/.cache/xmonad-conf"
 CACHE_FILE="$CACHE_DIR/vbox-last.txt"
 
 VMLISTFILE=`mktemp -t "vboxlist"`
