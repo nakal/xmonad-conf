@@ -1,7 +1,5 @@
 export LANG="de_DE.UTF-8"
-export TERM="screen-256color"
 ulimit -c unlimited
-#export LC_ALL="de_DE.UTF-8"
 
 xset +fp /usr/local/share/fonts/fantasque-sans-mono,/usr/local/share/fonts/fira,/usr/local/share/fonts/FontAwesome
 xrdb -merge ~/.Xdefaults
