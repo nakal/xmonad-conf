@@ -76,10 +76,10 @@ bar short. They are also merged with their number as prefix when shown in the
 dock.  You can use the names which are already defined to specify a certain
 workspace layout.
 
-The `com` layout is best used with `pidgin` and `thunderbird` or `claws-mail`. `gfx` is
-adjusted for `gimp` other applications like `darktable` will be simply shown
-full-screen there. Take a look at the layout definitions and don't forget
-to modify them, especially when changing their names.
+The `com` layout is best used with `pidgin` and `thunderbird`, `claws-mail` or
+`mutt`. `gfx` is adjusted for `gimp` other applications like `darktable` will
+be simply shown full-screen there. Take a look at the layout definitions and
+don't forget to modify them, especially when changing their names.
 
 ### Example
 
