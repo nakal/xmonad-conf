@@ -40,6 +40,6 @@ mkdir -p "$CACHE_DIR" && ( echo "$INPUT" > "$CACHE_FILE" ;
 			fi
 		done )
 
-nohup VBoxSDL --startvm "$INPUT" --nograbonclick > /dev/null 2>&1 &
+nohup sh -c "VBoxSDL --startvm '$INPUT' --nograbonclick > /dev/null 2>&1 &"
 
 exit 0
