@@ -42,7 +42,11 @@ else
 	git pull
 	cd "$SCRIPT_HOME"
 fi
-$SHELLSETUP || (echo "Submodule shell-setup failed. Aborting." && exit 1)
+$SHELLSETUP
+if [ $? -ne 0 ]; then
+	echo "Submodule shell-setup failed. Aborting."
+	exit 1
+fi
 
 OS=`uname -s`
 if [ "$OS" = "FreeBSD" ]; then
