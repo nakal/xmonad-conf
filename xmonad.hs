@@ -303,8 +303,9 @@ myManageHook wsnames =
                 , className =? "Zenity"                 --> doCenterFloat
                 , className =? "xmDialog"               --> doCenterFloat
                 , className =? "xmNotification"         --> doNotificationFloat
-                , className =? "Iceweasel"		--> doShift  (getWorkspace "web")
-                , className =? "Firefox"		--> doShift  (getWorkspace "web")
+                , className =? "Iceweasel"		--> insertPosition Master Newer <+> doShift (getWorkspace "web")
+                , className =? "Firefox"		--> insertPosition Master Newer <+> doShift (getWorkspace "web")
+                , isPrefixOf "Vimperator Edit" <$> title --> insertPosition End Newer <+> doShift (getWorkspace "web")
                 , className =? "Claws-mail"		--> doShift  (getWorkspace "com")
                 , className =? "Thunderbird"		--> doShift  (getWorkspace "com")
                 , className =? "Pidgin"                 --> doShift  (getWorkspace "com")
@@ -314,7 +315,6 @@ myManageHook wsnames =
                 , className =? "Inkscape"		--> doShift  (getWorkspace "gfx")
                 , className =? "Dia"                    --> doShift  (getWorkspace "gfx")
                 , className =? "Darktable"		--> doShift  (getWorkspace "gfx")
-                , className =? "Firefox"		--> doShift  (getWorkspace "web")
                 , title =? "weechat"                    --> insertPosition End Older <+> doShift  (getWorkspace "com")
                 , title =? "mutt"                       --> insertPosition Master Newer <+> doShift  (getWorkspace "com")
                 , isPrefixOf "OpenOffice" <$> className	--> doShift (getWorkspace "ofc")

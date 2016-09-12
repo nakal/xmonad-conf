@@ -85,6 +85,7 @@ fi
 cd $HOME
 REMOVE_FILES=".xinitrc .xsession .Xdefaults .gtkrc-2.0 \
 	.config/gtk-3.0/settings.ini .config/user-dirs.dirs \
+	.vimperatorrc.local \
 	"
 
 for df in $REMOVE_FILES; do
@@ -104,6 +105,7 @@ ln -s $SCRIPT_HOME/xsettings/.xinitrc .
 ln -s $SCRIPT_HOME/xsettings/.xinitrc .xsession
 ln -s $SCRIPT_HOME/xsettings/.Xdefaults .
 ln -s $SCRIPT_HOME/xsettings/.gtkrc-2.0 .
+ln -s $SCRIPT_HOME/xsettings/.vimperatorrc.local .
 
 mkdir -p $HOME/.config
 cd $HOME/.config

@@ -1,0 +1,1 @@
+set editor="urxvt -title 'Vimperator Edit' -e vim"
