@@ -32,9 +32,6 @@ urxvt*letterSpace: -1
 urxvt*iso14755: false
 urxvt*cursorColor: orange
 urxvt*termName: rxvt-unicode-256color
-urxvt*perl-ext-common: default,matcher
-urxvt*url-launcher: xdg-open
-urxvt*matcher.button: 1
 
 Rxvt*font: xft:Fantasque Sans Mono:pixelsize=17
 Rxvt*locale: UTF-8
@@ -48,6 +45,3 @@ Rxvt*letterSpace: -1
 Rxvt*iso14755: false
 Rxvt*cursorColor: orange
 Rxvt*termName: rxvt-unicode-256color
-Rxvt*perl-ext-common: default,matcher
-Rxvt*url-launcher: xdg-open
-Rxvt*matcher.button: 1
