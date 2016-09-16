@@ -27,6 +27,8 @@ spectrwm)
 	exec $GPG_AGENT spectrwm >> ~/.xsession-errors 2>&1
 	;;
 xmonad)
+	_JAVA_AWT_WM_NONREPARENTING=1
+	export _JAVA_AWT_WM_NONREPARENTING
 	exec $GPG_AGENT "$DEFAULT_SESSION" >> ~/.xsession-errors 2>&1
 	;;
 openbox)
