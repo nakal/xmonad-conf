@@ -34,7 +34,7 @@ urxvt*cursorColor: orange
 urxvt*termName: rxvt-unicode-256color
 urxvt*perl-ext-common: default,matcher
 urxvt*url-launcher: xdg-open
-urxvt*matcher.button: 1
+urxvt*matcher.button: 2
 
 Rxvt*font: xft:Fantasque Sans Mono:pixelsize=17
 Rxvt*locale: UTF-8
@@ -50,4 +50,4 @@ Rxvt*cursorColor: orange
 Rxvt*termName: rxvt-unicode-256color
 Rxvt*perl-ext-common: default,matcher
 Rxvt*url-launcher: xdg-open
-Rxvt*matcher.button: 1
+Rxvt*matcher.button: 2
