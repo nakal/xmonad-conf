@@ -36,6 +36,7 @@ import XMonad.Hooks.Place
 import XMonad.Actions.CycleWS
 import XMonad.Hooks.InsertPosition
 import XMonad.Hooks.FadeInactive
+import XMonad.Hooks.UrgencyHook
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
@@ -169,6 +170,12 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
     -- Push window back into tiling
     , ((modm,               xK_t     ), withFocused $ windows . W.sink)
+
+    -- Focus urgent window
+    , ((modm,               xK_u     ), focusUrgent)
+
+    -- Clear urgent windows
+    , ((modm .|. shiftMask, xK_u     ), clearUrgents)
 
     -- Increment the number of windows in the master area
     , ((modm              , xK_comma ), sendMessage (IncMasterN 1))
@@ -395,7 +402,7 @@ xmobarWorkspace fg bg prevws =
 myXmonadBar :: String
 myXmonadBar = "xmobar .xmonad/workspaces_xmobar.rc"
 
-xconfig conf xmobar = defaultConfig
+xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ defaultConfig
 		{
 			terminal           = HC.terminal conf,
 			focusFollowsMouse  = myFocusFollowsMouse,
