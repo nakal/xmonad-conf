@@ -20,19 +20,36 @@ XTerm*cursorColor: orange
 
 ! ******************** urxvt settings ********************
 
-*rxvt*font: xft:Fantasque Sans Mono:pixelsize=17
-*rxvt*locale: UTF-8
-*rxvt*dynamicColors: true
-*rxvt*saveLines: 1024
-*rxvt*background: black
-*rxvt*foreground: darkgray
-*rxvt*metaSendsEscape: true
-*rxvt*scrollBar: false
-*rxvt*letterSpace: -1
-*rxvt*iso14755: false
-*rxvt*cursorColor: orange
-*rxvt*termName: rxvt-unicode-256color
-*rxvt*perl-ext-common: default,matcher
-*rxvt*url-launcher: xdg-open
-*rxvt*matcher.button: 2
-*rxvt*urgentOnBell: true
+urxvt*font: xft:Fantasque Sans Mono:pixelsize=17
+urxvt*locale: UTF-8
+urxvt*dynamicColors: true
+urxvt*saveLines: 1024
+urxvt*background: black
+urxvt*foreground: darkgray
+urxvt*metaSendsEscape: true
+urxvt*scrollBar: false
+urxvt*letterSpace: -1
+urxvt*iso14755: false
+urxvt*cursorColor: orange
+urxvt*termName: rxvt-unicode-256color
+urxvt*perl-ext-common: default,matcher
+urxvt*url-launcher: xdg-open
+urxvt*matcher.button: 2
+urxvt*urgentOnBell: true
+
+rxvt*font: xft:Fantasque Sans Mono:pixelsize=17
+rxvt*locale: UTF-8
+rxvt*dynamicColors: true
+rxvt*saveLines: 1024
+rxvt*background: black
+rxvt*foreground: darkgray
+rxvt*metaSendsEscape: true
+rxvt*scrollBar: false
+rxvt*letterSpace: -1
+rxvt*iso14755: false
+rxvt*cursorColor: orange
+rxvt*termName: rxvt-unicode-256color
+rxvt*perl-ext-common: default,matcher
+rxvt*url-launcher: xdg-open
+rxvt*matcher.button: 2
+rxvt*urgentOnBell: true
