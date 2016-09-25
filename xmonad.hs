@@ -93,7 +93,7 @@ mySignalColor  = "red"
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
 --
-myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
+myKeys hostconf conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
     -- launch a terminal
     [ ((modm .|. shiftMask, xK_Return), spawn $ (XMonad.terminal conf) ++ " -e tmux -2 new-session")
@@ -117,10 +117,10 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((mod1Mask .|. controlMask, xK_l     ), spawn "xscreensaver-command -lock")
 
     -- shutdown
-    , vboxProtectedBinding (modm .|. shiftMask, xK_BackSpace) "~/.xmonad/scripts/shutdown.sh"
+    , ((modm .|. shiftMask, xK_BackSpace), vboxProtectedBinding "~/.xmonad/scripts/shutdown.sh")
 
     -- reboot
-    , vboxProtectedBinding (controlMask .|. shiftMask, xK_BackSpace) "~/.xmonad/scripts/reboot.sh"
+    , ((controlMask .|. shiftMask, xK_BackSpace), vboxProtectedBinding "~/.xmonad/scripts/reboot.sh")
 
     -- close focused window
     , ((modm .|. shiftMask, xK_c     ), kill)
@@ -161,10 +161,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Expand the master area
     , ((modm,               xK_l     ), sendMessage Expand)
 
-    , ((modm,               xK_s     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -Y -t server1 'tmux -2 new-session'" )
-    , ((modm .|. shiftMask, xK_s     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -Y -t server2 'tmux -2 new-session'" )
     , ((controlMask .|. shiftMask, xK_s     ), spawn "~/.xmonad/scripts/ssh.sh" )
-    , ((modm .|. shiftMask, xK_y     ), spawn $ (XMonad.terminal conf) ++ " -e ssh -Y -t yuni 'tmux -2 new-session'" )
     , ((modm,               xK_z     ), spawn "~/.xmonad/scripts/vbox.sh" )
     , ((modm .|. shiftMask, xK_z     ), spawn "~/.xmonad/scripts/rdesktop.sh" )
 
@@ -229,14 +226,22 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
         | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
         , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
+    ++
 
-vboxProtectedBinding (m,k) action =
-    ((m, k),
-     (focusedHasProperty $ ClassName "VBoxSDL") >>= \p ->
+    -- configure SSH connections from HostConfiguration to avoid
+    -- leaking host names
+    [
+    ((m, k), spawn $ (XMonad.terminal conf) ++ " -e ssh -p" ++ port ++ " -Y -t " ++ con ++ " 'tmux -2 new-session'" )
+        | ((m, k), (con,port)) <- HC.sshConnections hostconf
+    ]
+
+-- protects execution when VirtualBox is in focus
+vboxProtectedBinding :: String -> X()
+vboxProtectedBinding action =
+    (focusedHasProperty $ ClassName "VBoxSDL") >>= \p ->
         if (not p)
-                then spawn action
-                else return ()
-    )
+            then spawn action
+            else return ()
 
 ------------------------------------------------------------------------
 -- Mouse bindings: default actions bound to mouse events
@@ -413,7 +418,7 @@ xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ defaultConfig
 			normalBorderColor  = myInactiveColor,
 			focusedBorderColor = myFocusedBorderColor,
 
-			keys               = myKeys,
+			keys               = myKeys conf,
 			mouseBindings      = myMouseBindings,
 
 			layoutHook         = myLayout wsnames,

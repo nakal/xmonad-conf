@@ -2,6 +2,8 @@
 module HostConfiguration where
 
 import Control.Applicative ((<$>))
+import qualified Data.Map as M
+import Graphics.X11.Types
 import Network.BSD
 import System.Directory
 import System.IO
@@ -9,6 +11,9 @@ import System.IO
 type WorkspaceName = String
 type NetInterfaceName = String
 type ExecuteCommand = ( String, [ String ] )
+type UsernameAtHostnameColonPort = String
+type Hostname = String
+type PortNum = String
 
 defaultLocale = "en"
 defaultWorkspaceNames = ["web","com","dev","gfx","ofc","","","",""]
@@ -20,7 +25,8 @@ data HostConfiguration = HostConfiguration {
         workspaceNames :: [ WorkspaceName ]     ,
         terminal :: FilePath                    ,
         netInterfaceName :: NetInterfaceName    ,
-        autostartPrograms :: [ ExecuteCommand ]
+        autostartPrograms :: [ ExecuteCommand ] ,
+        ssh :: [ ((KeyMask, KeySym),UsernameAtHostnameColonPort)]
         }
         deriving ( Read, Show )
 
@@ -30,7 +36,8 @@ defaultHostConfiguration = HostConfiguration {
         workspaceNames = defaultWorkspaceNames          ,
         terminal = defaultTerminal                      ,
         netInterfaceName = defaultNetInterfaceName      ,
-        autostartPrograms = []
+        autostartPrograms = []                          ,
+        ssh = []
         }
 
 readHostConfiguration :: FilePath -> IO HostConfiguration
@@ -52,5 +59,10 @@ readHostConfiguration homedir = do
                         hPutStrLn stderr "failed, using defaults."
                         return defaultHostConfiguration
 
-myHostName :: IO String
+myHostName :: IO Hostname
 myHostName = takeWhile (/= '.') <$> getHostName
+
+sshConnections :: HostConfiguration -> [((KeyMask,KeySym),(Hostname,PortNum))]
+sshConnections =
+        map (\((k,s),uhcp) -> ((k,s), makePort $ break (== ':') uhcp)) . ssh
+        where makePort (a,b) = (a, if (null b) then "22" else drop 1 b)

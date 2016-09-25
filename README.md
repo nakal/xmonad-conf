@@ -98,12 +98,20 @@ HostConfiguration {
 		("hsetroot",["-fill","~/.wallpapers/liquid-1600x1200.jpg"]),
                 ("firefox",[]),
                 ("thunderbird",[])
-                ]
+                ],
+	ssh = [
+		((64,115),"user@server1"),
+		((65,115),"server2:222")
+		]
         }
 ```
 
 **Be careful here,** this has to be a valid Haskell record syntax (instance of
 Read/Show) or it will be safely skipped and the defaults will be used.
+
+Unfortunatelly, it is not possible to use `xK_s` and `mod`-Masks for
+the keys in the configuration of `ssh` connections, so you will need to find the symbols
+for yourself [here](http://xmonad.org/xmonad-docs/X11/src/Graphics-X11-Types.html).
 
 #### Default host-specific configuration
 
@@ -114,7 +122,8 @@ defaultHostConfiguration = HostConfiguration {
         workspaceNames = ["web","com","dev","gfx","ofc","","","",""],
         terminal = "urxvt",
         netInterfaceName = "re0",
-        autostartPrograms = []
+        autostartPrograms = [],
+	ssh = []
         }
 ```
 
