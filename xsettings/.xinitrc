@@ -15,7 +15,7 @@ xscreensaver -no-splash &
 #	DEFAULT_SESSION=spectrwm
 #fi
 DEFAULT_SESSION=xmonad
-GPG_AGENT="gpg-agent --daemon --enable-ssh-support"
+GPG_AGENT="gpg-agent --daemon --enable-ssh-support --default-cache-ttl 7200 --default-cache-ttl-ssh 7200"
 
 # Hack for mutt
 export GPG_AGENT_INFO="$HOME/.gnupg/S.gpg-agent:0:1"
