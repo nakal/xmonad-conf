@@ -66,8 +66,18 @@ myModMask = mod4Mask
 -- Super is the "windows key" for xdotool
 myXDoToolKey = "Super"
 
+-- Default font passed to desktop utils supporting Xft
+-- (this is only dmenu for now)
 defaultFont :: String
 defaultFont = "Fantasque Sans Mono:size=12:bold"
+
+-- Border colors for unfocused and focused windows, respectively.
+myInactiveColor  = "#606060"
+myBackgroundColor = "#202020"
+myActiveColor = "#a8ff60"
+myDefaultColor = "orange"
+myFocusedBorderColor = myActiveColor
+mySignalColor  = "red"
 
 -- This function numbers the workspace names
 numberedWorkspaces :: [ String ] -> [ String ]
@@ -81,14 +91,6 @@ getWorkspaceName :: [ String ] -> String -> String
 getWorkspaceName wsnames name = case name `elemIndex` wsnames of
 	Nothing	-> show $ length wsnames
 	Just x	-> (show $ x+1) ++ ":" ++ name
-
--- Border colors for unfocused and focused windows, respectively.
-myInactiveColor  = "#606060"
-myBackgroundColor = "#202020"
-myActiveColor = "#a8ff60"
-myDefaultColor = "orange"
-myFocusedBorderColor = myActiveColor
-mySignalColor  = "red"
 
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
@@ -355,6 +357,20 @@ myEventHook = docksEventHook
 myPad :: String -> String
 myPad s = s ++ " "
 
+-- Workspace mode symbol
+workspaceLayoutSymbol :: String -> String
+workspaceLayoutSymbol modestr =
+        "<action=`xdotool key " ++ myXDoToolKey ++ "+space`>" ++
+                (case modestr of
+                "Tall"             ->      "<fn=1>\xf0db</fn>"
+                "ResizableTall"    ->      "<fn=1>\xf0db</fn>"
+                "Mirror Tall"      ->      "<fn=1>\xf01e</fn>"
+                "Mirror ResizableTall"      ->      "<fn=1>\xf01e</fn>"
+                "Full"                      ->      "<fn=1>\xf108</fn>"
+                "Simple Float"              ->      "<fn=1>\xf24d</fn>"
+                _                           ->      modestr
+                ) ++ "</action>"
+
 -- Perform an arbitrary action on each internal state change or X event.
 -- See the 'XMonad.Hooks.DynamicLog' extension for examples.
 --
@@ -370,17 +386,7 @@ myLogHook xmobar conf = do
                         , ppUrgent            =   xmobarWorkspace mySignalColor myBackgroundColor prevws
                         , ppWsSep             =   " "
                         , ppSep               =   "  <fc=" ++ myInactiveColor ++ "><fn=1>\xf142</fn></fc>  "
-                        , ppLayout            =
-                                \x -> "<action=`xdotool key " ++ myXDoToolKey ++ "+space`>" ++
-                                        (case x of
-                                        "Tall"             ->      "<fn=1>\xf0db</fn>"
-                                        "ResizableTall"    ->      "<fn=1>\xf0db</fn>"
-                                        "Mirror Tall"      ->      "<fn=1>\xf01e</fn>"
-                                        "Mirror ResizableTall"      ->      "<fn=1>\xf01e</fn>"
-                                        "Full"                      ->      "<fn=1>\xf108</fn>"
-                                        "Simple Float"              ->      "<fn=1>\xf24d</fn>"
-                                        _                           ->      x
-                                        ) ++ "</action>"
+                        , ppLayout            =   workspaceLayoutSymbol
                         , ppTitle             =   (" " ++) . xmobarColor myActiveColor myBackgroundColor . xmobarStrip
                         , ppOutput            =   hPutStrLn xmobar
 	}
