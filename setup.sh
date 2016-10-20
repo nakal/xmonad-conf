@@ -27,19 +27,27 @@ else
 	exit 1
 fi
 
-echo "[Xmonad setup] Checking fonts..."
-checkfont "FontAwesome"
-checkfont "Fantasque Sans Mono"
+echo "[Xmonad setup] Executing shell-setup first..."
 
 # Execute it first
 cd "$SCRIPT_HOME"
 SHELLSETUP="./shell-setup/setup.sh"
 if [ ! -x "$SHELLSETUP" ]; then
+	echo "[Xmonad setup] Don't have submodule, yet. Checking out..."
 	git submodule init
 	git submodule update
+	if [ $? -ne 0 ]; then
+		echo "*** FAILED to check out."
+		exit 1
+	fi
 else
+	echo "[Xmonad setup] Have submodule. Updating..."
 	cd ./shell-setup
 	git pull
+	if [ $? -ne 0 ]; then
+		echo "*** FAILED to update."
+		exit 1
+	fi
 	cd "$SCRIPT_HOME"
 fi
 $SHELLSETUP
@@ -47,6 +55,10 @@ if [ $? -ne 0 ]; then
 	echo "Submodule shell-setup failed. Aborting."
 	exit 1
 fi
+
+echo "[Xmonad setup] Checking fonts..."
+checkfont "FontAwesome"
+checkfont "Fantasque Sans Mono"
 
 OS=`uname -s`
 if [ "$OS" = "FreeBSD" ]; then
