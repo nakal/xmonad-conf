@@ -69,7 +69,7 @@ if [ "$OS" = "FreeBSD" ]; then
 		firefox dmenu gmrun weechat \
 		gtk-oxygen-engine xrdb xsetroot setxkbmap gnupg \
 		xmodmap hsetroot fira fantasque-sans-mono \
-		roboto-fonts-ttf xdotool xfe \
+		roboto-fonts-ttf xdotool xfe xwininfo \
 		> /dev/null
 	if [ $? -ne 0 ]; then
 		echo "ERROR: Missing packages for setup (for X)."
