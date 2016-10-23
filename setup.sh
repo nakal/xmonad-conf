@@ -86,9 +86,9 @@ fi
 
 echo "[Xmonad setup] Checking software capabilities..."
 echo "Checking xmonad..."
-xmonad --version | egrep -q "xmonad 0.11"
+xmonad --version | egrep -q "xmonad 0.1[12]"
 if [ $? -ne 0 ]; then
-	echo "*** need Xmonad 0.11."
+	echo "*** need Xmonad 0.11 or 0.12."
 	exit 1
 else
 	echo "-> Xmonad is ok, good."
