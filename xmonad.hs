@@ -29,6 +29,7 @@ import XMonad.Layout.PerWorkspace ( onWorkspace )
 import XMonad.Layout.NoBorders ( smartBorders )
 import XMonad.Layout.IM
 import XMonad.Layout.ResizableTile
+import XMonad.Layout.Minimize
 import XMonad.Config.Desktop ( desktopLayoutModifiers )
 import XMonad.Layout.Reflect ( reflectHoriz )
 import XMonad.Hooks.ManageDocks
@@ -82,15 +83,15 @@ mySignalColor  = "red"
 -- This function numbers the workspace names
 numberedWorkspaces :: [ String ] -> [ String ]
 numberedWorkspaces wsnames = zipWith (++) (map show [1..]) $ map appendName wsnames
-	where appendName name = case null name of
-		True -> ""
-		_ -> (':' :) name
+        where appendName name = case null name of
+                True -> ""
+                _ -> (':' :) name
 
 -- Safely returns a matching workspace name
 getWorkspaceName :: [ String ] -> String -> String
 getWorkspaceName wsnames name = case name `elemIndex` wsnames of
-	Nothing	-> show $ length wsnames
-	Just x	-> (show $ x+1) ++ ":" ++ name
+        Nothing	-> show $ length wsnames
+        Just x	-> (show $ x+1) ++ ":" ++ name
 
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
@@ -194,9 +195,11 @@ myKeys hostconf conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Restart xmonad
     , ((modm              , xK_q     ), spawn "pkill xmobar; cd ~/.xmonad/lib && ghc --make SysInfoBar.hs ; xmonad --recompile && xmonad --restart")
 
-    , ((0              , xK_KP_Insert     ), toggleWS )
-    , ((0              , xK_KP_Add     ), nextWS )
-    , ((0              , xK_KP_Subtract     ), prevWS )
+    , ((0                 , xK_KP_Insert       ), toggleWS )
+    , ((0                 , xK_KP_Add          ), nextWS )
+    , ((0                 , xK_KP_Subtract     ), prevWS )
+    , ((modm              , xK_KP_Add          ), sendMessage RestoreNextMinimizedWin )
+    , ((modm              , xK_KP_Subtract     ), withFocused minimizeWindow )
 
     -- Run xmessage with a summary of the default keybindings (useful for beginners)
     -- , ((modMask .|. shiftMask, xK_slash ), spawn ("echo \"" ++ help ++ "\" | xmessage -file -"))
@@ -277,7 +280,7 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 --
 myLayout wsnames = onWorkspace (workspace "gfx") gimpLayout $ smartBorders $ avoidStruts $ desktopLayoutModifiers (resizableTile ||| Mirror resizableTile ||| Full)
     where
-    resizableTile = Tall nmaster delta ratio
+    resizableTile = minimize $ Tall nmaster delta ratio
     gimpLayout = avoidStruts $ withIM (0.12) (Or (Role "gimp-toolbox") (Role "toolbox_window")) $ reflectHoriz $ withIM (0.15) (Role "gimp-dock") $ gridIM (0.15) (Role "gimp-dock") ||| resizableTile
     nmaster = 1
     ratio = toRational (2/(1+sqrt(5)::Double))
@@ -362,12 +365,14 @@ workspaceLayoutSymbol :: String -> String
 workspaceLayoutSymbol modestr =
         "<action=`xdotool key " ++ myXDoToolKey ++ "+space`>" ++
                 (case modestr of
-                "Tall"             ->      "<fn=1>\xf0db</fn>"
-                "ResizableTall"    ->      "<fn=1>\xf0db</fn>"
-                "Mirror Tall"      ->      "<fn=1>\xf01e</fn>"
+                "Tall"                      ->      "<fn=1>\xf0db</fn>"
+                "Minimize Tall"             ->      "<fn=1>\xf0db</fn>"
+                "ResizableTall"             ->      "<fn=1>\xf0db</fn>"
+                "Mirror Tall"               ->      "<fn=1>\xf01e</fn>"
                 "Mirror ResizableTall"      ->      "<fn=1>\xf01e</fn>"
                 "Full"                      ->      "<fn=1>\xf108</fn>"
                 "Simple Float"              ->      "<fn=1>\xf24d</fn>"
+                "IM ReflectX IM IM Grid"    ->      "<fn=1>\xf1fc</fn>"
                 _                           ->      modestr
                 ) ++ "</action>"
 
@@ -389,7 +394,7 @@ myLogHook xmobar conf = do
                         , ppLayout            =   workspaceLayoutSymbol
                         , ppTitle             =   (" " ++) . xmobarColor myActiveColor myBackgroundColor . xmobarStrip
                         , ppOutput            =   hPutStrLn xmobar
-	}
+        }
 
 prevWorkspace :: X (Maybe WorkspaceId)
 prevWorkspace = do
@@ -414,26 +419,26 @@ myXmonadBar :: String
 myXmonadBar = "xmobar .xmonad/workspaces_xmobar.rc"
 
 xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ defaultConfig
-		{
-			terminal           = HC.terminal conf,
-			focusFollowsMouse  = myFocusFollowsMouse,
-			clickJustFocuses   = myClickJustFocuses,
-			borderWidth        = myBorderWidth,
-			modMask            = myModMask,
-			workspaces         = numberedWorkspaces wsnames,
-			normalBorderColor  = myInactiveColor,
-			focusedBorderColor = myFocusedBorderColor,
+        {
+                terminal           = HC.terminal conf,
+                focusFollowsMouse  = myFocusFollowsMouse,
+                clickJustFocuses   = myClickJustFocuses,
+                borderWidth        = myBorderWidth,
+                modMask            = myModMask,
+                workspaces         = numberedWorkspaces wsnames,
+                normalBorderColor  = myInactiveColor,
+                focusedBorderColor = myFocusedBorderColor,
 
-			keys               = myKeys conf,
-			mouseBindings      = myMouseBindings,
+                keys               = myKeys conf,
+                mouseBindings      = myMouseBindings,
 
-			layoutHook         = myLayout wsnames,
-			manageHook         = myManageHook wsnames,
-			handleEventHook    = myEventHook,
-			logHook            = myLogHook xmobar conf,
-			startupHook        = autostartAllPrograms conf
-		}
-                where wsnames = HC.workspaceNames conf
+                layoutHook         = myLayout wsnames,
+                manageHook         = myManageHook wsnames,
+                handleEventHook    = myEventHook,
+                logHook            = myLogHook xmobar conf,
+                startupHook        = autostartAllPrograms conf
+        }
+        where wsnames = HC.workspaceNames conf
 
 autostartAllPrograms :: HC.HostConfiguration -> X ()
 autostartAllPrograms conf = do
@@ -442,8 +447,8 @@ autostartAllPrograms conf = do
         where execprog prog = spawn $ (fst prog) ++ " " ++ (unwords $ snd prog)
 
 main = do
-	homedir <- getHomeDirectory
+        homedir <- getHomeDirectory
         conf <- HC.readHostConfiguration homedir
         hPutStrLn stderr $ show conf
-	xmobar <- spawnPipe myXmonadBar
-	xmonad $ xconfig conf xmobar
+        xmobar <- spawnPipe myXmonadBar
+        xmonad $ xconfig conf xmobar
