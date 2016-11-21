@@ -81,17 +81,19 @@ myFocusedBorderColor = myActiveColor
 mySignalColor  = "red"
 
 -- This function numbers the workspace names
-numberedWorkspaces :: [ String ] -> [ String ]
-numberedWorkspaces wsnames = zipWith (++) (map show [1..]) $ map appendName wsnames
-        where appendName name = case null name of
+numberedWorkspaces :: Bool -> [ String ] -> [ String ]
+numberedWorkspaces slim wsnames = zipWith (++) (map show [1..]) $ map appendName wsnames
+        where appendName name = case (slim || null name) of
                 True -> ""
                 _ -> (':' :) name
 
 -- Safely returns a matching workspace name
-getWorkspaceName :: [ String ] -> String -> String
-getWorkspaceName wsnames name = case name `elemIndex` wsnames of
+getWorkspaceName :: Bool -> [ String ] -> String -> String
+getWorkspaceName slim wsnames name = case name `elemIndex` wsnames of
         Nothing	-> show $ length wsnames
-        Just x	-> (show $ x+1) ++ ":" ++ name
+        Just x	-> (show $ x+1) ++ (
+                if slim then "" else ":" ++ name
+                )
 
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
@@ -276,14 +278,14 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 --
-myLayout wsnames = onWorkspace (workspace "gfx") gimpLayout $ smartBorders $ avoidStruts $ desktopLayoutModifiers (resizableTile ||| Mirror resizableTile ||| Full)
+myLayout slim wsnames = onWorkspace (workspace "gfx") gimpLayout $ smartBorders $ avoidStruts $ desktopLayoutModifiers (resizableTile ||| Mirror resizableTile ||| Full)
     where
     resizableTile = minimize $ Tall nmaster delta ratio
     gimpLayout = avoidStruts $ withIM (0.12) (Or (Role "gimp-toolbox") (Role "toolbox_window")) $ reflectHoriz $ withIM (0.15) (Role "gimp-dock") $ gridIM (0.15) (Role "gimp-dock") ||| resizableTile
     nmaster = 1
     ratio = toRational (2/(1+sqrt(5)::Double))
     delta = 3/100
-    workspace wsname = getWorkspaceName wsnames wsname
+    workspace wsname = getWorkspaceName slim wsnames wsname
 
 -- | Unfloat a window (sink)
 doUnfloat :: ManageHook
@@ -310,8 +312,8 @@ doNotificationFloat = (placeHook $ fixed (19 % 20, 1 % 20)) <+> doFloat
 -- To match on the WM_NAME, you can use 'title' in the same way that
 -- 'className' and 'appName' are used below.
 --
-myManageHook :: [ String ] -> Query (Endo WindowSet)
-myManageHook wsnames =
+myManageHook :: Bool -> [ String ] -> Query (Endo WindowSet)
+myManageHook slim wsnames =
         manageDocks <+> composeAll
                 [ className =? "MPlayer"		--> doCenterFloat
                 , className =? "XMessage"		--> doCenterFloat
@@ -339,7 +341,7 @@ myManageHook wsnames =
                 , isPrefixOf "newwin - " <$> appName            --> doShift (getWorkspace "win")
                 , appName  =? "desktop_window"                  --> doIgnore
                 , appName  =? "kdesktop"                        --> doIgnore ]
-                        where getWorkspace name = getWorkspaceName wsnames name
+                        where getWorkspace name = getWorkspaceName slim wsnames name
 
 ------------------------------------------------------------------------
 -- Event handling
@@ -355,8 +357,9 @@ myEventHook = docksEventHook
 ------------------------------------------------------------------------
 -- Status bars and logging
 
-myPad :: String -> String
-myPad s = s ++ " "
+myPad :: Bool -> String -> String
+myPad False s = s ++ " "
+myPad _ s = s
 
 -- Workspace mode symbol
 workspaceLayoutSymbol :: String -> String
@@ -382,17 +385,18 @@ myLogHook xmobar conf = do
         prevws <- prevWorkspace
         dynamicLogWithPP $
                 defaultPP {
-                        ppCurrent           =   xmobarColor myActiveColor myBackgroundColor . myPad
-                        , ppVisible           =   xmobarWorkspace myDefaultColor myBackgroundColor Nothing
-                        , ppHidden            =   xmobarWorkspace myDefaultColor myBackgroundColor prevws
-                        , ppHiddenNoWindows   =   xmobarWorkspace myInactiveColor myBackgroundColor prevws
-                        , ppUrgent            =   xmobarWorkspace mySignalColor myBackgroundColor prevws
+                        ppCurrent           =   xmobarColor myActiveColor myBackgroundColor . (myPad $ HC.slimView conf)
+                        , ppVisible           =   xmobarWS myDefaultColor myBackgroundColor Nothing
+                        , ppHidden            =   xmobarWS myDefaultColor myBackgroundColor prevws
+                        , ppHiddenNoWindows   =   xmobarWS myInactiveColor myBackgroundColor prevws
+                        , ppUrgent            =   xmobarWS mySignalColor myBackgroundColor prevws
                         , ppWsSep             =   " "
                         , ppSep               =   "  <fc=" ++ myInactiveColor ++ "><fn=1>\xf142</fn></fc>  "
                         , ppLayout            =   workspaceLayoutSymbol
                         , ppTitle             =   (" " ++) . xmobarColor myActiveColor myBackgroundColor . xmobarStrip
                         , ppOutput            =   hPutStrLn xmobar
         }
+        where xmobarWS = xmobarWorkspace (HC.slimView conf)
 
 prevWorkspace :: X (Maybe WorkspaceId)
 prevWorkspace = do
@@ -401,9 +405,9 @@ prevWorkspace = do
                 [] -> return Nothing
                 x:xs -> return $ Just $ W.tag x
 
-xmobarWorkspace :: String -> String -> Maybe WorkspaceId -> WorkspaceId -> String
-xmobarWorkspace fg bg prevws =
-        xmobarColor fg bg . myPad . addAction
+xmobarWorkspace :: Bool -> String -> String -> Maybe WorkspaceId -> WorkspaceId -> String
+xmobarWorkspace slim fg bg prevws =
+        xmobarColor fg bg . (myPad slim) . addAction
         where
                 addAction wrkspc = "<action=`xdotool key " ++ myXDoToolKey ++
                         "+" ++ (take 1 wrkspc) ++ "`>" ++
@@ -423,15 +427,15 @@ xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ defaultConfig
                 clickJustFocuses   = myClickJustFocuses,
                 borderWidth        = myBorderWidth,
                 modMask            = myModMask,
-                workspaces         = numberedWorkspaces wsnames,
+                workspaces         = numberedWorkspaces (HC.slimView conf) wsnames,
                 normalBorderColor  = myInactiveColor,
                 focusedBorderColor = myFocusedBorderColor,
 
                 keys               = myKeys conf,
                 mouseBindings      = myMouseBindings,
 
-                layoutHook         = myLayout wsnames,
-                manageHook         = myManageHook wsnames,
+                layoutHook         = myLayout (HC.slimView conf) wsnames,
+                manageHook         = myManageHook (HC.slimView conf) wsnames,
                 handleEventHook    = myEventHook,
                 logHook            = myLogHook xmobar conf,
                 startupHook        = autostartAllPrograms conf

@@ -23,6 +23,7 @@ defaultTerminal = "urxvt"
 data HostConfiguration = HostConfiguration {
         locale :: String                        ,
         workspaceNames :: [ WorkspaceName ]     ,
+        slimView :: Bool                        ,
         terminal :: FilePath                    ,
         netInterfaceName :: NetInterfaceName    ,
         autostartPrograms :: [ ExecuteCommand ] ,
@@ -34,6 +35,7 @@ defaultHostConfiguration :: HostConfiguration
 defaultHostConfiguration = HostConfiguration {
         locale = defaultLocale                          ,
         workspaceNames = defaultWorkspaceNames          ,
+        slimView = False                                ,
         terminal = defaultTerminal                      ,
         netInterfaceName = defaultNetInterfaceName      ,
         autostartPrograms = []                          ,
