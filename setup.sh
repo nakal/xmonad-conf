@@ -3,10 +3,8 @@
 checkfont() {
 	FNTS=`fc-list "$1"`
 	if [ -z "$FNTS" ]; then
-		echo "ERROR: $1 is not available."
-		exit 1
+		echo "WARNING: $1 is not available."
 	fi
-	return 0
 }
 
 echo "[Xmonad setup] Looking for my installation directory..."

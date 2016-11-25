@@ -18,19 +18,19 @@ import Text.Read
 
 import qualified DateFormatter as DF
 
-type NetRx = Int
-type NetTx = Int
+type NetRx = Integer
+type NetTx = Integer
 data NetLoad = NetLoad NetRx NetTx
 
-type CPUUsed = Int
-type CPUTotal = Int
+type CPUUsed = Integer
+type CPUTotal = Integer
 data CPULoad = CPULoad CPUUsed CPUTotal
 
-type MemTotal = Int
-type MemFree = Int
+type MemTotal = Integer
+type MemFree = Integer
 data MemStat = MemStat MemTotal MemFree
 
-type SwapPercent = Int
+type SwapPercent = Integer
 
 myActiveColor = "#a8ff60"
 myInactiveColor = "#606060"
@@ -45,11 +45,11 @@ getNetLoad pipe lastnetload = do
                 return lastnetload
         else do
                 l <- fmap words $ hGetLine pipe
-                getNetLoad pipe $ case readMaybe (head l) :: Maybe Int of
+                getNetLoad pipe $ case readMaybe (head l) :: Maybe Integer of
                         Nothing -> lastnetload
                         _       -> NetLoad (read $ l !! 3) (read $ l !! 6)
 
-netspeed :: Int -> String
+netspeed :: Integer -> String
 netspeed x
         | x > 2 * 1024 ^ 3          =       printf "%.2fGB" (((fromIntegral x)/(1024^3)) :: Double)
         | x > 2 * 1024 ^ 2          =       printf "%.2fMB" (((fromIntegral x)/(1024^2)) :: Double)
@@ -68,7 +68,7 @@ filterSeconds str =
                 fmap (== ':') str == [False,False,True,False,False,True,False,False] then
                         take 5 str else str
 
-hotCPUColor :: Int -> String
+hotCPUColor :: Integer -> String
 hotCPUColor perc
         | perc < 33             = myDefaultColor
         | perc < 66             = myMediumLoadColor
@@ -81,13 +81,13 @@ hotMemColor memstat
         | otherwise             = myHighLoadColor
         where perc = getMemPercent memstat
 
-hotSwapColor :: Int -> String
+hotSwapColor :: Integer -> String
 hotSwapColor perc
         | perc < 5              = myDefaultColor
         | perc < 20             = myMediumLoadColor
         | otherwise             = myHighLoadColor
 
-displayStats :: String -> Handle -> Int -> MemStat -> SwapPercent -> NetLoad -> IO()
+displayStats :: String -> Handle -> Integer -> MemStat -> SwapPercent -> NetLoad -> IO()
 displayStats locale pipe cpuperc memstat swapperc (NetLoad net_rx net_tx) = do
         datestr <- DF.getTimeAndDate locale
         hPutStrLn pipe $
@@ -115,7 +115,7 @@ getSwapStats = do
                 fromIntegral $ (used * 100) `div` tot
                 else 0;
 
-gatherLoop :: String -> (OID, Int, OID, OID) -> CPULoad -> Handle -> Handle
+gatherLoop :: String -> (OID, Integer, OID, OID) -> CPULoad -> Handle -> Handle
         -> NetLoad -> IO()
 gatherLoop locale (oid_cpuload, memtotal, oid_memfree, oid_meminact) oldcpuload netstatPipe pipe lastnet = do
         cpuload <- getCPULoad oid_cpuload
@@ -139,16 +139,16 @@ startBSD locale iface pipe = do
         gatherLoop locale (oid_cpuload, fromIntegral memtotal, oid_memfree, oid_meminact)
                 cpuload netstatPipe pipe netinit
 
-getCPUPercent :: (CPULoad,CPULoad) -> Int
+getCPUPercent :: (CPULoad,CPULoad) -> Integer
 getCPUPercent (CPULoad oldused oldtotal, CPULoad curused curtotal) =
         let     deltatotal = curtotal - oldtotal
                 deltaused = curused - oldused
                 in if deltatotal > 0 then (100*deltaused) `div` deltatotal else 0
 
-getMemPercent :: MemStat -> Int
+getMemPercent :: MemStat -> Integer
 getMemPercent (MemStat total free) = 100 - ((free * 100) `div` total)
 
-getMemStat :: (Int, OID, OID) -> IO MemStat
+getMemStat :: (Integer, OID, OID) -> IO MemStat
 getMemStat (memtotal, oid_memfree, oid_meminact) = do
         memfree <- sysctlReadUInt oid_memfree
         meminact <- sysctlReadUInt oid_meminact
