@@ -38,16 +38,18 @@ myDefaultColor = "orange"
 myMediumLoadColor = "yellow"
 myHighLoadColor = "red"
 
-getNetLoad :: Handle -> NetLoad -> IO NetLoad
-getNetLoad pipe lastnetload = do
-        ready <- hReady pipe
+getNetLoad :: Maybe Handle -> NetLoad -> IO NetLoad
+getNetLoad (Just pipe) lastnetload = do
+        ready <- catchIOError (hReady pipe) (\_ -> return False)
         if not ready then
                 return lastnetload
         else do
                 l <- fmap words $ hGetLine pipe
-                getNetLoad pipe $ case readMaybe (head l) :: Maybe Integer of
+                getNetLoad (Just pipe) $ case readMaybe (head l) :: Maybe Integer of
                         Nothing -> lastnetload
                         _       -> NetLoad (read $ l !! 3) (read $ l !! 6)
+
+getNetLoad _ lastnetload = return lastnetload
 
 netspeed :: Integer -> String
 netspeed x
@@ -115,7 +117,7 @@ getSwapStats = do
                 fromIntegral $ (used * 100) `div` tot
                 else 0;
 
-gatherLoop :: String -> Bool -> (OID, Integer, OID, OID) -> CPULoad -> Handle -> Handle
+gatherLoop :: String -> Bool -> (OID, Integer, OID, OID) -> CPULoad -> Maybe Handle -> Handle
         -> NetLoad -> IO()
 gatherLoop locale slim (oid_cpuload, memtotal, oid_memfree, oid_meminact) oldcpuload netstatPipe pipe lastnet = do
         cpuload <- getCPULoad oid_cpuload
@@ -167,13 +169,20 @@ spawnPipe cmd = do
         (Just hin, _, _, _) <- createProcess (proc (head cmd) (tail cmd)){ std_in = CreatePipe }
         return hin
 
-spawnNetStat :: String -> IO Handle
+safeRead :: Handle -> IO (Maybe String)
+safeRead hout =
+        catchIOError (do
+                line <- hGetLine hout
+                return $ Just line)
+                (\_ -> return $ Nothing)
+
+spawnNetStat :: String -> IO (Maybe Handle)
 spawnNetStat iface = do
         (_, Just hout, _, _) <- createProcess (proc "netstat"
                 ["-i", "-I", iface, "-bW", "1"]){ std_out = CreatePipe }
-        hGetLine hout
-        hGetLine hout
-        return hout
+        safeRead hout
+        safeRead hout
+        return $ Just hout
 
 xmobarSysInfo :: FilePath -> Bool -> [ String ]
 xmobarSysInfo homedir slim =
