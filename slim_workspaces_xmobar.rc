@@ -1,0 +1,28 @@
+Config {
+	font =         "xft:Fantasque Sans Mono:size=13:bold:antialias=true"
+	additionalFonts = [ "xft:FontAwesome",
+		"xft:Fantasque Sans Mono:size=13:bold:antialias=true:oblique"]
+	, bgColor =      "#202020"
+	, fgColor =      "orange"
+	, alpha = 255
+	, position =     TopW L 25
+	, border =       NoBorder
+	, borderColor =  "black"
+
+	, sepChar =  "%"
+	, alignSep = "}{"
+	, template = "%UnsafeStdinReader%"
+
+	, textOffset = -1
+	, iconOffset = -1
+	, iconRoot = ".xmonad/icons"
+
+	, lowerOnStart =     True
+	, hideOnStart =      False
+	, allDesktops =      True
+	, overrideRedirect = True
+	, pickBroadest =     False
+	, persistent =       True
+
+	, commands = [ Run UnsafeStdinReader ]
+}

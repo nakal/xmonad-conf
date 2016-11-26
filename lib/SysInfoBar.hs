@@ -87,9 +87,9 @@ hotSwapColor perc
         | perc < 20             = myMediumLoadColor
         | otherwise             = myHighLoadColor
 
-displayStats :: String -> Handle -> Integer -> MemStat -> SwapPercent -> NetLoad -> IO()
-displayStats locale pipe cpuperc memstat swapperc (NetLoad net_rx net_tx) = do
-        datestr <- DF.getTimeAndDate locale
+displayStats :: String -> Bool -> Handle -> Integer -> MemStat -> SwapPercent -> NetLoad -> IO()
+displayStats locale slim pipe cpuperc memstat swapperc (NetLoad net_rx net_tx) = do
+        datestr <- DF.getTimeAndDate locale slim
         hPutStrLn pipe $
                 printf "<fc=%v><fn=1>\xf142</fn></fc>  <fn=1>\xf21e</fn>\
                         \<fc=%v>% 3v%%</fc>   <fn=1>\xf00a\
@@ -115,19 +115,19 @@ getSwapStats = do
                 fromIntegral $ (used * 100) `div` tot
                 else 0;
 
-gatherLoop :: String -> (OID, Integer, OID, OID) -> CPULoad -> Handle -> Handle
+gatherLoop :: String -> Bool -> (OID, Integer, OID, OID) -> CPULoad -> Handle -> Handle
         -> NetLoad -> IO()
-gatherLoop locale (oid_cpuload, memtotal, oid_memfree, oid_meminact) oldcpuload netstatPipe pipe lastnet = do
+gatherLoop locale slim (oid_cpuload, memtotal, oid_memfree, oid_meminact) oldcpuload netstatPipe pipe lastnet = do
         cpuload <- getCPULoad oid_cpuload
         memstat <- getMemStat (memtotal, oid_memfree, oid_meminact)
         netload <- getNetLoad netstatPipe lastnet
         swapload <- getSwapStats
-        displayStats locale pipe (getCPUPercent (oldcpuload, cpuload)) memstat swapload netload
+        displayStats locale slim pipe (getCPUPercent (oldcpuload, cpuload)) memstat swapload netload
         threadDelay 1000000
-        gatherLoop locale (oid_cpuload, memtotal, oid_memfree, oid_meminact) cpuload netstatPipe pipe netload
+        gatherLoop locale slim (oid_cpuload, memtotal, oid_memfree, oid_meminact) cpuload netstatPipe pipe netload
 
-startBSD :: String -> String -> Handle -> IO()
-startBSD locale iface pipe = do
+startBSD :: String -> Bool -> String -> Handle -> IO()
+startBSD locale slim iface pipe = do
         oid_cpuload <- sysctlNameToOid "kern.cp_time"
         oid_memtotal <- sysctlNameToOid "vm.stats.vm.v_page_count"
         oid_memfree <- sysctlNameToOid "vm.stats.vm.v_free_count"
@@ -136,7 +136,7 @@ startBSD locale iface pipe = do
         cpuload <- getCPULoad oid_cpuload
         netinit <- getNetLoad netstatPipe (NetLoad 0 0)
         memtotal <- sysctlReadUInt oid_memtotal
-        gatherLoop locale (oid_cpuload, fromIntegral memtotal, oid_memfree, oid_meminact)
+        gatherLoop locale slim (oid_cpuload, fromIntegral memtotal, oid_memfree, oid_meminact)
                 cpuload netstatPipe pipe netinit
 
 getCPUPercent :: (CPULoad,CPULoad) -> Integer
@@ -175,8 +175,11 @@ spawnNetStat iface = do
         hGetLine hout
         return hout
 
-xmobarSysInfo :: FilePath -> [ String ]
-xmobarSysInfo homedir = [ "xmobar", homedir ++ "/.xmonad/sysinfo_xmobar.rc" ]
+xmobarSysInfo :: FilePath -> Bool -> [ String ]
+xmobarSysInfo homedir slim =
+        [ "xmobar", homedir ++ "/.xmonad/" ++
+        (if slim then "slim_" else "")
+        ++ "sysinfo_xmobar.rc" ]
 
 installSignals :: IO ()
 installSignals = do
@@ -191,9 +194,11 @@ main = do
         homedir <- getHomeDirectory
         args <- getArgs
         case args of
-                [ locale, iface ]      -> spawnPipe (xmobarSysInfo homedir) >>= (
+                [ locale, iface, slimstr ]      ->
+                        let slim = read slimstr :: Bool in
+                        spawnPipe (xmobarSysInfo homedir slim) >>= (
                         case os of
-                                "freebsd" -> startBSD locale iface
+                                "freebsd" -> startBSD locale slim iface
                                 _         -> error $ "Unknown operating system " ++ os
                         )
                 _              -> error "Error in parameters. Need locale and network interface."

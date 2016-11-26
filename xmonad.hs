@@ -393,10 +393,13 @@ myLogHook xmobar conf = do
                         , ppWsSep             =   " "
                         , ppSep               =   "  <fc=" ++ myInactiveColor ++ "><fn=1>\xf142</fn></fc>  "
                         , ppLayout            =   workspaceLayoutSymbol
-                        , ppTitle             =   (" " ++) . xmobarColor myActiveColor myBackgroundColor . xmobarStrip
+                        , ppTitle             =   wsTitle
                         , ppOutput            =   hPutStrLn xmobar
         }
-        where xmobarWS = xmobarWorkspace (HC.slimView conf)
+        where
+                xmobarWS = xmobarWorkspace (HC.slimView conf)
+                wsTitle = if (HC.slimView conf) then \_ -> ""
+                        else (" " ++) . xmobarColor myActiveColor myBackgroundColor . xmobarStrip
 
 prevWorkspace :: X (Maybe WorkspaceId)
 prevWorkspace = do
@@ -417,8 +420,11 @@ xmobarWorkspace slim fg bg prevws =
                                         else wrkspc
                         _           -> wrkspc
 
-myXmonadBar :: String
-myXmonadBar = "xmobar .xmonad/workspaces_xmobar.rc"
+myXmonadBar :: Bool -> String
+myXmonadBar slim =
+        "xmobar .xmonad/" ++
+        (if slim then "slim_" else "")
+        ++ "workspaces_xmobar.rc"
 
 xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ defaultConfig
         {
@@ -444,7 +450,7 @@ xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ defaultConfig
 
 autostartAllPrograms :: HC.HostConfiguration -> X ()
 autostartAllPrograms conf = do
-        spawn $ "~/.xmonad/lib/SysInfoBar " ++ HC.locale conf ++ " " ++ HC.netInterfaceName conf
+        spawn $ "~/.xmonad/lib/SysInfoBar " ++ HC.locale conf ++ " " ++ HC.netInterfaceName conf ++ " " ++ (show $ HC.slimView conf)
         mapM_ execprog $ HC.autostartPrograms conf
         where execprog prog = spawn $ (fst prog) ++ " " ++ (unwords $ snd prog)
 
@@ -452,5 +458,5 @@ main = do
         homedir <- getHomeDirectory
         conf <- HC.readHostConfiguration homedir
         hPutStrLn stderr $ show conf
-        xmobar <- spawnPipe myXmonadBar
+        xmobar <- spawnPipe (myXmonadBar $ HC.slimView conf)
         xmonad $ xconfig conf xmobar
