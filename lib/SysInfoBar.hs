@@ -55,18 +55,6 @@ netspeed x
         | x > 2 * 1024              =       printf "%.2fkB" (((fromIntegral x)/1024) :: Double)
         | otherwise                 =       printf "%d B " x
 
-isNotTimezone :: String -> Bool
-isNotTimezone str = not $ foldr (\x -> (&&) (isUpper x)) True str
-
-endsWithDot :: String -> Bool
-endsWithDot str = (length str > 0) && (last str) == '.'
-
-filterSeconds :: String -> String
-filterSeconds str =
-        if fmap isDigit str == [True,True,False,True,True,False,True,True] &&
-                fmap (== ':') str == [False,False,True,False,False,True,False,False] then
-                        take 5 str else str
-
 hotCPUColor :: Rational -> Integer -> String
 hotCPUColor cpuload numcpu
         | cpuload >= numcpu % 1 = myHighLoadColor
