@@ -75,18 +75,20 @@ hotSwapColor perc
         | otherwise             = myHighLoadColor
 
 batteryColor :: Integer -> String
-batteryColor perc
-        | perc < 15             = myHighLoadColor
-        | perc < 30             = myMediumLoadColor
-        | otherwise             = myDefaultColor
+batteryColor minutes
+        | minutes < 0              = myDefaultColor
+        | minutes < 15             = myHighLoadColor
+        | minutes < 30             = myMediumLoadColor
+        | otherwise                = myDefaultColor
 
 batteryIcon :: Integer -> String
-batteryIcon perc
-        | perc < 15             = "\xf244"
-        | perc < 30             = "\xf243"
-        | perc < 90             = "\xf242"
-        | perc < 150            = "\xf241"
-        | otherwise             = "\xf240"
+batteryIcon minutes
+        | minutes < 0              = "\xf1e6"
+        | minutes < 15             = "\xf244"
+        | minutes < 30             = "\xf243"
+        | minutes < 90             = "\xf242"
+        | minutes < 150            = "\xf241"
+        | otherwise                = "\xf240"
 
 
 displayStats :: String -> Bool -> Handle -> (Rational, Integer) -> MemStat -> SwapPercent -> NetLoad -> Integer -> IO()
@@ -102,7 +104,8 @@ displayStats locale slim pipe (cpuload, numcpu) memstat swapperc (NetLoad net_rx
                         myInactiveColor (hotCPUColor cpuload numcpu) (fromRational cpuload :: Float)
                         (hotMemColor memstat) (getMemPercent memstat)
                         (hotSwapColor swapperc) swapperc (netspeed net_rx)
-                        (netspeed net_tx) (batteryIcon battime) (batteryColor battime) battime
+                        (netspeed net_tx) (batteryIcon battime) (batteryColor battime)
+                        (if battime > 0 then show battime else "? ")
                         myInactiveColor myActiveColor datestr
         hFlush pipe
 
@@ -161,7 +164,7 @@ getCPULoad oid_cpuload = do
 
 getBatteryTime :: OID -> IO Integer
 getBatteryTime oid_battime =
-        fmap fromIntegral $ sysctlReadUInt oid_battime
+        fmap fromIntegral $ sysctlReadInt oid_battime
 
 spawnPipe :: [ String ] -> IO Handle
 spawnPipe cmd = do
