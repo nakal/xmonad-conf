@@ -89,20 +89,36 @@ hotSwapColor perc
         | perc < 20             = myMediumLoadColor
         | otherwise             = myHighLoadColor
 
-displayStats :: String -> Bool -> Handle -> Integer -> MemStat -> SwapPercent -> NetLoad -> IO()
-displayStats locale slim pipe cpuperc memstat swapperc (NetLoad net_rx net_tx) = do
+batteryColor :: Integer -> String
+batteryColor perc
+        | perc < 15             = myHighLoadColor
+        | perc < 30             = myMediumLoadColor
+        | otherwise             = myDefaultColor
+
+batteryIcon :: Integer -> String
+batteryIcon perc
+        | perc < 15             = "\xf244"
+        | perc < 30             = "\xf243"
+        | perc < 90             = "\xf242"
+        | perc < 150            = "\xf241"
+        | otherwise             = "\xf240"
+
+
+displayStats :: String -> Bool -> Handle -> Integer -> MemStat -> SwapPercent -> NetLoad -> Integer -> IO()
+displayStats locale slim pipe cpuperc memstat swapperc (NetLoad net_rx net_tx) battime = do
         datestr <- DF.getTimeAndDate locale slim
         hPutStrLn pipe $
                 printf "<fc=%v><fn=1>\xf142</fn></fc>  <fn=1>\xf21e</fn>\
-                        \<fc=%v>% 3v%%</fc>   <fn=1>\xf00a\
-                        \</fn><fc=%v>% 3v%%</fc>   <fn=1>\xf1c0</fn><fc=%v>\
-                        \% 3v%%</fc>   <fn=1>\xf019</fn>\
-                        \% 11v <fn=1>\xf093</fn>% 11v <fc=%v><fn=1>\xf142\
+                        \<fc=%v>%3v%%</fc>   <fn=1>\xf00a\
+                        \</fn><fc=%v>%3v%%</fc>   <fn=1>\xf1c0</fn><fc=%v>\
+                        \%3v%%</fc>   <fn=1>\xf019</fn>\
+                        \% 9v <fn=1>\xf093</fn>% 9v <fn=1>%v</fn><fc=%v>% 3vmin</fc> <fc=%v><fn=1>\xf142\
                         \</fn></fc>  <fc=%v>%v</fc>"
                         myInactiveColor (hotCPUColor cpuperc) cpuperc
                         (hotMemColor memstat) (getMemPercent memstat)
                         (hotSwapColor swapperc) swapperc (netspeed net_rx)
-                        (netspeed net_tx) myInactiveColor myActiveColor datestr
+                        (netspeed net_tx) (batteryIcon battime) (batteryColor battime) battime
+                        myInactiveColor myActiveColor datestr
         hFlush pipe
 
 getSwapStats :: IO SwapPercent
@@ -117,16 +133,17 @@ getSwapStats = do
                 fromIntegral $ (used * 100) `div` tot
                 else 0;
 
-gatherLoop :: String -> Bool -> (OID, Integer, OID, OID) -> CPULoad -> Maybe Handle -> Handle
+gatherLoop :: String -> Bool -> (OID, Integer, OID, OID, OID) -> CPULoad -> Maybe Handle -> Handle
         -> NetLoad -> IO()
-gatherLoop locale slim (oid_cpuload, memtotal, oid_memfree, oid_meminact) oldcpuload netstatPipe pipe lastnet = do
+gatherLoop locale slim (oid_cpuload, memtotal, oid_memfree, oid_meminact, oid_battime) oldcpuload netstatPipe pipe lastnet = do
         cpuload <- getCPULoad oid_cpuload
         memstat <- getMemStat (memtotal, oid_memfree, oid_meminact)
         netload <- getNetLoad netstatPipe lastnet
         swapload <- getSwapStats
-        displayStats locale slim pipe (getCPUPercent (oldcpuload, cpuload)) memstat swapload netload
+        battime <- getBatteryTime oid_battime
+        displayStats locale slim pipe (getCPUPercent (oldcpuload, cpuload)) memstat swapload netload battime
         threadDelay 1000000
-        gatherLoop locale slim (oid_cpuload, memtotal, oid_memfree, oid_meminact) cpuload netstatPipe pipe netload
+        gatherLoop locale slim (oid_cpuload, memtotal, oid_memfree, oid_meminact, oid_battime) cpuload netstatPipe pipe netload
 
 startBSD :: String -> Bool -> String -> Handle -> IO()
 startBSD locale slim iface pipe = do
@@ -134,11 +151,12 @@ startBSD locale slim iface pipe = do
         oid_memtotal <- sysctlNameToOid "vm.stats.vm.v_page_count"
         oid_memfree <- sysctlNameToOid "vm.stats.vm.v_free_count"
         oid_meminact <- sysctlNameToOid "vm.stats.vm.v_inactive_count"
+        oid_battime <- sysctlNameToOid "hw.acpi.battery.time"
         netstatPipe <- spawnNetStat iface
         cpuload <- getCPULoad oid_cpuload
         netinit <- getNetLoad netstatPipe (NetLoad 0 0)
         memtotal <- sysctlReadUInt oid_memtotal
-        gatherLoop locale slim (oid_cpuload, fromIntegral memtotal, oid_memfree, oid_meminact)
+        gatherLoop locale slim (oid_cpuload, fromIntegral memtotal, oid_memfree, oid_meminact, oid_battime)
                 cpuload netstatPipe pipe netinit
 
 getCPUPercent :: (CPULoad,CPULoad) -> Integer
@@ -163,6 +181,10 @@ getCPULoad oid_cpuload = do
                 total = sum cpuloads
                 used = total - last cpuloads
                 in return $ CPULoad used total
+
+getBatteryTime :: OID -> IO Integer
+getBatteryTime oid_battime =
+        fmap fromIntegral $ sysctlReadUInt oid_battime
 
 spawnPipe :: [ String ] -> IO Handle
 spawnPipe cmd = do
