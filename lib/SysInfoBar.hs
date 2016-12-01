@@ -29,6 +29,18 @@ data MemStat = MemStat MemTotal MemFree
 
 type SwapPercent = Integer
 
+data Stats = Stats {
+        locale :: String
+        , slim :: Bool
+        , pipe :: Handle
+        , cpuload :: Rational
+        , cpucount :: Integer
+        , memstat :: MemStat
+        , swapperc :: SwapPercent
+        , netload :: NetLoad
+        , maybe_battime :: Maybe Integer
+        }
+
 myActiveColor = "#a8ff60"
 myInactiveColor = "#606060"
 myDefaultColor = "orange"
@@ -97,8 +109,8 @@ batteryStats (Just battime) =
                 (if battime > 0 then show battime else "? ")
 batteryStats _ = ""
 
-displayStats :: String -> Bool -> Handle -> (Rational, Integer) -> MemStat -> SwapPercent -> NetLoad -> Maybe Integer -> IO()
-displayStats locale slim pipe (cpuload, numcpu) memstat swapperc (NetLoad net_rx net_tx) maybe_battime = do
+displayStats :: Stats -> IO()
+displayStats (Stats locale slim pipe cpuload numcpu memstat swapperc (NetLoad net_rx net_tx) maybe_battime) = do
         datestr <- DF.getTimeAndDate locale slim
         hPutStrLn pipe $
                 printf ("<fc=%v><fn=1>\xf142</fn></fc>  <fn=1>\xf0e4</fn>\
@@ -134,25 +146,21 @@ gatherLoop locale slim (oid_vmload, numcpu, memtotal, oid_memfree, oid_meminact,
         netload <- getNetLoad netstatPipe lastnet
         swapload <- getSwapStats
         battime <- getBatteryTime oid_battime
-        displayStats locale slim pipe (cpuload, numcpu) memstat swapload netload battime
+        displayStats $ Stats locale slim pipe cpuload numcpu memstat swapload netload battime
         threadDelay 1000000
         gatherLoop locale slim (oid_vmload, numcpu, memtotal, oid_memfree, oid_meminact, oid_battime) netstatPipe pipe netload
 
 startBSD :: String -> Bool -> String -> Handle -> IO()
 startBSD locale slim iface pipe = do
-        oid_vmload <- sysctlNameToOid "vm.loadavg"
-        oid_numcpu <- sysctlNameToOid "hw.ncpu"
-        oid_memtotal <- sysctlNameToOid "vm.stats.vm.v_page_count"
-        oid_memfree <- sysctlNameToOid "vm.stats.vm.v_free_count"
-        oid_meminact <- sysctlNameToOid "vm.stats.vm.v_inactive_count"
+        [ oid_vmload, oid_numcpu, oid_memtotal, oid_memfree, oid_meminact ]
+                <- mapM sysctlNameToOid [ "vm.loadavg", "hw.ncpu", "vm.stats.vm.v_page_count", "vm.stats.vm.v_free_count", "vm.stats.vm.v_inactive_count" ]
         oid_battime <- catchIOError (do
                 oid <- sysctlNameToOid "hw.acpi.battery.time"
                 return $ Just oid
                 ) (\_ -> return Nothing)
         netstatPipe <- spawnNetStat iface
         netinit <- getNetLoad netstatPipe (NetLoad 0 0)
-        numcpu <- sysctlReadUInt oid_numcpu
-        memtotal <- sysctlReadUInt oid_memtotal
+        [ numcpu, memtotal ] <- mapM sysctlReadUInt [ "hw.ncpu", "vm.stats.vm.v_page_count" ]
         gatherLoop locale slim (oid_vmload, fromIntegral numcpu, fromIntegral memtotal, oid_memfree, oid_meminact, oid_battime)
                 netstatPipe pipe netinit
 
@@ -165,16 +173,14 @@ getMemStat (memtotal, oid_memfree, oid_meminact) = do
         meminact <- sysctlReadUInt oid_meminact
         return $ MemStat memtotal (fromIntegral memfree + fromIntegral meminact)
 
-dropZeroSuffix :: (Eq a, Num a) => [a] -> [a]
-dropZeroSuffix elems
-        | last elems == 0       =       dropZeroSuffix $ init elems
-        | otherwise             =       elems
-
 getCPULoad :: OID -> IO Rational
 getCPULoad oid_cpuload = do
         cpuloads_raw <- sysctlPeekArray oid_cpuload :: IO [Word32]
         let cpuloads = dropZeroSuffix cpuloads_raw in
                 return $ (fromIntegral $ head cpuloads) % (fromIntegral $ last cpuloads)
+        where dropZeroSuffix elems
+                | last elems == 0       =       dropZeroSuffix $ init elems
+                | otherwise             =       elems
 
 getBatteryTime :: Maybe OID -> IO (Maybe Integer)
 getBatteryTime (Just oid_battime) = do
@@ -187,13 +193,6 @@ spawnPipe cmd = do
         (Just hin, _, _, _) <- createProcess (proc (head cmd) (tail cmd)){ std_in = CreatePipe }
         return hin
 
-safeRead :: Handle -> IO (Maybe String)
-safeRead hout =
-        catchIOError (do
-                line <- hGetLine hout
-                return $ Just line)
-                (\_ -> return Nothing)
-
 spawnNetStat :: String -> IO (Maybe Handle)
 spawnNetStat iface = do
         (_, Just hout, _, _) <- createProcess (proc "netstat"
@@ -201,21 +200,17 @@ spawnNetStat iface = do
         safeRead hout
         safeRead hout
         return $ Just hout
+        where safeRead hout =
+                catchIOError (do
+                        line <- hGetLine hout
+                        return $ Just line)
+                        (\_ -> return Nothing)
 
 xmobarSysInfo :: FilePath -> Bool -> [ String ]
 xmobarSysInfo homedir slim =
         [ "xmobar", homedir ++ "/.xmonad/" ++
         (if slim then "slim_" else "")
         ++ "sysinfo_xmobar.rc" ]
-
-installSignals :: IO ()
-installSignals = do
-        ppid <- myThreadId
-        mapM_ (\sig -> installHandler sig (Catch $ trap ppid) Nothing)
-                [ lostConnection, keyboardSignal, softwareTermination, processStatusChanged ]
-
-trap tid = do
-        throwTo tid ExitSuccess
 
 main = do
         homedir <- getHomeDirectory
