@@ -1,8 +1,8 @@
-psFile			"|/usr/local/bin/lpr"
 psPaperSize		A4
 textEncoding		UTF-8
 textEOL		unix
 enableFreeType		yes
 antialias		yes
+initialZoom		page
 launchCommand  viewer-script
 urlCommand	"firefox %s"

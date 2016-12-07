@@ -74,7 +74,7 @@ if [ "$OS" = "FreeBSD" ]; then
 		exit 1
 	fi
 	echo "[Xmonad setup] Checking recommended packages..."
-	pkg info gimp libreoffice weechat > /dev/null
+	pkg info gimp weechat > /dev/null
 	if [ $? -ne 0 ]; then
 		echo "WARNING: Some recommended packages are not installed."
 	fi
@@ -95,7 +95,7 @@ fi
 cd $HOME
 REMOVE_FILES=".xinitrc .xsession .Xdefaults .gtkrc-2.0 \
 	.config/gtk-3.0/settings.ini .config/user-dirs.dirs \
-	.vimperatorrc.local .xpdfrc \
+	.vimperatorrc.local .xpdfrc_base \
 	"
 
 for df in $REMOVE_FILES; do
@@ -116,7 +116,7 @@ ln -s $SCRIPT_HOME/xsettings/.xinitrc .xsession
 ln -s $SCRIPT_HOME/xsettings/.Xdefaults .
 ln -s $SCRIPT_HOME/xsettings/.gtkrc-2.0 .
 ln -s $SCRIPT_HOME/xsettings/.vimperatorrc.local .
-ln -s $SCRIPT_HOME/xsettings/.xpdfrc .
+ln -s $SCRIPT_HOME/xsettings/.xpdfrc_base .
 
 mkdir -p $HOME/.config
 cd $HOME/.config
@@ -125,6 +125,14 @@ ln -s $SCRIPT_HOME/xsettings/user-dirs.dirs .
 mkdir -p $HOME/.config/gtk-3.0
 cd $HOME/.config/gtk-3.0
 ln -s $SCRIPT_HOME/xsettings/settings.ini .
+
+# xpdf local configuration
+if [ ! -e $HOME/.xpdfrc ]; then
+	echo "include			\"$HOME/.xpdfrc_base\"" > $HOME/.xpdfrc
+	echo "psFile                  \"|/usr/local/bin/lpr\"" >> $HOME/.xpdfrc
+	echo "WARNING: A default ~/.xpdfrc file has been written."
+	echo "         You might want to append ' -P printer' to the print command there."
+fi
 
 echo Preparing SysInfoBar...
 cd $HOME/.xmonad/lib
