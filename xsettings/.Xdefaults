@@ -31,7 +31,7 @@ urxvt*scrollBar: false
 urxvt*letterSpace: -1
 urxvt*iso14755: false
 urxvt*cursorColor: orange
-urxvt*termName: screen-256color
+urxvt*termName: rxvt-unicode-256color
 urxvt*perl-ext-common: default,matcher
 urxvt*url-launcher: xdg-open
 urxvt*matcher.button: 2
@@ -48,7 +48,7 @@ rxvt*scrollBar: false
 rxvt*letterSpace: -1
 rxvt*iso14755: false
 rxvt*cursorColor: orange
-rxvt*termName: screen-256color
+rxvt*termName: rxvt-unicode-256color
 rxvt*perl-ext-common: default,matcher
 rxvt*url-launcher: xdg-open
 rxvt*matcher.button: 2
