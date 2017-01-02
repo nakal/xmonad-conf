@@ -197,32 +197,22 @@ myKeys hostconf conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Restart xmonad
     , ((modm              , xK_q     ), spawn "pkill xmobar; cd ~/.xmonad/lib && ghc --make SysInfoBar.hs ; xmonad --recompile && xmonad --restart")
 
-    , ((0                 , xK_KP_Insert       ), toggleWS )
-    , ((0                 , xK_KP_Add          ), nextWS )
-    , ((0                 , xK_KP_Subtract     ), prevWS )
-    , ((modm              , xK_KP_Add          ), sendMessage RestoreNextMinimizedWin )
-    , ((modm              , xK_KP_Subtract     ), withFocused minimizeWindow )
+    , ((0                 , xK_F12       ), toggleWS )
+    , ((modm              , xK_Left      ), prevWS )
+    , ((modm              , xK_Right     ), nextWS )
+    , ((modm              , xK_Down      ), withFocused minimizeWindow )
+    , ((modm              , xK_Up        ), sendMessage RestoreNextMinimizedWin )
 
     -- Run xmessage with a summary of the default keybindings (useful for beginners)
     -- , ((modMask .|. shiftMask, xK_slash ), spawn ("echo \"" ++ help ++ "\" | xmessage -file -"))
     ]
     ++
 
-    --
-    -- mod-[1..9], Switch to workspace N
-    -- mod-shift-[1..9], Move client to workspace N
-    --
-    [((m .|. modm, k), windows $ f i)
-        | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
-        , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
-    ++
-
-    -- same for numpad keys
+    -- F key -> change workspace
+    -- mod+F key -> shift window to workspace
     [((m, k), windows $ f i)
-        | (i, k) <- zip (XMonad.workspaces conf) [xK_KP_End, xK_KP_Down, xK_KP_Page_Down,
-                xK_KP_Left, xK_KP_Begin, xK_KP_Right,
-                xK_KP_Home, xK_KP_Up, xK_KP_Page_Up]
-        , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
+        | (i, k) <- zip (XMonad.workspaces conf) [xK_F1..xK_F9]
+        , (f, m) <- [(W.greedyView, 0), (W.shift, modm)]]
     ++
 
     --

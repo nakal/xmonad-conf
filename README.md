@@ -17,8 +17,6 @@ Included fine tuning has been done for (e.g.):
 		* SSH
 		* rdesktop
 		* VirtualBox
-* login manager:
-	* slim
 * xmobar:
 	* desktop bar
 	* sysinfo bar
@@ -80,6 +78,8 @@ The `com` layout is best used with `pidgin` and `thunderbird`, `claws-mail` or
 `mutt`. `gfx` is adjusted for `gimp` other applications like `darktable` will
 be simply shown full-screen there. Take a look at the layout definitions and
 don't forget to modify them, especially when changing their names.
+
+Use F-keys to navigate to the workspaces or click on the workspace bar.
 
 ### Example
 
