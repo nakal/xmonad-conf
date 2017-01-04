@@ -19,6 +19,10 @@ import Text.Read
 
 import qualified DateFormatter as DF
 
+type CPUUsed = Integer
+type CPUTotal = Integer
+data CPULoad = CPULoad CPUUsed CPUTotal
+
 type NetRx = Integer
 type NetTx = Integer
 data NetLoad = NetLoad NetRx NetTx
@@ -33,8 +37,8 @@ data Stats = Stats {
         locale :: String
         , slim :: Bool
         , pipe :: Handle
-        , cpuload :: Rational
-        , cpucount :: Integer
+        , cpuPercent :: Integer
+        , cpuCount :: Integer
         , memstat :: MemStat
         , swapperc :: SwapPercent
         , netload :: NetLoad
@@ -67,11 +71,11 @@ netspeed x
         | x > 2 * 1024              =       printf "%.2fkB" (((fromIntegral x)/1024) :: Double)
         | otherwise                 =       printf "%d B " x
 
-hotCPUColor :: Rational -> Integer -> String
-hotCPUColor cpuload numcpu
-        | cpuload >= numcpu % 1 = myHighLoadColor
-        | cpuload >= numcpu % 2 = myMediumLoadColor
-        | otherwise             = myDefaultColor
+hotCPUColor :: Integer -> Integer -> String
+hotCPUColor perc cpucount
+        | perc < (100 `div` cpucount)           = myDefaultColor
+        | perc < (100 `div` cpucount) * 2       = myMediumLoadColor
+        | otherwise                             = myHighLoadColor
 
 hotMemColor :: MemStat -> String
 hotMemColor memstat
@@ -110,16 +114,16 @@ batteryStats (Just battime) =
 batteryStats _ = ""
 
 displayStats :: Stats -> IO()
-displayStats (Stats locale slim pipe cpuload numcpu memstat swapperc (NetLoad net_rx net_tx) maybe_battime) = do
+displayStats (Stats locale slim pipe cpuperc numcpu memstat swapperc (NetLoad net_rx net_tx) maybe_battime) = do
         datestr <- DF.getTimeAndDate locale slim
         hPutStrLn pipe $
                 printf ("<fc=%v><fn=1>\xf142</fn></fc>  <fn=1>\xf0e4</fn>\
-                        \<fc=%v>% .2f</fc>   <fn=1>\xf00a\
+                        \<fc=%v>%3v%%</fc>   <fn=1>\xf00a\
                         \</fn><fc=%v>%3v%%</fc>   <fn=1>\xf1c0</fn><fc=%v>\
                         \%3v%%</fc>   <fn=1>\xf019</fn>\
                         \% 9v <fn=1>\xf093</fn>% 9v" ++ batteryStats maybe_battime ++ " <fc=%v><fn=1>\xf142\
                         \</fn></fc>  <fc=%v>%v</fc>")
-                        myInactiveColor (hotCPUColor cpuload numcpu) (fromRational cpuload :: Float)
+                        myInactiveColor (hotCPUColor cpuperc numcpu) cpuperc
                         (hotMemColor memstat) (getMemPercent memstat)
                         (hotSwapColor swapperc) swapperc (netspeed net_rx)
                         (netspeed net_tx)
@@ -138,22 +142,23 @@ getSwapStats = do
                 fromIntegral $ (used * 100) `div` tot
                 else 0;
 
-gatherLoop :: String -> Bool -> (OID, Integer, Integer, OID, OID, Maybe OID) -> Maybe Handle -> Handle
+gatherLoop :: String -> Bool -> (OID, Integer, Integer, OID, OID, Maybe OID) -> CPULoad -> Maybe Handle -> Handle
         -> NetLoad -> IO()
-gatherLoop locale slim (oid_vmload, numcpu, memtotal, oid_memfree, oid_meminact, oid_battime) netstatPipe pipe lastnet = do
-        cpuload <- getCPULoad oid_vmload
+gatherLoop locale slim (oid_cpuload, numcpu, memtotal, oid_memfree, oid_meminact, oid_battime) oldcpuload netstatPipe pipe lastnet = do
+        cpuload <- getCPULoad oid_cpuload
         memstat <- getMemStat (memtotal, oid_memfree, oid_meminact)
         netload <- getNetLoad netstatPipe lastnet
         swapload <- getSwapStats
         battime <- getBatteryTime oid_battime
-        displayStats $ Stats locale slim pipe cpuload numcpu memstat swapload netload battime
+        displayStats $ Stats locale slim pipe (getCPUPercent oldcpuload cpuload) numcpu memstat swapload netload battime
         threadDelay 1000000
-        gatherLoop locale slim (oid_vmload, numcpu, memtotal, oid_memfree, oid_meminact, oid_battime) netstatPipe pipe netload
+        gatherLoop locale slim (oid_cpuload, numcpu, memtotal, oid_memfree, oid_meminact, oid_battime) cpuload netstatPipe pipe netload
 
 startBSD :: String -> Bool -> String -> Handle -> IO()
 startBSD locale slim iface pipe = do
-        [ oid_vmload, oid_numcpu, oid_memtotal, oid_memfree, oid_meminact ]
-                <- mapM sysctlNameToOid [ "vm.loadavg", "hw.ncpu", "vm.stats.vm.v_page_count", "vm.stats.vm.v_free_count", "vm.stats.vm.v_inactive_count" ]
+        [ oid_cpuload, oid_numcpu, oid_memtotal, oid_memfree, oid_meminact ]
+                <- mapM sysctlNameToOid [ "kern.cp_time", "hw.ncpu", "vm.stats.vm.v_page_count", "vm.stats.vm.v_free_count", "vm.stats.vm.v_inactive_count" ]
+        cpuload <- getCPULoad oid_cpuload
         oid_battime <- catchIOError (do
                 oid <- sysctlNameToOid "hw.acpi.battery.time"
                 return $ Just oid
@@ -161,8 +166,15 @@ startBSD locale slim iface pipe = do
         netstatPipe <- spawnNetStat iface
         netinit <- getNetLoad netstatPipe (NetLoad 0 0)
         [ numcpu, memtotal ] <- mapM sysctlReadUInt [ "hw.ncpu", "vm.stats.vm.v_page_count" ]
-        gatherLoop locale slim (oid_vmload, fromIntegral numcpu, fromIntegral memtotal, oid_memfree, oid_meminact, oid_battime)
-                netstatPipe pipe netinit
+        gatherLoop locale slim (oid_cpuload, fromIntegral numcpu, fromIntegral memtotal, oid_memfree, oid_meminact, oid_battime)
+                cpuload netstatPipe pipe netinit
+
+getCPUPercent :: CPULoad -> CPULoad -> Integer
+getCPUPercent (CPULoad oldused oldtotal) (CPULoad curused curtotal) =
+        let     deltatotal = curtotal - oldtotal
+                deltaused = curused - oldused
+        in
+                if deltatotal > 0 then (100*deltaused) `div` deltatotal else 0
 
 getMemPercent :: MemStat -> Integer
 getMemPercent (MemStat total free) = 100 - ((free * 100) `div` total)
@@ -173,14 +185,13 @@ getMemStat (memtotal, oid_memfree, oid_meminact) = do
         meminact <- sysctlReadUInt oid_meminact
         return $ MemStat memtotal (fromIntegral memfree + fromIntegral meminact)
 
-getCPULoad :: OID -> IO Rational
+getCPULoad :: OID -> IO CPULoad
 getCPULoad oid_cpuload = do
-        cpuloads_raw <- sysctlPeekArray oid_cpuload :: IO [Word32]
-        let cpuloads = dropZeroSuffix cpuloads_raw in
-                return $ (fromIntegral $ head cpuloads) % (fromIntegral $ last cpuloads)
-        where dropZeroSuffix elems
-                | last elems == 0       =       dropZeroSuffix $ init elems
-                | otherwise             =       elems
+        cpuloads2 <- sysctlPeekArray oid_cpuload :: IO [Word64]
+        let     cpuloads = fmap fromIntegral cpuloads2
+                total = sum cpuloads
+                used = total - last cpuloads
+                in return $ CPULoad used total
 
 getBatteryTime :: Maybe OID -> IO (Maybe Integer)
 getBatteryTime (Just oid_battime) = do
