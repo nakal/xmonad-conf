@@ -155,8 +155,8 @@ gatherLoop locale slim (oid_cpuload, numcpu, memtotal, oid_memfree, oid_meminact
         threadDelay 1000000
         gatherLoop locale slim (oid_cpuload, numcpu, memtotal, oid_memfree, oid_meminact, oid_battime) cpuload netstatPipe pipe netload
 
-startBSD :: String -> Bool -> String -> Handle -> IO()
-startBSD locale slim iface pipe = do
+startBSD :: String -> Bool -> Handle -> IO()
+startBSD locale slim pipe = do
         [ oid_cpuload, oid_numcpu, oid_memtotal, oid_memfree, oid_meminact ]
                 <- mapM sysctlNameToOid [ "kern.cp_time", "hw.ncpu", "vm.stats.vm.v_page_count", "vm.stats.vm.v_free_count", "vm.stats.vm.v_inactive_count" ]
         cpuload <- getCPULoad oid_cpuload
@@ -164,7 +164,7 @@ startBSD locale slim iface pipe = do
                 oid <- sysctlNameToOid "hw.acpi.battery.time"
                 return $ Just oid
                 ) (\_ -> return Nothing)
-        netstatPipe <- spawnNetStat iface
+        netstatPipe <- spawnNetStat
         netinit <- getNetLoad netstatPipe (NetLoad 0 0)
         [ numcpu, memtotal ] <- mapM sysctlReadUInt [ "hw.ncpu", "vm.stats.vm.v_page_count" ]
         gatherLoop locale slim (oid_cpuload, fromIntegral numcpu, fromIntegral memtotal, oid_memfree, oid_meminact, oid_battime)
@@ -205,10 +205,10 @@ spawnPipe cmd = do
         (Just hin, _, _, _) <- createProcess (proc (head cmd) (tail cmd)){ std_in = CreatePipe }
         return hin
 
-spawnNetStat :: String -> IO (Maybe Handle)
-spawnNetStat iface = do
+spawnNetStat :: IO (Maybe Handle)
+spawnNetStat = do
         (_, Just hout, _, _) <- createProcess (proc "netstat"
-                ["-i", "-I", iface, "-bW", "1"]){ std_out = CreatePipe }
+                ["-ibW", "1"]){ std_out = CreatePipe }
         safeRead hout
         safeRead hout
         return $ Just hout
@@ -229,6 +229,6 @@ main = do
         homedir <- getHomeDirectory
         (spawnPipe $ xmobarSysInfo homedir (HC.slimView conf)) >>=
                 (case os of
-                        "freebsd" -> startBSD (HC.locale conf) (HC.slimView conf) (HC.netInterfaceName conf)
+                        "freebsd" -> startBSD (HC.locale conf) (HC.slimView conf)
                         _         -> error $ "Unknown operating system " ++ os
                         )

@@ -83,10 +83,9 @@ Use F-keys to navigate to the workspaces or click on the workspace bar.
 
 ### Example
 
-This configuration will make 9 desktops with the given names. It will take
-`em0` as the interface to watch network load and on startup it will also
-start Firefox and Thunderbird. It will also set the wallpaper with the
-given arguments (just so you can see how to pass arguments).
+This configuration will make 9 desktops with the given names.  It will also
+start Firefox and Thunderbird. It will also set the wallpaper with the given
+arguments (just so you can see how to pass arguments).
 
 ```
 HostConfiguration {
@@ -94,7 +93,6 @@ HostConfiguration {
         workspaceNames = [ "web","com","dev","gfx","ofc","","","",""],
 	slimView = False,
         terminal = "urxvt",
-        netInterfaceName = "em0",
         autostartPrograms = [
 		("hsetroot",["-fill","~/.wallpapers/liquid-1600x1200.jpg"]),
                 ("firefox",[]),
@@ -123,7 +121,6 @@ defaultHostConfiguration = HostConfiguration {
         workspaceNames = ["web","com","dev","gfx","ofc","","","",""],
 	slimView = False,
         terminal = "urxvt",
-        netInterfaceName = "re0",
         autostartPrograms = [],
 	ssh = []
         }

@@ -17,7 +17,6 @@ type PortNum = String
 
 defaultLocale = "en"
 defaultWorkspaceNames = ["web","com","dev","gfx","ofc","","","",""]
-defaultNetInterfaceName = "re0"
 defaultTerminal = "urxvt"
 
 data HostConfiguration = HostConfiguration {
@@ -25,7 +24,6 @@ data HostConfiguration = HostConfiguration {
         workspaceNames :: [ WorkspaceName ]     ,
         slimView :: Bool                        ,
         terminal :: FilePath                    ,
-        netInterfaceName :: NetInterfaceName    ,
         autostartPrograms :: [ ExecuteCommand ] ,
         ssh :: [ ((KeyMask, KeySym),UsernameAtHostnameColonPort)]
         }
@@ -37,7 +35,6 @@ defaultHostConfiguration = HostConfiguration {
         workspaceNames = defaultWorkspaceNames          ,
         slimView = False                                ,
         terminal = defaultTerminal                      ,
-        netInterfaceName = defaultNetInterfaceName      ,
         autostartPrograms = []                          ,
         ssh = []
         }
