@@ -42,8 +42,9 @@ defaultHostConfiguration = HostConfiguration {
         ssh = []
         }
 
-readHostConfiguration :: FilePath -> IO HostConfiguration
-readHostConfiguration homedir = do
+readHostConfiguration :: IO HostConfiguration
+readHostConfiguration = do
+        homedir <- getHomeDirectory
         host <- myHostName
         let confpath = homedir ++ "/.xmonad/conf/" ++ host ++ ".hs"
         confexists <- doesFileExist confpath

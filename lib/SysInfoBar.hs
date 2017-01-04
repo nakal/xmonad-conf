@@ -18,6 +18,7 @@ import Text.Printf
 import Text.Read
 
 import qualified DateFormatter as DF
+import qualified HostConfiguration as HC
 
 type CPUUsed = Integer
 type CPUTotal = Integer
@@ -224,14 +225,10 @@ xmobarSysInfo homedir slim =
         ++ "sysinfo_xmobar.rc" ]
 
 main = do
+        conf <- HC.readHostConfiguration
         homedir <- getHomeDirectory
-        args <- getArgs
-        case args of
-                [ locale, iface, slimstr ]      ->
-                        let slim = read slimstr :: Bool in
-                        spawnPipe (xmobarSysInfo homedir slim) >>= (
-                        case os of
-                                "freebsd" -> startBSD locale slim iface
-                                _         -> error $ "Unknown operating system " ++ os
+        (spawnPipe $ xmobarSysInfo homedir (HC.slimView conf)) >>=
+                (case os of
+                        "freebsd" -> startBSD (HC.locale conf) (HC.slimView conf) (HC.netInterfaceName conf)
+                        _         -> error $ "Unknown operating system " ++ os
                         )
-                _              -> error "Error in parameters. Need locale and network interface."

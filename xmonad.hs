@@ -442,13 +442,12 @@ xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ defaultConfig
 
 autostartAllPrograms :: HC.HostConfiguration -> X ()
 autostartAllPrograms conf = do
-        spawn $ "~/.xmonad/lib/SysInfoBar " ++ HC.locale conf ++ " " ++ HC.netInterfaceName conf ++ " " ++ (show $ HC.slimView conf)
+        spawn "~/.xmonad/lib/SysInfoBar"
         mapM_ execprog $ HC.autostartPrograms conf
         where execprog prog = spawn $ (fst prog) ++ " " ++ (unwords $ snd prog)
 
 main = do
-        homedir <- getHomeDirectory
-        conf <- HC.readHostConfiguration homedir
+        conf <- HC.readHostConfiguration
         hPutStrLn stderr $ show conf
         xmobar <- spawnPipe (myXmonadBar $ HC.slimView conf)
         xmonad $ xconfig conf xmobar
