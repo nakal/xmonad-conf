@@ -202,17 +202,35 @@ myKeys hostconf conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm              , xK_Right     ), nextWS )
     , ((modm              , xK_Down      ), withFocused minimizeWindow )
     , ((modm              , xK_Up        ), sendMessage RestoreNextMinimizedWin )
+    , ((0                 , xK_KP_Insert       ), toggleWS )
+    , ((0                 , xK_KP_Add          ), nextWS )
+    , ((0                 , xK_KP_Subtract     ), prevWS )
+    , ((modm              , xK_KP_Add          ), sendMessage RestoreNextMinimizedWin )
+    , ((modm              , xK_KP_Subtract     ), withFocused minimizeWindow )
 
     -- Run xmessage with a summary of the default keybindings (useful for beginners)
     -- , ((modMask .|. shiftMask, xK_slash ), spawn ("echo \"" ++ help ++ "\" | xmessage -file -"))
     ]
     ++
 
-    -- F key -> change workspace
-    -- mod+F key -> shift window to workspace
+    -- F key / keypad digit -> change workspace
+    -- mod+F key / mod + keypad digit -> shift window to workspace
     [((m, k), windows $ f i)
-        | (i, k) <- zip (XMonad.workspaces conf) [xK_F1..xK_F9]
+        | (i, k) <- zip (cycle $ XMonad.workspaces conf) (
+                [xK_F1..xK_F9] ++
+                [xK_KP_End, xK_KP_Down, xK_KP_Page_Down,
+                 xK_KP_Left, xK_KP_Begin, xK_KP_Right,
+                 xK_KP_Home, xK_KP_Up, xK_KP_Page_Up]
+                )
         , (f, m) <- [(W.greedyView, 0), (W.shift, modm)]]
+    ++
+
+    -- mod-[1..9] -> change workspace
+    -- mod-shift-[1..9] -> shift window to workspace
+    -- (fallback for notebook without F keys)
+    [((m .|. modm, k), windows $ f i)
+        | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
+        , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
     ++
 
     --
