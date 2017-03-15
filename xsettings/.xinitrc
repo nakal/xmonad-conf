@@ -15,7 +15,7 @@ xscreensaver -no-splash &
 #	DEFAULT_SESSION=spectrwm
 #fi
 DEFAULT_SESSION=xmonad
-GPG_AGENT="gpg-agent --daemon --enable-ssh-support --default-cache-ttl 7200 --default-cache-ttl-ssh 7200"
+SESSION_AGENT="gpg-agent --daemon --default-cache-ttl 7200 ssh-agent"
 
 # Hack for mutt
 export GPG_AGENT_INFO="$HOME/.gnupg/S.gpg-agent:0:1"
@@ -24,18 +24,18 @@ echo "START SESSION: $1" `date` >> ~/.xsession-errors
 
 case $1 in
 spectrwm)
-	exec $GPG_AGENT spectrwm >> ~/.xsession-errors 2>&1
+	exec $SESSION_AGENT spectrwm >> ~/.xsession-errors 2>&1
 	;;
 xmonad)
 	_JAVA_AWT_WM_NONREPARENTING=1
 	export _JAVA_AWT_WM_NONREPARENTING
-	exec $GPG_AGENT "$DEFAULT_SESSION" >> ~/.xsession-errors 2>&1
+	exec $SESSION_AGENT "$DEFAULT_SESSION" >> ~/.xsession-errors 2>&1
 	;;
 openbox)
-	exec $GPG_AGENT openbox-session
+	exec $SESSION_AGENT openbox-session
 	;;
 fluxbox)
-	exec $GPG_AGENT startfluxbox
+	exec $SESSION_AGENT startfluxbox
 	;;
 gnome)
 	exec gnome-session
@@ -46,6 +46,6 @@ kde)
 	exec /usr/local/kde4/bin/kdm
 	;;
 *)
-	exec $GPG_AGENT "$DEFAULT_SESSION" >> ~/.xsession-errors 2>&1
+	exec $SESSION_AGENT "$DEFAULT_SESSION" >> ~/.xsession-errors 2>&1
 	;;
 esac
