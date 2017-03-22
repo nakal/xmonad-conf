@@ -8,28 +8,21 @@ setxkbmap -symbols "us_alt(de)"
 xmodmap -e "pointer = 1 2 3 4 5 6 7 0 0"
 xscreensaver -no-splash &
 
-#CUSTOM_SESSION=$HOME/.spectrwm/src/spectrwm/linux/spectrwm
-#if [ -x "$CUSTOM_SESSION" ]; then
-#	DEFAULT_SESSION=$CUSTOM_SESSION
-#else
-#	DEFAULT_SESSION=spectrwm
-#fi
 DEFAULT_SESSION=xmonad
-SESSION_AGENT="gpg-agent --daemon --default-cache-ttl 7200 ssh-agent"
 
-# Hack for mutt
-export GPG_AGENT_INFO="$HOME/.gnupg/S.gpg-agent:0:1"
+if [ -n "$GPG_AGENT_INFO" ]; then
+	SESSION_AGENT="ssh-agent"
+else
+	SESSION_AGENT="gpg-agent --daemon --default-cache-ttl 7200 ssh-agent"
+	# Hack for mutt
+	export GPG_AGENT_INFO="$HOME/.gnupg/S.gpg-agent:0:1"
+fi
 
 echo "START SESSION: $1" `date` >> ~/.xsession-errors
 
-case $1 in
+case "$1" in
 spectrwm)
 	exec $SESSION_AGENT spectrwm >> ~/.xsession-errors 2>&1
-	;;
-xmonad)
-	_JAVA_AWT_WM_NONREPARENTING=1
-	export _JAVA_AWT_WM_NONREPARENTING
-	exec $SESSION_AGENT "$DEFAULT_SESSION" >> ~/.xsession-errors 2>&1
 	;;
 openbox)
 	exec $SESSION_AGENT openbox-session
@@ -46,6 +39,8 @@ kde)
 	exec /usr/local/kde4/bin/kdm
 	;;
 *)
+	_JAVA_AWT_WM_NONREPARENTING=1
+	export _JAVA_AWT_WM_NONREPARENTING
 	exec $SESSION_AGENT "$DEFAULT_SESSION" >> ~/.xsession-errors 2>&1
 	;;
 esac
