@@ -1,2 +1,2 @@
 set editor="urxvt -title 'Vimperator Edit' -e vim"
-set toolbars=none
+set toolbars=noaddons,nobookmarks,nomenu,nonavigation,tabs
