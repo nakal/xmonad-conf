@@ -1,4 +1,18 @@
+OS=`uname -s`
+case "$OS" in
+FreeBSD)
+	xset fp+ /usr/local/share/fonts/fantasque-sans-mono,/usr/local/share/fonts/fira
+	;;
+OpenBSD)
+	xset fp+ /usr/local/share/fonts/fantasque-sans,/usr/local/share/fonts/fira
+	;;
+*)
+	;;
+esac
+xset fp rehash
+
 export LANG="de_DE.UTF-8"
+
 ulimit -c unlimited
 
 xrdb -merge ~/.Xdefaults
@@ -6,15 +20,6 @@ xsetroot -cursor_name left_ptr -solid black
 setxkbmap -symbols "us_alt(de)"
 xmodmap -e "pointer = 1 2 3 4 5 6 7 0 0"
 xscreensaver -no-splash &
-
-OS=`uname -s`
-case "$1" in
-FreeBSD)
-	xset fp+ /usr/local/share/fonts/fantasque-sans-mono,/usr/local/share/fonts/fira,/usr/local/share/fonts/FontAwesome
-	;;
-*)
-	;;
-esac
 
 DEFAULT_SESSION=xmonad
 

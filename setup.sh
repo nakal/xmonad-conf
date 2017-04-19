@@ -55,7 +55,6 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "[Xmonad setup] Checking fonts..."
-checkfont "FontAwesome"
 checkfont "Fantasque Sans Mono"
 
 OS=`uname -s`

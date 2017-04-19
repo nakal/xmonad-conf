@@ -33,20 +33,6 @@ that can be damaged by the actions executed there.
 When you start `setup.sh`, it will perform many safety checks not to destroy
 important data.
 
-## Prerequisites
-
-`setup.sh` will check for required fonts and will ask you to install
-[FontAwesome](http://fontawesome.io/). If your distribution does not offer the
-font (FreeBSD does not), extract the `fonts` directory in
-`font-awesome-a.b.c.zip` to a directory where your distribution usually
-stores fonts. On FreeBSD it would be `/usr/local/share/fonts/FontAwesome`.
-Then type:
-```
-cd /usr/local/share/fonts/FontAwesome
-mkfontscale
-mkfontdir
-```
-
 ## Installation instructions
 
 For those who read the warnings above, proceed with these steps:

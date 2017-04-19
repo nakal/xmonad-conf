@@ -100,17 +100,18 @@ batteryColor minutes
 
 batteryIcon :: Integer -> String
 batteryIcon minutes
-        | minutes < 0              = "\xf1e6"
-        | minutes < 15             = "\xf244"
-        | minutes < 30             = "\xf243"
-        | minutes < 90             = "\xf242"
-        | minutes < 150            = "\xf241"
-        | otherwise                = "\xf240"
+        | minutes < 0              = "[ ! ]="
+        | minutes < 15             = "['  ]="
+        | minutes < 30             = "[|  ]="
+        | minutes < 90             = "[|' ]="
+        | minutes < 120            = "[|| ]="
+        | minutes < 150            = "[||']="
+        | otherwise                = "[|||]="
 
 batteryStats :: Maybe Integer -> String
 batteryStats (Just battime) =
-        printf " <fn=1>%v</fn><fc=%v>% 3vmin</fc>"
-                (batteryIcon battime) (batteryColor battime)
+        printf " <fc=%v>%v % 3vmin</fc>"
+                (batteryColor battime) (batteryIcon battime)
                 (if battime > 0 then show battime else "? ")
 batteryStats _ = ""
 
@@ -118,12 +119,11 @@ displayStats :: Stats -> IO()
 displayStats (Stats locale slim pipe cpuperc numcpu memstat swapperc (NetLoad net_rx net_tx) maybe_battime) = do
         datestr <- DF.getTimeAndDate locale slim
         hPutStrLn pipe $
-                printf ("<fc=%v><fn=1>\xf142</fn></fc>  <fn=1>\xf0e4</fn>\
-                        \<fc=%v>%3v%%</fc>   <fn=1>\xf00a\
-                        \</fn><fc=%v>%3v%%</fc>   <fn=1>\xf1c0</fn><fc=%v>\
-                        \%3v%%</fc>   <fn=1>\xf019</fn>\
-                        \% 9v <fn=1>\xf093</fn>% 9v" ++ batteryStats maybe_battime ++ " <fc=%v><fn=1>\xf142\
-                        \</fn></fc>  <fc=%v>%v</fc>")
+                printf ("<fc=%v>|</fc> CPU:<fc=%v>%3v%%</fc> MEM:\
+                        \<fc=%v>%3v%%</fc> SWP:<fc=%v>\
+                        \%3v%%</fc> UP:% 9v DN:% 9v" ++
+                        batteryStats maybe_battime ++ " <fc=%v>|\
+                        \</fc>  <fc=%v>%v</fc>")
                         myInactiveColor (hotCPUColor cpuperc numcpu) cpuperc
                         (hotMemColor memstat) (getMemPercent memstat)
                         (hotSwapColor swapperc) swapperc (netspeed net_rx)

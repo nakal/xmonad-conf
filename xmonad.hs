@@ -377,14 +377,13 @@ workspaceLayoutSymbol :: String -> String
 workspaceLayoutSymbol modestr =
         "<action=`xdotool key " ++ myXDoToolKey ++ "+space`>" ++
                 (case modestr of
-                "Tall"                      ->      "<fn=1>\xf0db</fn>"
-                "Minimize Tall"             ->      "<fn=1>\xf0db</fn>"
-                "ResizableTall"             ->      "<fn=1>\xf0db</fn>"
-                "Mirror Tall"               ->      "<fn=1>\xf01e</fn>"
-                "Mirror ResizableTall"      ->      "<fn=1>\xf01e</fn>"
-                "Full"                      ->      "<fn=1>\xf108</fn>"
-                "Simple Float"              ->      "<fn=1>\xf24d</fn>"
-                "IM ReflectX IM IM Grid"    ->      "<fn=1>\xf1fc</fn>"
+                "Minimize Tall"             ->      "Tall"
+                "ResizableTall"             ->      "Tall"
+                "Mirror Tall"               ->      "MTall"
+                "Mirror Minimize Tall"      ->      "MTall"
+                "Mirror ResizableTall"      ->      "MTall"
+                "Simple Float"              ->      "Float"
+                "IM ReflectX IM IM Grid"    ->      "Gimp"
                 _                           ->      modestr
                 ) ++ "</action>"
 
@@ -402,7 +401,7 @@ myLogHook xmobar conf = do
                         , ppHiddenNoWindows   =   xmobarWS myInactiveColor myBackgroundColor prevws
                         , ppUrgent            =   xmobarWS mySignalColor myBackgroundColor prevws
                         , ppWsSep             =   " "
-                        , ppSep               =   "  <fc=" ++ myInactiveColor ++ "><fn=1>\xf142</fn></fc>  "
+                        , ppSep               =   " <fc=" ++ myInactiveColor ++ ">|</fc> "
                         , ppLayout            =   workspaceLayoutSymbol
                         , ppTitle             =   wsTitle
                         , ppOutput            =   hPutStrLn xmobar
@@ -427,7 +426,7 @@ xmobarWorkspace slim fg bg prevws =
                         "+" ++ (take 1 wrkspc) ++ "`>" ++
                         (markPrevious prevws wrkspc) ++ "</action>"
                 markPrevious prevws wrkspc = case prevws of
-                        Just w      -> if w == wrkspc then "<fn=2>" ++ w ++ "</fn>"
+                        Just w      -> if w == wrkspc then "<fn=1>" ++ w ++ "</fn>"
                                         else wrkspc
                         _           -> wrkspc
 
