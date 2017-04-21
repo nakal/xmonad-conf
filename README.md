@@ -78,7 +78,7 @@ HostConfiguration {
 	locale = "de",
         workspaceNames = [ "web","com","dev","gfx","ofc","","","",""],
 	slimView = False,
-        terminal = "urxvt",
+        terminal = "xterm",
         autostartPrograms = [
 		("hsetroot",["-fill","~/.wallpapers/liquid-1600x1200.jpg"]),
                 ("firefox",[]),
@@ -106,7 +106,7 @@ defaultHostConfiguration = HostConfiguration {
 	locale = "en",
         workspaceNames = ["web","com","dev","gfx","ofc","","","",""],
 	slimView = False,
-        terminal = "urxvt",
+        terminal = "xterm",
         autostartPrograms = [],
 	ssh = []
         }

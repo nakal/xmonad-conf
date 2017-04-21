@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec urxvt -title 'Vimperator Edit' -e vim "$1"
+exec xterm -title 'Vimperator Edit' -e vim "$1"

@@ -17,7 +17,7 @@ type PortNum = String
 
 defaultLocale = "en"
 defaultWorkspaceNames = ["web","com","dev","gfx","ofc","","","",""]
-defaultTerminal = "urxvt"
+defaultTerminal = "xterm"
 
 data HostConfiguration = HostConfiguration {
         locale :: String                        ,
