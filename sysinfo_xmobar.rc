@@ -1,5 +1,6 @@
 Config {
      font =         "xft:Fantasque Sans Mono:size=13:bold:antialias=true"
+   , additionalFonts = []
    , bgColor =      "#202020"
    , fgColor =      "orange"
    , alpha = 255
@@ -9,6 +10,7 @@ Config {
 
    , sepChar =  "%"
    , alignSep = "}{"
+   , iconRoot = ""
    , template = "}{ %UnsafeStdinReader%"
 
    , textOffset = -1

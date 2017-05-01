@@ -31,6 +31,8 @@ else
 	export GPG_AGENT_INFO="$HOME/.gnupg/S.gpg-agent:0:1"
 fi
 
+PATH=$PATH:$HOME/bin
+export PATH
 echo "START SESSION: $1" `date` >> ~/.xsession-errors
 
 case "$1" in
