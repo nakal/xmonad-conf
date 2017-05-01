@@ -123,14 +123,6 @@ if [ ! -e $HOME/.xpdfrc ]; then
 	echo "         You might want to append ' -P printer' to the print command there."
 fi
 
-echo Preparing SysInfoBar...
-cd $HOME/.xmonad/lib
-ghc --make SysInfoBar.hs
-if [ $? -ne 0 ]; then
-	echo "*** Building SysInfoBar binary failed"
-	exit 1
-fi
-
 echo "[Xmonad setup] Checking software capabilities..."
 echo "Checking xmonad..."
 xmonad --version | egrep -q "xmonad 0.1[123]"
@@ -147,6 +139,23 @@ xmonad --recompile
 if [ $? -ne 0 ]; then
 	echo "*** Building xmonad failed"
 	exit 1
+fi
+
+echo Preparing SysInfoBar...
+if [ "$OS" = "FreeBSD" ]; then
+	cd $HOME/.xmonad/lib
+	ghc --make SysInfoBar.hs
+	if [ $? -ne 0 ]; then
+		echo "*** Building SysInfoBar binary failed"
+		exit 1
+	fi
+else
+	echo "Skipping build... searching for sysinfobar..."
+	which sysinfobar > /dev/null
+	if [ $? -ne 0 ]; then
+		echo "*** No sysinfobar installed"
+		exit 1
+	fi
 fi
 
 echo "-----------------------------------------------------------------"
