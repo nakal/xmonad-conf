@@ -1,3 +1,6 @@
+export LANG="de_DE.UTF-8"
+export LC_CTYPE="de_DE.UTF-8"
+
 OS=`uname -s`
 case "$OS" in
 FreeBSD)
@@ -10,8 +13,6 @@ OpenBSD)
 	;;
 esac
 xset fp rehash
-
-export LANG="de_DE.UTF-8"
 
 ulimit -c unlimited
 
