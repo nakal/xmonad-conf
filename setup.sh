@@ -209,10 +209,12 @@ if [ "$OS" = "FreeBSD" ]; then
 	fi
 else
 	echo "Skipping build... searching for sysinfobar..."
-	which sysinfobar > /dev/null
+	which sysinfobar > /dev/null 2>&1 || test -x $HOME/.cargo/bin/sysinfobar
 	if [ $? -ne 0 ]; then
 		echo "*** No sysinfobar installed"
 		exit 1
+	else
+		echo "-> sysinfobar found."
 	fi
 fi
 

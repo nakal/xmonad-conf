@@ -16,6 +16,7 @@ import Data.Ratio
 import Control.Applicative ((<$>))
 import Control.Concurrent (forkIO)
 import System.IO
+import System.Info
 import System.Exit
 import System.Directory
 import System.Posix.Process
@@ -94,6 +95,12 @@ getWorkspaceName slim wsnames name = case name `elemIndex` wsnames of
         Just x	-> (show $ x+1) ++ (
                 if slim then "" else ":" ++ name
                 )
+
+xmonadRecompile :: String
+xmonadRecompile
+        | os == "freebsd" = "pkill xmobar; cd ~/.xmonad/lib && ghc --make SysInfoBar.hs ; xmonad --recompile && xmonad --restart"
+        | os == "openbsd" = "pkill xmobar; pkill sysinfobar; xmonad --recompile && xmonad --restart"
+        | otherwise =  "pkill xmobar; xmonad --recompile && xmonad --restart"
 
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
@@ -436,6 +443,12 @@ myXmonadBar slim =
         (if slim then "slim_" else "")
         ++ "workspaces_xmobar.rc"
 
+mySysInfoBar :: Bool -> String
+mySysInfoBar slim =
+        "xmobar -d .xmonad/" ++
+        (if slim then "slim_" else "")
+        ++ "sysinfo_xmobar.rc"
+
 xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ defaultConfig
         {
                 terminal           = HC.terminal conf,
@@ -460,7 +473,10 @@ xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ defaultConfig
 
 autostartAllPrograms :: HC.HostConfiguration -> X ()
 autostartAllPrograms conf = do
-        spawn "~/.xmonad/lib/SysInfoBar"
+        case os of
+                "freebsd" -> spawn "~/.xmonad/lib/SysInfoBar"
+                "openbsd" -> spawn $ "sysinfobar | " ++ (mySysInfoBar $ HC.slimView conf)
+                _         -> return ()
         mapM_ execprog $ HC.autostartPrograms conf
         where execprog prog = spawn $ (fst prog) ++ " " ++ (unwords $ snd prog)
 
