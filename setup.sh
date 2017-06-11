@@ -1,10 +1,63 @@
 #!/bin/sh
 
+OS=`uname -s`
+
 checkfont() {
 	FNTS=`fc-list "$1"`
 	if [ -z "$FNTS" ]; then
 		echo "WARNING: $1 is not available."
 	fi
+}
+
+check_haskell() {
+	ulimit_d=`ulimit -d`
+	if [ "$ulimit_d" != "unlimited" ] && [ $ulimit_d -lt 1572864 ]; then
+		echo "*** WARNING: please increase data seg size limit (ulimit -d)"
+	fi
+	echo "Checking Haskell packages..."
+	if ! which cabal > /dev/null 2>&1; then
+		echo "*** ERROR: cabal is not available"
+		exit 1
+	fi
+	echo "Ok, found cabal, updating package list, please wait..."
+	if ! cabal update; then
+		echo "*** ERROR: cabal update failed."
+		exit 1
+	fi
+
+	TMPFILE=`mktemp -t nakal_xmonad_setup.XXXXXX`
+	cabal list --installed --simple-output > "$TMPFILE" 2>/dev/null
+	HASKELL_PACKAGES="\
+		xmonad xmonad-contrib network \
+		"
+	for pkg in $HASKELL_PACKAGES; do
+		if ! egrep -q "^$pkg" "$TMPFILE"; then
+			echo "Haskell installation missing $pkg, installing..."
+			if ! cabal install "$pkg"; then
+				echo "*** ERROR (installation failed): cabal" \
+					" install $pkg"
+				exit 1
+			fi
+		else
+			echo "-> $pkg is installed"
+		fi
+	done
+
+	# cabal does not register Xmobar
+	if which xmobar; then
+		cabal_install_options="--flags=with_xft"
+		case $OS in
+			OpenBSD) cabal_install_options="$cabal_install_options --extra-lib-dirs=/usr/X11R6/lib --extra-include-dirs=/usr/X11R6/include" ;;
+			*) ;;
+		esac
+		if ! cabal install -v xmobar $cabal_install_options; then
+			echo "*** ERROR (installation failed): cabal" \
+				" install $pkg $cabal_install_options"
+			exit 1
+		fi
+	fi
+
+	rm "$TMPFILE"
 }
 
 echo "[Xmonad setup] Looking for my installation directory..."
@@ -25,7 +78,7 @@ else
 	exit 1
 fi
 
-echo "[Xmonad setup] Executing shell-setup first..."
+echo "[Xmonad setup] Updating shell-setup first..."
 
 # Execute it first
 cd "$SCRIPT_HOME"
@@ -41,44 +94,49 @@ if [ ! -x "$SHELLSETUP" ]; then
 else
 	echo "[Xmonad setup] Have submodule. Updating..."
 	cd ./shell-setup
-	git pull
-	if [ $? -ne 0 ]; then
-		echo "*** FAILED to update."
-		exit 1
+	if git symbolic-ref --short HEAD; then
+		if ! git pull; then
+			echo "*** FAILED to pull master"
+			exit 1
+		fi
+	else
+		if ! git submodule update; then
+			echo "*** FAILED to update submodule"
+			exit 1
+		fi
 	fi
 	cd "$SCRIPT_HOME"
-fi
-$SHELLSETUP
-if [ $? -ne 0 ]; then
-	echo "Submodule shell-setup failed. Aborting."
-	exit 1
 fi
 
 echo "[Xmonad setup] Checking fonts..."
 checkfont "Fantasque Sans Mono"
 
-OS=`uname -s`
-if [ "$OS" = "FreeBSD" ]; then
-	echo "[Xmonad setup] Checking packages..."
-	pkg info slim sudo gtk2 rxvt-unicode xscreensaver \
-		hs-xmonad hs-network hs-xmonad-contrib hs-xmobar \
-		hs-bsd-sysctl \
-		firefox dmenu gmrun weechat \
-		gtk-oxygen-engine xrdb xsetroot setxkbmap gnupg \
-		xmodmap hsetroot fira fantasque-sans-mono \
-		roboto-fonts-ttf xdotool xclip xfe xwininfo \
-		> /dev/null
-	if [ $? -ne 0 ]; then
-		echo "ERROR: Missing packages for setup (for X)."
-		exit 1
-	fi
-	echo "[Xmonad setup] Checking recommended packages..."
-	pkg info gimp weechat > /dev/null
-	if [ $? -ne 0 ]; then
-		echo "WARNING: Some recommended packages are not installed."
-	fi
-else
-	echo "[Xmonad setup] WARNING: Skipped checking packages..."
+REQUIRED_PACKAGES_OpenBSD="\
+	cabal-install ghc cargo dmenu gmrun xscreensaver dialog \
+	gnupg-2 gpgme rxvt-unicode xdotool xclip \
+	"
+RECOMMENDED_PACKAGES_OpenBSD="\
+	firefox gimp weechat xfe mozilla-dicts-de-DE password-gorilla \
+"
+REQUIRED_PACKAGES_FreeBSD="\
+	slim sudo rxvt-unicode xscreensaver \
+	dmenu gmrun xrdb xsetroot setxkbmap gnupg \
+	xmodmap hsetroot fira cabal-install ghc \
+	roboto-fonts-ttf xdotool xclip xwininfo \
+	"
+RECOMMENDED_PACKAGES_FreeBSD="\
+	gimp weechat firefox xfe gtk2 gtk-oxygen-engine gorilla \
+	"
+. "$SCRIPT_HOME/shell-setup/include/packages.sh"
+check_packages
+
+check_haskell
+
+echo "[Xmonad setup] Executing shell-setup..."
+$SHELLSETUP
+if [ $? -ne 0 ]; then
+	echo "Submodule shell-setup failed. Aborting."
+	exit 1
 fi
 
 cd $HOME
