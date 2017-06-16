@@ -121,7 +121,7 @@ RECOMMENDED_PACKAGES_OpenBSD="\
 REQUIRED_PACKAGES_FreeBSD="\
 	slim sudo rxvt-unicode xscreensaver \
 	dmenu gmrun xrdb xsetroot setxkbmap gnupg \
-	xmodmap hsetroot fira cabal-install ghc \
+	xmodmap hsetroot fira hs-cabal-install ghc \
 	roboto-fonts-ttf xdotool xclip xwininfo \
 	"
 RECOMMENDED_PACKAGES_FreeBSD="\
