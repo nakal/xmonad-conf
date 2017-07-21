@@ -39,6 +39,8 @@ import XMonad.Actions.CycleWS
 import XMonad.Hooks.InsertPosition
 import XMonad.Hooks.FadeInactive
 import XMonad.Hooks.UrgencyHook
+import XMonad.Prompt
+import XMonad.Prompt.ConfirmPrompt
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
@@ -102,6 +104,16 @@ xmonadRecompile
         | os == "openbsd" = "pkill xmobar; pkill sysinfobar; xmonad --recompile && xmonad --restart"
         | otherwise =  "pkill xmobar; xmonad --recompile && xmonad --restart"
 
+promptConfig :: XPConfig
+promptConfig = def
+        { font = "xft:" ++ defaultFont
+        , position = Bottom
+        , bgColor = myBackgroundColor
+        , fgColor = myDefaultColor
+        , borderColor = myActiveColor
+        , promptBorderWidth = myBorderWidth
+        }
+
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
 --
@@ -127,10 +139,10 @@ myKeys hostconf conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((mod1Mask .|. controlMask, xK_l     ), spawn "xscreensaver-command -lock")
 
     -- shutdown
-    , ((modm .|. shiftMask, xK_BackSpace), vboxProtectedBinding "~/.xmonad/scripts/shutdown.sh")
+    , ((modm .|. shiftMask, xK_BackSpace), vboxProtectedBinding "shutdown" "~/.xmonad/scripts/shutdown.sh")
 
     -- reboot
-    , ((controlMask .|. shiftMask, xK_BackSpace), vboxProtectedBinding "~/.xmonad/scripts/reboot.sh")
+    , ((controlMask .|. shiftMask, xK_BackSpace), vboxProtectedBinding "reboot" "~/.xmonad/scripts/reboot.sh")
 
     -- close focused window
     , ((modm .|. shiftMask, xK_c     ), kill)
@@ -259,11 +271,11 @@ myKeys hostconf conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     ]
 
 -- protects execution when VirtualBox is in focus
-vboxProtectedBinding :: String -> X()
-vboxProtectedBinding action =
+vboxProtectedBinding :: String -> String -> X()
+vboxProtectedBinding msg action =
     (focusedHasProperty $ ClassName "VBoxSDL") >>= \p ->
         if (not p)
-            then spawn action
+            then confirmPrompt promptConfig msg (io $ spawn action)
             else return ()
 
 ------------------------------------------------------------------------

@@ -120,13 +120,13 @@ RECOMMENDED_PACKAGES_OpenBSD="\
 	firefox gimp weechat xfe mozilla-dicts-de-DE password-gorilla \
 "
 REQUIRED_PACKAGES_FreeBSD="\
-	xdm sudo rxvt-unicode xscreensaver \
+	sudo rxvt-unicode xscreensaver \
 	dmenu gmrun xrdb xsetroot setxkbmap gnupg \
 	xmodmap hsetroot fira hs-cabal-install ghc \
 	roboto-fonts-ttf xdotool xclip xwininfo \
 	gcc5"
 RECOMMENDED_PACKAGES_FreeBSD="\
-	gimp weechat firefox xfe gtk2 gtk-oxygen-engine gorilla \
+	xdm gimp weechat firefox xfe gtk2 gtk-oxygen-engine gorilla \
 	"
 . "$SCRIPT_HOME/shell-setup/include/packages.sh"
 check_packages
@@ -184,9 +184,9 @@ fi
 
 echo "[Xmonad setup] Checking software capabilities..."
 echo "Checking xmonad..."
-xmonad --version | egrep -q "xmonad 0.1[123]"
+xmonad --version | egrep -q "xmonad 0.13"
 if [ $? -ne 0 ]; then
-	echo "*** need Xmonad 0.11-0.13."
+	echo "*** need Xmonad 0.13"
 	exit 1
 else
 	echo "-> Xmonad is ok, good."
