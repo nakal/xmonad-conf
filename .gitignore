@@ -7,3 +7,4 @@ xmonad-i386-*
 .*.swp
 conf/
 lib/SysInfoBar
+prompt-history

@@ -23,6 +23,7 @@ import System.Posix.Process
 import Graphics.X11.Xlib.Display
 
 import XMonad.Hooks.DynamicLog
+import XMonad.Util.Paste ( pasteSelection, pasteString )
 import XMonad.Util.Run
 import XMonad.Util.WindowProperties
 import XMonad.Hooks.FadeInactive
@@ -40,6 +41,11 @@ import XMonad.Hooks.InsertPosition
 import XMonad.Hooks.FadeInactive
 import XMonad.Hooks.UrgencyHook
 import XMonad.Prompt
+        (
+          def
+        , XPConfig (font, position, bgColor, fgColor, borderColor, promptBorderWidth)
+        , XPPosition (Bottom)
+        )
 import XMonad.Prompt.ConfirmPrompt
 
 import qualified XMonad.StackSet as W
@@ -196,8 +202,11 @@ myKeys hostconf conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Clear urgent windows
     , ((modm .|. shiftMask, xK_u     ), clearUrgents)
 
-    , ((modm            ,	xK_v ), spawn "sleep .5; xdotool type -- \"$(xclip -o)\"")
-    , ((modm .|. controlMask,	xK_v ), spawn "sleep .5; xdotool type -- \"$(xclip -o -selection clipboard)\"")
+    -- Paste from mouse selection
+    , ((modm            ,	xK_v ), pasteSelection)
+
+    -- Paste from clipboard
+    , ((modm .|. controlMask,	xK_v ), runProcessWithInput "xclip" [ "-o", "-selection", "clipboard" ] "" >>= pasteString )
 
     -- Increment the number of windows in the master area
     , ((modm              , xK_comma ), sendMessage (IncMasterN 1))

@@ -1,2 +1,1 @@
 set editor="xterm -title 'Vimperator Edit' -e vim"
-set toolbars=noaddons,nobookmarks,nomenu,nonavigation,tabs
