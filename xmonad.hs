@@ -47,6 +47,7 @@ import XMonad.Prompt
         , XPPosition (Bottom)
         )
 import XMonad.Prompt.ConfirmPrompt
+-- import XMonad.Prompt.Ssh ( sshPrompt )
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
@@ -123,11 +124,11 @@ promptConfig = def
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
 --
-myKeys hostconf conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
+myKeys hostconf conf = M.fromList $ let modm = modMask conf in
 
     -- launch a terminal
-    [ ((modm .|. shiftMask, xK_Return), spawn $ (XMonad.terminal conf) ++ " -e tmux -2 new-session")
-    , ((controlMask .|. shiftMask, xK_Return), spawn $ XMonad.terminal conf) -- plain terminal without tmux
+    [ ((modm .|. shiftMask, xK_Return), runInTerm "" "tmux -2 new-session")
+    , ((controlMask .|. shiftMask, xK_Return), runInTerm "" "")
 
     -- launch dmenu
     , ((modm,               xK_p     ), spawn $ "dmenu_run -nb '" ++ myBackgroundColor ++ "' -nf '" ++ myInactiveColor ++ "' -sb '" ++ myActiveColor ++ "' -sf black -fn '" ++ defaultFont ++ "'")
@@ -136,10 +137,10 @@ myKeys hostconf conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. shiftMask, xK_p     ), spawn "gmrun")
 
     -- launch vim (in various ways, with most common uses)
-    , ((modm .|. shiftMask,	xK_v     ), spawn $ (XMonad.terminal conf) ++ " -e vim ~/.vim/vimrc")
+    , ((modm .|. shiftMask,	xK_v     ), runInTerm "" "vim ~/.vim/vimrc")
     , ((modm,	xK_x     ), spawn "xfe")
-    , ((modm .|. shiftMask,	xK_x     ), spawn $ (XMonad.terminal conf) ++ " -e vim ~/.xmonad/xmonad.hs")
-    , ((modm,	xK_i     ), spawn $ (XMonad.terminal conf) ++ " -title weechat -e sh -c 'tmux has-session -t weechat && tmux -2 attach-session -d -t weechat || tmux -2 new-session -s weechat weechat'" )
+    , ((modm .|. shiftMask,	xK_x     ), runInTerm "" "vim ~/.xmonad/xmonad.hs")
+    , ((modm,	xK_i     ), runInTerm "-title weechat" "sh -c 'tmux has-session -t weechat && tmux -2 attach-session -d -t weechat || tmux -2 new-session -s weechat weechat'")
 
     -- screensaver
     , ((mod1Mask .|. controlMask, xK_l     ), spawn "xscreensaver-command -lock")
@@ -190,6 +191,8 @@ myKeys hostconf conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm,               xK_l     ), sendMessage Expand)
 
     , ((controlMask .|. shiftMask, xK_s     ), spawn "~/.xmonad/scripts/ssh.sh" )
+    --, ((shiftMask .|. controlMask, xK_s),
+    --    local (\e -> e { config = (config e) { terminal = terminal (config e) ++ " -e tmux -2 new-session" } }) $ sshPrompt promptConfig)
     , ((modm,               xK_z     ), spawn "~/.xmonad/scripts/vbox.sh" )
     , ((modm .|. shiftMask, xK_z     ), spawn "~/.xmonad/scripts/rdesktop.sh" )
 
@@ -275,7 +278,7 @@ myKeys hostconf conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- configure SSH connections from HostConfiguration to avoid
     -- leaking host names
     [
-    ((m, k), spawn $ (XMonad.terminal conf) ++ " -e ssh -p" ++ port ++ " -Y -t " ++ con ++ " 'tmux -2 new-session'" )
+    ((m, k), runInTerm "" $ "ssh -p" ++ port ++ " -Y -t " ++ con ++ " 'tmux -2 new-session'")
         | ((m, k), (con,port)) <- HC.sshConnections hostconf
     ]
 
@@ -290,7 +293,7 @@ vboxProtectedBinding msg action =
 ------------------------------------------------------------------------
 -- Mouse bindings: default actions bound to mouse events
 --
-myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
+myMouseBindings conf = M.fromList $ let modm = modMask conf in
 
     -- mod-button1, Set the window to floating mode and move by dragging
     [ ((modm, button1), (\w -> focus w >> mouseMoveWindow w
