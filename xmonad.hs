@@ -47,7 +47,7 @@ import XMonad.Prompt
         , XPPosition (Bottom)
         )
 import XMonad.Prompt.ConfirmPrompt
--- import XMonad.Prompt.Ssh ( sshPrompt )
+import Contrib.Ssh ( sshPrompt )
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
@@ -190,9 +190,8 @@ myKeys hostconf conf = M.fromList $ let modm = modMask conf in
     -- Expand the master area
     , ((modm,               xK_l     ), sendMessage Expand)
 
-    , ((controlMask .|. shiftMask, xK_s     ), spawn "~/.xmonad/scripts/ssh.sh" )
-    --, ((shiftMask .|. controlMask, xK_s),
-    --    local (\e -> e { config = (config e) { terminal = terminal (config e) ++ " -e tmux -2 new-session" } }) $ sshPrompt promptConfig)
+    , ((shiftMask .|. controlMask, xK_s),
+        sshPrompt promptConfig (\p -> runInTerm "" $ "ssh -t " ++ p ++ " tmux -2 new-session"))
     , ((modm,               xK_z     ), spawn "~/.xmonad/scripts/vbox.sh" )
     , ((modm .|. shiftMask, xK_z     ), spawn "~/.xmonad/scripts/rdesktop.sh" )
 
