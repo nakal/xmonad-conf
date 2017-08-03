@@ -48,6 +48,7 @@ import XMonad.Prompt
         )
 import XMonad.Prompt.ConfirmPrompt
 import Contrib.Ssh ( sshPrompt )
+import Contrib.Vbox ( vboxPrompt )
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
@@ -192,7 +193,7 @@ myKeys hostconf conf = M.fromList $ let modm = modMask conf in
 
     , ((shiftMask .|. controlMask, xK_s),
         sshPrompt promptConfig (\p -> runInTerm "" $ "ssh -t " ++ p ++ " tmux -2 new-session"))
-    , ((modm,               xK_z     ), spawn "~/.xmonad/scripts/vbox.sh" )
+    , ((modm,               xK_z     ), vboxPrompt promptConfig)
     , ((modm .|. shiftMask, xK_z     ), spawn "~/.xmonad/scripts/rdesktop.sh" )
 
     -- Push window back into tiling

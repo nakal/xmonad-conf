@@ -1,4 +1,4 @@
-= Contrib.Ssh
+# Contrib.Ssh
 
 This module is basically [XMonad.Prompt.Ssh](https://github.com/xmonad/xmonad-contrib/blob/master/XMonad/Prompt/Ssh.hs)
 with a slight modification of the function `sshPrompt` to allow passing a custom command with the ssh argument.

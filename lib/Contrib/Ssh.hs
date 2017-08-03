@@ -1,10 +1,10 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonad.Prompt.Ssh
+-- Module      :  Contrib.Ssh
 -- Copyright   :  (C) 2007 Andrea Rossato
 -- License     :  BSD3
 --
--- Maintainer  :  andrea.rossato@unibz.it
+-- Maintainer  :
 -- Stability   :  unstable
 -- Portability :  unportable
 --

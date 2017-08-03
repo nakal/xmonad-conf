@@ -58,6 +58,6 @@ kde)
 *)
 	_JAVA_AWT_WM_NONREPARENTING=1
 	export _JAVA_AWT_WM_NONREPARENTING
-	exec $SESSION_AGENT "$DEFAULT_SESSION" >&2
+	exec $SESSION_AGENT "$DEFAULT_SESSION" > ~/.xsession-errors 2>&1
 	;;
 esac
