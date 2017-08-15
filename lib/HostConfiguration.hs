@@ -1,4 +1,3 @@
-
 module HostConfiguration where
 
 import Control.Applicative ((<$>))
@@ -19,10 +18,14 @@ defaultLocale = "en"
 defaultWorkspaceNames = ["web","com","dev","gfx","ofc","","","",""]
 defaultTerminal = "xterm"
 
+-- | The mode in which the sysinfobar should be displayed
+data SysInfoBarMode = Slim | Full
+        deriving ( Read, Show, Eq )
+
 data HostConfiguration = HostConfiguration {
         locale :: String                        ,
         workspaceNames :: [ WorkspaceName ]     ,
-        slimView :: Bool                        ,
+        barMode :: SysInfoBarMode               ,
         terminal :: FilePath                    ,
         autostartPrograms :: [ ExecuteCommand ] ,
         ssh :: [ ((KeyMask, KeySym),UsernameAtHostnameColonPort)]
@@ -33,7 +36,7 @@ defaultHostConfiguration :: HostConfiguration
 defaultHostConfiguration = HostConfiguration {
         locale = defaultLocale                          ,
         workspaceNames = defaultWorkspaceNames          ,
-        slimView = False                                ,
+        barMode = Full                                  ,
         terminal = defaultTerminal                      ,
         autostartPrograms = []                          ,
         ssh = []
@@ -61,6 +64,14 @@ readHostConfiguration = do
 
 myHostName :: IO Hostname
 myHostName = takeWhile (/= '.') <$> getHostName
+
+-- SysInfoBar path
+mySysInfoBar :: SysInfoBarMode -> String
+mySysInfoBar mode =
+        "xmobar -d .xmonad/" ++ barPrefix ++ "sysinfo_xmobar.rc"
+        where barPrefix
+                | mode == Slim = "slim_"
+                | mode == Full = ""
 
 sshConnections :: HostConfiguration -> [((KeyMask,KeySym),(Hostname,PortNum))]
 sshConnections =

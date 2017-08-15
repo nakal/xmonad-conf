@@ -67,6 +67,11 @@ don't forget to modify them, especially when changing their names.
 
 Use F-keys to navigate to the workspaces or click on the workspace bar.
 
+### Netbooks and devices with small screens
+
+If you have a small screen, you can set `barMode = Slim` in your
+host configuration file.
+
 ### Example
 
 This configuration will make 9 desktops with the given names.  It will also
@@ -77,7 +82,7 @@ arguments (just so you can see how to pass arguments).
 HostConfiguration {
 	locale = "de",
         workspaceNames = [ "web","com","dev","gfx","ofc","","","",""],
-	slimView = False,
+	barMode = Full,
         terminal = "xterm",
         autostartPrograms = [
 		("hsetroot",["-fill","~/.wallpapers/liquid-1600x1200.jpg"]),
@@ -105,7 +110,7 @@ It looks like this:
 defaultHostConfiguration = HostConfiguration {
 	locale = "en",
         workspaceNames = ["web","com","dev","gfx","ofc","","","",""],
-	slimView = False,
+	barMode = Full,
         terminal = "xterm",
         autostartPrograms = [],
 	ssh = []

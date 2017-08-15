@@ -36,7 +36,7 @@ type SwapPercent = Integer
 
 data Stats = Stats {
         locale :: String
-        , slim :: Bool
+        , barMode :: HC.SysInfoBarMode
         , pipe :: Handle
         , cpuPercent :: Integer
         , cpuCount :: Integer
@@ -116,12 +116,12 @@ batteryStats (Just battime) =
 batteryStats _ = ""
 
 displayStats :: Stats -> IO()
-displayStats (Stats locale slim pipe cpuperc numcpu memstat swapperc (NetLoad net_rx net_tx) maybe_battime) = do
-        datestr <- DF.getTimeAndDate locale slim
+displayStats (Stats locale mode pipe cpuperc numcpu memstat swapperc (NetLoad net_rx net_tx) maybe_battime) = do
+        datestr <- DF.getTimeAndDate locale mode
         hPutStrLn pipe $
                 printf ("<fc=%v>|</fc> CPU:<fc=%v>%3v%%</fc> MEM:\
                         \<fc=%v>%3v%%</fc> SWP:<fc=%v>\
-                        \%3v%%</fc> UP:% 9v DN:% 9v" ++
+                        \%3v%%</fc> DN:% 9v UP:% 9v" ++
                         batteryStats maybe_battime ++ " <fc=%v>|\
                         \</fc>  <fc=%v>%v</fc>")
                         myInactiveColor (hotCPUColor cpuperc numcpu) cpuperc
@@ -143,20 +143,20 @@ getSwapStats = do
                 fromIntegral $ (used * 100) `div` tot
                 else 0;
 
-gatherLoop :: String -> Bool -> (OID, Integer, Integer, OID, OID, Maybe OID) -> CPULoad -> Maybe Handle -> Handle
+gatherLoop :: String -> HC.SysInfoBarMode -> (OID, Integer, Integer, OID, OID, Maybe OID) -> CPULoad -> Maybe Handle -> Handle
         -> NetLoad -> IO()
-gatherLoop locale slim (oid_cpuload, numcpu, memtotal, oid_memfree, oid_meminact, oid_battime) oldcpuload netstatPipe pipe lastnet = do
+gatherLoop locale mode (oid_cpuload, numcpu, memtotal, oid_memfree, oid_meminact, oid_battime) oldcpuload netstatPipe pipe lastnet = do
         cpuload <- getCPULoad oid_cpuload
         memstat <- getMemStat (memtotal, oid_memfree, oid_meminact)
         netload <- getNetLoad netstatPipe lastnet
         swapload <- getSwapStats
         battime <- getBatteryTime oid_battime
-        displayStats $ Stats locale slim pipe (getCPUPercent oldcpuload cpuload) numcpu memstat swapload netload battime
+        displayStats $ Stats locale mode pipe (getCPUPercent oldcpuload cpuload) numcpu memstat swapload netload battime
         threadDelay 1000000
-        gatherLoop locale slim (oid_cpuload, numcpu, memtotal, oid_memfree, oid_meminact, oid_battime) cpuload netstatPipe pipe netload
+        gatherLoop locale mode (oid_cpuload, numcpu, memtotal, oid_memfree, oid_meminact, oid_battime) cpuload netstatPipe pipe netload
 
-startBSD :: String -> Bool -> Handle -> IO()
-startBSD locale slim pipe = do
+startBSD :: String -> HC.SysInfoBarMode -> Handle -> IO()
+startBSD locale mode pipe = do
         [ oid_cpuload, oid_numcpu, oid_memtotal, oid_memfree, oid_meminact ]
                 <- mapM sysctlNameToOid [ "kern.cp_time", "hw.ncpu", "vm.stats.vm.v_page_count", "vm.stats.vm.v_free_count", "vm.stats.vm.v_inactive_count" ]
         cpuload <- getCPULoad oid_cpuload
@@ -167,7 +167,7 @@ startBSD locale slim pipe = do
         netstatPipe <- spawnNetStat
         netinit <- getNetLoad netstatPipe (NetLoad 0 0)
         [ numcpu, memtotal ] <- mapM sysctlReadUInt [ "hw.ncpu", "vm.stats.vm.v_page_count" ]
-        gatherLoop locale slim (oid_cpuload, fromIntegral numcpu, fromIntegral memtotal, oid_memfree, oid_meminact, oid_battime)
+        gatherLoop locale mode (oid_cpuload, fromIntegral numcpu, fromIntegral memtotal, oid_memfree, oid_meminact, oid_battime)
                 cpuload netstatPipe pipe netinit
 
 getCPUPercent :: CPULoad -> CPULoad -> Integer
@@ -218,17 +218,18 @@ spawnNetStat = do
                         return $ Just line)
                         (\_ -> return Nothing)
 
-xmobarSysInfo :: FilePath -> Bool -> [ String ]
-xmobarSysInfo homedir slim =
-        [ "xmobar", homedir ++ "/.xmonad/" ++
-        (if slim then "slim_" else "")
-        ++ "sysinfo_xmobar.rc" ]
+xmobarSysInfo :: FilePath -> HC.SysInfoBarMode -> [ String ]
+xmobarSysInfo homedir mode =
+        [ "xmobar", homedir ++ "/.xmonad/" ++ prefix ++ "sysinfo_xmobar.rc" ]
+        where prefix
+                | mode == HC.Slim = "slim_"
+                | mode == HC.Full = ""
 
 main = do
         conf <- HC.readHostConfiguration
         homedir <- getHomeDirectory
-        (spawnPipe $ xmobarSysInfo homedir (HC.slimView conf)) >>=
+        (spawnPipe $ xmobarSysInfo homedir (HC.barMode conf)) >>=
                 (case os of
-                        "freebsd" -> startBSD (HC.locale conf) (HC.slimView conf)
+                        "freebsd" -> startBSD (HC.locale conf) (HC.barMode conf)
                         _         -> error $ "Unknown operating system " ++ os
                         )
