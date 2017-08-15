@@ -9,51 +9,58 @@
 
 {-# LANGUAGE FlexibleContexts #-}
 
-import XMonad
-import Data.Monoid
-import Data.List
-import Data.Ratio
 import Control.Applicative ((<$>))
-import Control.Concurrent (forkIO)
-import System.IO
-import System.Info
-import System.Exit
-import System.Directory
-import System.Posix.Process
-import Graphics.X11.Xlib.Display
+import qualified Data.List as L ( elemIndex, isPrefixOf )
+import qualified Data.Map as M ( fromList )
+import Data.Monoid ( Endo )
+import Data.Ratio ( (%) )
+import System.Exit ( exitWith, ExitCode(ExitSuccess) )
+import System.IO ( Handle, stderr, hPutStrLn )
+import System.Info ( os )
 
-import XMonad.Hooks.DynamicLog
-import XMonad.Util.Paste ( pasteSelection, pasteString )
-import XMonad.Util.Run
-import XMonad.Util.WindowProperties
-import XMonad.Hooks.FadeInactive
-import XMonad.Layout.PerWorkspace ( onWorkspace )
-import XMonad.Layout.NoBorders ( smartBorders )
-import XMonad.Layout.IM
-import XMonad.Layout.ResizableTile
-import XMonad.Layout.Minimize
+import XMonad
+import XMonad.Actions.CycleWS ( toggleWS, prevWS, nextWS )
 import XMonad.Config.Desktop ( desktopLayoutModifiers )
+import XMonad.Hooks.DynamicLog (
+        dynamicLogWithPP
+        , defaultPP
+        , ppCurrent
+        , ppHidden
+        , ppHiddenNoWindows
+        , ppLayout
+        , ppOutput
+        , ppSep
+        , ppTitle
+        , ppUrgent
+        , ppVisible
+        , ppWsSep
+        , xmobarColor
+        , xmobarStrip
+        )
+import XMonad.Hooks.InsertPosition ( insertPosition, Position(Master, End), Focus(Newer, Older) )
+import XMonad.Hooks.ManageDocks ( avoidStruts, manageDocks, docksEventHook )
+import XMonad.Hooks.Place ( placeHook, fixed )
+import XMonad.Hooks.UrgencyHook ( focusUrgent, clearUrgents, withUrgencyHook, NoUrgencyHook(NoUrgencyHook) )
+import XMonad.Layout.IM ( withIM, gridIM )
+import XMonad.Layout.Minimize ( minimize, minimizeWindow, MinimizeMsg(RestoreNextMinimizedWin) )
+import XMonad.Layout.NoBorders ( smartBorders )
+import XMonad.Layout.PerWorkspace ( onWorkspace )
 import XMonad.Layout.Reflect ( reflectHoriz )
-import XMonad.Hooks.ManageDocks
-import XMonad.Hooks.Place
-import XMonad.Actions.CycleWS
-import XMonad.Hooks.InsertPosition
-import XMonad.Hooks.FadeInactive
-import XMonad.Hooks.UrgencyHook
 import XMonad.Prompt
         (
           def
         , XPConfig (font, position, bgColor, fgColor, borderColor, promptBorderWidth)
         , XPPosition (Bottom)
         )
-import XMonad.Prompt.ConfirmPrompt
+import XMonad.Prompt.ConfirmPrompt ( confirmPrompt )
+import qualified XMonad.StackSet as W
+import XMonad.Util.Paste ( pasteSelection, pasteString )
+import XMonad.Util.Run ( runInTerm, runProcessWithInput, spawnPipe )
+import XMonad.Util.WindowProperties ( focusedHasProperty, Property(Role, Or, ClassName) )
+
 import Contrib.Ssh ( sshPrompt )
 import Contrib.Vbox ( vboxPrompt )
-
-import qualified XMonad.StackSet as W
-import qualified Data.Map        as M
-
-import qualified HostConfiguration      as HC
+import qualified HostConfiguration as HC
 
 -- Whether focus follows the mouse pointer.
 myFocusFollowsMouse :: Bool
@@ -100,7 +107,7 @@ numberedWorkspaces slim wsnames = zipWith (++) (map show [1..]) $ map appendName
 
 -- Safely returns a matching workspace name
 getWorkspaceName :: Bool -> [ String ] -> String -> String
-getWorkspaceName slim wsnames name = case name `elemIndex` wsnames of
+getWorkspaceName slim wsnames name = case name `L.elemIndex` wsnames of
         Nothing	-> show $ length wsnames
         Just x	-> (show $ x+1) ++ (
                 if slim then "" else ":" ++ name
@@ -364,7 +371,7 @@ myManageHook slim wsnames =
                 , className =? "xmNotification"         --> doNotificationFloat
                 , className =? "Iceweasel"		--> insertPosition Master Newer <+> doShift (getWorkspace "web")
                 , className =? "Firefox"		--> insertPosition Master Newer <+> doShift (getWorkspace "web")
-                , isPrefixOf "Vimperator Edit" <$> title --> insertPosition End Newer <+> doShift (getWorkspace "web")
+                , L.isPrefixOf "Vimperator Edit" <$> title --> insertPosition End Newer <+> doShift (getWorkspace "web")
                 , className =? "Claws-mail"		--> doShift  (getWorkspace "com")
                 , className =? "Thunderbird"		--> doShift  (getWorkspace "com")
                 , className =? "Pidgin"                 --> doShift  (getWorkspace "com")
@@ -376,11 +383,11 @@ myManageHook slim wsnames =
                 , className =? "Darktable"		--> doShift  (getWorkspace "gfx")
                 , title =? "weechat"                    --> insertPosition End Older <+> doShift  (getWorkspace "com")
                 , title =? "mutt"                       --> insertPosition Master Newer <+> doShift  (getWorkspace "com")
-                , isPrefixOf "OpenOffice" <$> className	--> doShift (getWorkspace "ofc")
-                , isPrefixOf "libreoffice" <$> className	--> doShift (getWorkspace "ofc")
-                , isPrefixOf "LibreOffice" <$> title            --> doShift (getWorkspace "ofc")
+                , L.isPrefixOf "OpenOffice" <$> className	--> doShift (getWorkspace "ofc")
+                , L.isPrefixOf "libreoffice" <$> className	--> doShift (getWorkspace "ofc")
+                , L.isPrefixOf "LibreOffice" <$> title            --> doShift (getWorkspace "ofc")
                 , appName =? "libreoffice"                      --> doShift (getWorkspace "ofc")
-                , isPrefixOf "newwin - " <$> appName            --> doShift (getWorkspace "win")
+                , L.isPrefixOf "newwin - " <$> appName            --> doShift (getWorkspace "win")
                 , appName  =? "desktop_window"                  --> doIgnore
                 , appName  =? "kdesktop"                        --> doIgnore ]
                         where getWorkspace name = getWorkspaceName slim wsnames name
