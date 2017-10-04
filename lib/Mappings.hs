@@ -28,8 +28,8 @@ import Contrib.Vbox ( vboxPrompt )
 myKeys hostconf conf = M.fromList $ let modm = modMask conf in
 
     -- launch a terminal
-    [ ((modm .|. shiftMask, xK_Return), runInTerm "" "tmux -2 new-session")
-    , ((controlMask .|. shiftMask, xK_Return), safeSpawnProg $ XMonad.terminal conf )
+    [ ((modm .|. shiftMask, xK_Return), safeSpawnProg $ XMonad.terminal conf)
+    , ((controlMask .|. shiftMask, xK_Return),  runInTerm "" "tmux -2 new-session")
 
     -- launch dmenu
     , ((modm,               xK_p     ), spawn $ "dmenu_run -nb '" ++ myBackgroundColor ++ "' -nf '" ++ myInactiveColor ++ "' -sb '" ++ myActiveColor ++ "' -sf black -fn '" ++ defaultFont ++ "'")
