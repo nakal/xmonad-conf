@@ -52,6 +52,7 @@ myManageHook mode wsnames =
                 , className =? "Darktable"              --> doShift  (getWorkspace "gfx")
                 , title =? "weechat"                    --> insertPosition End Older <+> doShift  (getWorkspace "com")
                 , title =? "mutt"                       --> insertPosition Master Newer <+> doShift  (getWorkspace "com")
+                , title =? "neomutt"                    --> insertPosition Master Newer <+> doShift  (getWorkspace "com")
                 , L.isPrefixOf "OpenOffice" <$> className       --> doShift (getWorkspace "ofc")
                 , L.isPrefixOf "libreoffice" <$> className      --> doShift (getWorkspace "ofc")
                 , L.isPrefixOf "LibreOffice" <$> title            --> doShift (getWorkspace "ofc")
