@@ -47,7 +47,7 @@ startVbox vmname = safeSpawn "VBoxSDL" [ "--startvm", vmname, "--nograbonclick" 
 vboxPrompt :: XPConfig -> X ()
 vboxPrompt c = do
   sc <- vboxComplList
-  mkXPrompt Vbox c (mkComplFunFromList sc) startVbox
+  mkXPrompt Vbox c { historyFilter = deleteAllDuplicates } (mkComplFunFromList sc) startVbox
 
 vboxComplList :: X [String]
 vboxComplList = do

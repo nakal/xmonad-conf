@@ -67,7 +67,7 @@ sshPrompt :: XPConfig           -- ^ prompt configuration
         -> X ()
 sshPrompt c cmd = do
   sc <- io sshComplList
-  mkXPrompt Ssh c (mkComplFunFromList sc) cmd
+  mkXPrompt Ssh c { historyFilter = deleteAllDuplicates } (mkComplFunFromList sc) cmd
 
 sshComplList :: IO [String]
 sshComplList = uniqSort `fmap` liftM2 (++) sshComplListLocal sshComplListGlobal
