@@ -3,7 +3,7 @@ module HostConfiguration where
 import Control.Applicative ((<$>))
 import qualified Data.Map as M
 import Graphics.X11.Types
-import Network.BSD
+import Network.HostName
 import System.Directory
 import System.IO
 

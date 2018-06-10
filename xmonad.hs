@@ -10,6 +10,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 import Control.Applicative ((<$>))
+import Data.Default
 import System.IO ( stderr, hPutStrLn )
 import System.Info ( os )
 
@@ -39,7 +40,7 @@ import qualified Workspaces as WS
         , myLogHook
         )
 
-xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ defaultConfig
+xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ def
         {
                 terminal           = HC.terminal conf,
                 focusFollowsMouse  = S.myFocusFollowsMouse,
