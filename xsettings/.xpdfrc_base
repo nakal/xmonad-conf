@@ -5,4 +5,3 @@ enableFreeType		yes
 antialias		yes
 initialZoom		page
 launchCommand  viewer-script
-urlCommand	"firefox %s"

@@ -25,13 +25,11 @@ check_haskell() {
 		exit 1
 	fi
 
-	TMPFILE=`mktemp -t nakal_xmonad_setup.XXXXXX`
-	cabal list --installed --simple-output > "$TMPFILE" 2>/dev/null
 	HASKELL_PACKAGES="\
-		xmonad xmonad-contrib network \
+		xmonad xmonad-contrib hostname \
 		"
 	for pkg in $HASKELL_PACKAGES; do
-		if ! egrep -q "^$pkg" "$TMPFILE"; then
+		if ! ghc-pkg describe "$pkg" > /dev/null; then
 			echo "Haskell installation missing $pkg, installing..."
 			if ! cabal install "$pkg"; then
 				echo "*** ERROR (installation failed): cabal" \
@@ -57,8 +55,6 @@ check_haskell() {
 			exit 1
 		fi
 	fi
-
-	rm "$TMPFILE"
 }
 
 echo "[Xmonad setup] Looking for my installation directory..."
