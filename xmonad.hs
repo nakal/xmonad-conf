@@ -67,6 +67,7 @@ autostartAllPrograms conf = do
         case os of
                 "freebsd" -> spawn "~/.xmonad/lib/SysInfoBar"
                 "openbsd" -> spawn $ "sysinfobar | " ++ (HC.mySysInfoBar $ HC.barMode conf)
+                "linux" -> spawn $ "sysinfobar | " ++ (HC.mySysInfoBar $ HC.barMode conf)
                 _         -> return ()
         mapM_ execprog $ HC.autostartPrograms conf
         where execprog prog = spawn $ (fst prog) ++ " " ++ (unwords $ snd prog)
