@@ -38,6 +38,7 @@ myManageHook mode wsnames =
                 , className =? "Zenity"                 --> doCenterFloat
                 , className =? "xmDialog"               --> doCenterFloat
                 , className =? "xmNotification"         --> doNotificationFloat
+                , title =? "Calendar"                   --> doNotificationFloat
                 , className =? "Iceweasel"              --> insertPosition Master Newer <+> doShift (getWorkspace "web")
                 , className =? "Firefox"                --> insertPosition Master Newer <+> doShift (getWorkspace "web")
                 , L.isPrefixOf "Vimperator Edit" <$> title --> insertPosition End Newer <+> doShift (getWorkspace "web")

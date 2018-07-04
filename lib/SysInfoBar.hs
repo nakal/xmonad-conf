@@ -35,8 +35,7 @@ data MemStat = MemStat MemTotal MemFree
 type SwapPercent = Integer
 
 data Stats = Stats {
-        locale :: String
-        , barMode :: HC.SysInfoBarMode
+          conf :: HC.HostConfiguration
         , pipe :: Handle
         , cpuPercent :: Integer
         , cpuCount :: Integer
@@ -116,19 +115,19 @@ batteryStats (Just battime) =
 batteryStats _ = ""
 
 displayStats :: Stats -> IO()
-displayStats (Stats locale mode pipe cpuperc numcpu memstat swapperc (NetLoad net_rx net_tx) maybe_battime) = do
-        datestr <- DF.getTimeAndDate locale mode
+displayStats (Stats conf pipe cpuperc numcpu memstat swapperc (NetLoad net_rx net_tx) maybe_battime) = do
+        datestr <- DF.getTimeAndDate (HC.locale conf) (HC.barMode conf)
         hPutStrLn pipe $
                 printf ("<fc=%v>|</fc> CPU:<fc=%v>%3v%%</fc> MEM:\
                         \<fc=%v>%3v%%</fc> SWP:<fc=%v>\
                         \%3v%%</fc> DN:% 9v UP:% 9v" ++
                         batteryStats maybe_battime ++ " <fc=%v>|\
-                        \</fc>  <fc=%v>%v</fc>")
+                        \</fc>  <fc=%v><action=`%v -title Calendar -e sh -c 'ncal -w; zsh -i'`>%v</action></fc>")
                         myInactiveColor (hotCPUColor cpuperc numcpu) cpuperc
                         (hotMemColor memstat) (getMemPercent memstat)
                         (hotSwapColor swapperc) swapperc (netspeed net_rx)
                         (netspeed net_tx)
-                        myInactiveColor myActiveColor datestr
+                        myInactiveColor myActiveColor (HC.terminal conf) datestr
         hFlush pipe
 
 getSwapStats :: IO SwapPercent
@@ -143,20 +142,20 @@ getSwapStats = do
                 fromIntegral $ (used * 100) `div` tot
                 else 0;
 
-gatherLoop :: String -> HC.SysInfoBarMode -> (OID, Integer, Integer, OID, OID, Maybe OID) -> CPULoad -> Maybe Handle -> Handle
+gatherLoop :: HC.HostConfiguration -> (OID, Integer, Integer, OID, OID, Maybe OID) -> CPULoad -> Maybe Handle -> Handle
         -> NetLoad -> IO()
-gatherLoop locale mode (oid_cpuload, numcpu, memtotal, oid_memfree, oid_meminact, oid_battime) oldcpuload netstatPipe pipe lastnet = do
+gatherLoop conf (oid_cpuload, numcpu, memtotal, oid_memfree, oid_meminact, oid_battime) oldcpuload netstatPipe pipe lastnet = do
         cpuload <- getCPULoad oid_cpuload
         memstat <- getMemStat (memtotal, oid_memfree, oid_meminact)
         netload <- getNetLoad netstatPipe lastnet
         swapload <- getSwapStats
         battime <- getBatteryTime oid_battime
-        displayStats $ Stats locale mode pipe (getCPUPercent oldcpuload cpuload) numcpu memstat swapload netload battime
+        displayStats $ Stats conf pipe (getCPUPercent oldcpuload cpuload) numcpu memstat swapload netload battime
         threadDelay 1000000
-        gatherLoop locale mode (oid_cpuload, numcpu, memtotal, oid_memfree, oid_meminact, oid_battime) cpuload netstatPipe pipe netload
+        gatherLoop conf (oid_cpuload, numcpu, memtotal, oid_memfree, oid_meminact, oid_battime) cpuload netstatPipe pipe netload
 
-startBSD :: String -> HC.SysInfoBarMode -> Handle -> IO()
-startBSD locale mode pipe = do
+startBSD :: HC.HostConfiguration -> Handle -> IO()
+startBSD conf pipe = do
         [ oid_cpuload, oid_numcpu, oid_memtotal, oid_memfree, oid_meminact ]
                 <- mapM sysctlNameToOid [ "kern.cp_time", "hw.ncpu", "vm.stats.vm.v_page_count", "vm.stats.vm.v_free_count", "vm.stats.vm.v_inactive_count" ]
         cpuload <- getCPULoad oid_cpuload
@@ -167,7 +166,7 @@ startBSD locale mode pipe = do
         netstatPipe <- spawnNetStat
         netinit <- getNetLoad netstatPipe (NetLoad 0 0)
         [ numcpu, memtotal ] <- mapM sysctlReadUInt [ "hw.ncpu", "vm.stats.vm.v_page_count" ]
-        gatherLoop locale mode (oid_cpuload, fromIntegral numcpu, fromIntegral memtotal, oid_memfree, oid_meminact, oid_battime)
+        gatherLoop conf (oid_cpuload, fromIntegral numcpu, fromIntegral memtotal, oid_memfree, oid_meminact, oid_battime)
                 cpuload netstatPipe pipe netinit
 
 getCPUPercent :: CPULoad -> CPULoad -> Integer
@@ -230,6 +229,6 @@ main = do
         homedir <- getHomeDirectory
         (spawnPipe $ xmobarSysInfo homedir (HC.barMode conf)) >>=
                 (case os of
-                        "freebsd" -> startBSD (HC.locale conf) (HC.barMode conf)
+                        "freebsd" -> startBSD conf
                         _         -> error $ "Unknown operating system " ++ os
                         )
