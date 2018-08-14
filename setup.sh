@@ -43,7 +43,7 @@ check_haskell() {
 
 	# cabal does not register Xmobar
 	if which xmobar; then
-		cabal_install_options="--flags=with_xft"
+		cabal_install_options="-fwith_utf8 -fwith_xft"
 		case $OS in
 			OpenBSD) cabal_install_options="$cabal_install_options --extra-lib-dirs=/usr/X11R6/lib --extra-include-dirs=/usr/X11R6/include" ;;
 			FreeBSD) cabal_install_options="$cabal_install_options --with-gcc /usr/local/bin/gcc6" ;;
