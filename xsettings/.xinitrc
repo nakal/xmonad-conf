@@ -23,7 +23,7 @@ setxkbmap -symbols "us_alt(de)"
 xmodmap -e "pointer = 1 2 3 4 5 6 7 0 0"
 xscreensaver -no-splash &
 
-PATH=$HOME/.cabal/bin:$HOME/.cargo/bin:$HOME/bin:$PATH
+PATH=$HOME/.cabal/bin:$HOME/.local/bin:$HOME/.cargo/bin:$HOME/bin:$PATH
 export PATH
 DEFAULT_SESSION=xmonad
 
