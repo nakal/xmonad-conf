@@ -133,25 +133,4 @@ playground.
 
 ## German hacker's keyboard layout
 
-Because the layout file is very concise, I'll explain shortly what hides
-inside. You can decide then, whether you like it or not.
-
-**It is only for German keyboards!**
-
-Here the features:
-
-* US QWERTY setting (basically *it is* a US keyboard then)
-* rich keyboard variant with many default key combos
-	that exist in US (international) layouts
-* Capslock and Escape swap (for vim)
-* 'at' and 'euro' symbols back at their place
-* Umlauts are accessible through *AltGr* plus the key where they are on the
-	German keyboard. *Shift* will make them caps.
-* Compose key on the "<>|" key next to left shift.
-* `dead_greek` keyboard symbol on *AltGr*+g and *AltGr*+Shift+m
-	to enable greek alphabet with default compositions
-* some important dead keys have been swapped with their higher level siblings
-	(e.g. `asciicircum`, `asciitilde`, `grave`)
-* `dead_acute` on level 4 key `q` (think: "aQute")
-* `dead_diaeresis` and `degree` on level 3 & 4 key `*`
-* missing french quotation marks (because of umlauts) can be all composed
+See [description here](xkb/README.md).
