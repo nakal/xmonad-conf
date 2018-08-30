@@ -17,6 +17,7 @@ XTerm*metaSendsEscape: true
 XTerm*scrollBar: false
 XTerm*charClass: 33:48,36-38:48,43-47:48,58:48,61:48,63-64:48,126:48
 XTerm*cursorColor: orange
+XTerm*cursorBlink: true
 
 ! ******************** urxvt settings ********************
 
@@ -36,6 +37,7 @@ urxvt*perl-ext-common: default,matcher
 urxvt*url-launcher: xdg-open
 urxvt*matcher.button: 2
 urxvt*urgentOnBell: true
+urxvt*cursorBlink: true
 
 rxvt*font: xft:Fantasque Sans Mono:pixelsize=17
 rxvt*locale: UTF-8
@@ -53,3 +55,4 @@ rxvt*perl-ext-common: default,matcher
 rxvt*url-launcher: xdg-open
 rxvt*matcher.button: 2
 rxvt*urgentOnBell: true
+rxvt*cursorBlink: true
