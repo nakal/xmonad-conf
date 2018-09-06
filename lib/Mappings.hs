@@ -1,5 +1,7 @@
 module Mappings
         ( myKeys
+        , emptyKeys
+        , myKeymap
         , myMouseBindings
         ) where
 
@@ -15,6 +17,8 @@ import XMonad.Util.Paste ( pasteSelection, pasteString )
 import XMonad.Prompt.ConfirmPrompt ( confirmPrompt )
 import XMonad.Util.Run ( runInTerm, runProcessWithInput, safeSpawnProg )
 import qualified XMonad.StackSet as W
+import XMonad.Util.EZConfig
+import XMonad.Util.NamedActions
 import XMonad.Util.WindowProperties ( focusedHasProperty, Property(ClassName) )
 
 import Settings
@@ -25,165 +29,106 @@ import Contrib.Vbox ( vboxPrompt )
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
 --
-myKeys hostconf conf = M.fromList $ let modm = modMask conf in
+myKeys hostconf conf =
+        subtitle "Applications": mkNamedKeymap conf
+        [ ( "M-S-<Return>",     addName "Terminal" $ safeSpawnProg $ XMonad.terminal conf )
+        , ( "C-S-<Return>",     addName "Terminal in tmux" $ runInTerm "" "tmux -2 new-session" )
+        , ( "M-p",              addName "dmenu" $ spawn $ "dmenu_run -nb '" ++ myBackgroundColor ++ "' -nf '" ++ myInactiveColor ++ "' -sb   '" ++ myActiveColor ++ "' -sf black -fn '" ++ defaultFont ++ "'" )
+        , ( "M-S-p",            addName "gmrun" $ spawn "gmrun" )
+        , ( "M-S-v",            addName "Edit vimrc" $ runInTerm "" "vim ~/.vim/vimrc" )
+        , ( "M-x",              addName "xfe" $ spawn "xfe" )
+        , ( "M-o",              addName "office" $ spawn "~/.xmonad/scripts/office.sh" )
+        , ( "M-i",              addName "weechat" $ runInTerm "-title weechat" "sh -c 'tmux has-session -t weechat && tmux -2 attach-session   -d -t weechat || tmux -2 new-session -s weechat weechat'" )
+        ] ++
+        subtitle "Prompts": mkNamedKeymap conf
+        [ ( "C-S-s", addName "ssh" $ sshPrompt promptConfig (\p -> runInTerm "" $ "ssh -t " ++ p ++ " tmux -2 new-session") )
+        , ( "M-z", addName "vbox" $ vboxPrompt promptConfig )
+        , ( "M-S-z", addName "rdesktop" $ spawn "~/.xmonad/scripts/rdesktop.sh" )
+        ] ++
+        subtitle "WM operations": mkNamedKeymap conf
+        [ ( "M-q",              addName "restart" $ spawn "pkill xmobar; cd ~/.xmonad/lib && ghc --make SysInfoBar.hs ; xmonad --recompile && xmonad --restart" )
+        , ( "M-S-q",            addName "exit" $ io (exitWith ExitSuccess) )
+        , ( "C-M1-l",            addName "lock screen" $ spawn "xscreensaver-command -lock" )
+        , ( "M-S-<Backspace>",  addName "shutdown" $ vboxProtectedBinding "shutdown" "~/.xmonad/scripts/shutdown.sh" )
+        , ( "C-S-<Backspace>",  addName "reboot" $ vboxProtectedBinding "reboot" "~/.xmonad/scripts/reboot.sh" )
+        ] ++
+        subtitle "Window operations": mkNamedKeymap conf
+        [ ( "M-S-c",            addName "kill window" kill )
+        , ( "M-<Space>",        addName "next layout" $ sendMessage NextLayout )
+        , ( "M-S-<Space>",      addName "reset layout" $ setLayout $ XMonad.layoutHook conf )
+        , ( "M-n",              addName "refresh windows" refresh )
+        , ( "M-<Tab>",          addName "focus next" $ windows W.focusDown )
+        , ( "M-j",              addName "focus next" $ windows W.focusDown )
+        , ( "M-k",              addName "focus prev" $ windows W.focusUp )
+        , ( "M-m",              addName "focus master" $ windows W.focusMaster )
+        , ( "M-u",              addName "focus urgent" focusUrgent )
+        , ( "M-S-u",            addName "clear urgents" clearUrgents)
+        , ( "M-<Return>",       addName "swap master" $ windows W.swapMaster)
+        , ( "M-S-j",            addName "swap down" $ windows W.swapDown )
+        , ( "M-S-k",            addName "swap up" $ windows W.swapUp )
+        , ( "M-t",              addName "sink" $ withFocused $ windows . W.sink)
+        , ( "M-h",              addName "shrink" $ sendMessage Shrink )
+        , ( "M-l",              addName "expand" $ sendMessage Expand )
+        , ( "M-<Down>",         addName "minimize" $ withFocused minimizeWindow )
+        , ( "M-<Up>",           addName "restore" $ sendMessage RestoreNextMinimizedWin )
+        , ( "M-,",              addName "master +1" $ sendMessage (IncMasterN 1) )
+        , ( "M-.",              addName "master -1" $ sendMessage (IncMasterN (-1)) )
+        ] ++
+        subtitle "Pasting": mkNamedKeymap conf
+        [ ( "M-v", addName "paste btn3" $ pasteSelection )
+        , ( "M-C-v", addName "paste clip" $ runProcessWithInput "xclip" [ "-o", "-selection", "clipboard" ] "" >>= pasteString )
+        ] ++
+        subtitle "WS operations": mkNamedKeymap conf
+        [ ( "<KP_F12>", addName "toggle" toggleWS )
+        , ( "<KP_Insert>", addName "toggle" toggleWS )
+        , ( "M-<Left>", addName "prev" prevWS )
+        , ( "<KP_Subtract>", addName "prev" prevWS )
+        , ( "M-<Right>", addName "next" nextWS )
+        , ( "<KP_Add>", addName "next" nextWS )
+        ]
 
-    -- launch a terminal
-    [ ((modm .|. shiftMask, xK_Return), safeSpawnProg $ XMonad.terminal conf)
-    , ((controlMask .|. shiftMask, xK_Return),  runInTerm "" "tmux -2 new-session")
+otherKeys hostconf conf =
 
-    -- launch dmenu
-    , ((modm,               xK_p     ), spawn $ "dmenu_run -nb '" ++ myBackgroundColor ++ "' -nf '" ++ myInactiveColor ++ "' -sb '" ++ myActiveColor ++ "' -sf black -fn '" ++ defaultFont ++ "'")
+        -- F key / keypad digit -> change workspace
+        -- mod+F key / mod + keypad digit -> shift window to workspace
+        [((m, k), windows $ f i)
+                | (i, k) <- zip (cycle $ XMonad.workspaces conf) (
+                        [xK_F1..xK_F9] ++
+                        [xK_KP_End, xK_KP_Down, xK_KP_Page_Down,
+                        xK_KP_Left, xK_KP_Begin, xK_KP_Right,
+                        xK_KP_Home, xK_KP_Up, xK_KP_Page_Up]
+                        )
+                , (f, m) <- [(W.greedyView, 0), (W.shift, modMask conf)]
+        ] ++
 
-    -- launch gmrun
-    , ((modm .|. shiftMask, xK_p     ), spawn "gmrun")
+        -- mod-[1..9] -> change workspace
+        -- mod-shift-[1..9] -> shift window to workspace
+        -- (fallback for notebook without F keys)
+        [((m .|. modMask conf, k), windows $ f i)
+                | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
+                , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]
+        ] ++
 
-    -- launch vim (in various ways, with most common uses)
-    , ((modm .|. shiftMask, xK_v     ), runInTerm "" "vim ~/.vim/vimrc")
-    , ((modm,               xK_x     ), spawn "xfe")
-    , ((modm .|. shiftMask, xK_x     ), runInTerm "" "vim ~/.xmonad/xmonad.hs")
-    , ((modm,               xK_i     ), runInTerm "-title weechat" "sh -c 'tmux has-session -t weechat && tmux -2 attach-session -d -t weechat || tmux -2 new-session -s weechat weechat'")
+        --
+        -- mod-{w,e,r}, Switch to physical/Xinerama screens 1, 2, or 3
+        -- mod-shift-{w,e,r}, Move client to screen 1, 2, or 3
+        --
+        [((m .|. modMask conf, key), screenWorkspace sc >>= flip whenJust (windows . f))
+                | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
+                , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]
+        ] ++
 
-    -- launch office
-    , ((modm , xK_o     ), spawn "~/.xmonad/scripts/office.sh")
+        -- configure SSH connections from HostConfiguration to avoid
+        -- leaking host names
+        [((m, k), runInTerm "" $ "ssh -p" ++ port ++ " -Y -t " ++ con ++ " 'tmux -2 new-session'")
+                | ((m, k), (con,port)) <- HC.sshConnections hostconf
+        ]
 
-    -- screensaver
-    , ((mod1Mask .|. controlMask, xK_l     ), spawn "xscreensaver-command -lock")
+emptyKeys c = mkKeymap c []
 
-    -- shutdown
-    , ((modm .|. shiftMask, xK_BackSpace), vboxProtectedBinding "shutdown" "~/.xmonad/scripts/shutdown.sh")
-
-    -- reboot
-    , ((controlMask .|. shiftMask, xK_BackSpace), vboxProtectedBinding "reboot" "~/.xmonad/scripts/reboot.sh")
-
-    -- close focused window
-    , ((modm .|. shiftMask, xK_c     ), kill)
-
-     -- Rotate through the available layout algorithms
-    , ((modm,               xK_space ), sendMessage NextLayout)
-
-    --  Reset the layouts on the current workspace to default
-    , ((modm .|. shiftMask, xK_space ), setLayout $ XMonad.layoutHook conf)
-
-    -- Resize viewed windows to the correct size
-    , ((modm,               xK_n     ), refresh)
-
-    -- Move focus to the next window
-    , ((modm,               xK_Tab   ), windows W.focusDown)
-
-    -- Move focus to the next window
-    , ((modm,               xK_j     ), windows W.focusDown)
-
-    -- Move focus to the previous window
-    , ((modm,               xK_k     ), windows W.focusUp  )
-
-    -- Move focus to the master window
-    , ((modm,               xK_m     ), windows W.focusMaster  )
-
-    -- Swap the focused window and the master window
-    , ((modm,               xK_Return), windows W.swapMaster)
-
-    -- Swap the focused window with the next window
-    , ((modm .|. shiftMask, xK_j     ), windows W.swapDown  )
-
-    -- Swap the focused window with the previous window
-    , ((modm .|. shiftMask, xK_k     ), windows W.swapUp    )
-
-    -- Shrink the master area
-    , ((modm,               xK_h     ), sendMessage Shrink)
-
-    -- Expand the master area
-    , ((modm,               xK_l     ), sendMessage Expand)
-
-    , ((shiftMask .|. controlMask, xK_s),
-        sshPrompt promptConfig (\p -> runInTerm "" $ "ssh -t " ++ p ++ " tmux -2 new-session"))
-    , ((modm,               xK_z     ), vboxPrompt promptConfig)
-    , ((modm .|. shiftMask, xK_z     ), spawn "~/.xmonad/scripts/rdesktop.sh" )
-
-    -- Push window back into tiling
-    , ((modm,               xK_t     ), withFocused $ windows . W.sink)
-
-    -- Focus urgent window
-    , ((modm,               xK_u     ), focusUrgent)
-
-    -- Clear urgent windows
-    , ((modm .|. shiftMask, xK_u     ), clearUrgents)
-
-    -- Paste from mouse selection
-    , ((modm            ,       xK_v ), pasteSelection)
-
-    -- Paste from clipboard
-    , ((modm .|. controlMask,   xK_v ), runProcessWithInput "xclip" [ "-o", "-selection", "clipboard" ] "" >>= pasteString )
-
-    -- Increment the number of windows in the master area
-    , ((modm              , xK_comma ), sendMessage (IncMasterN 1))
-
-    -- Deincrement the number of windows in the master area
-    , ((modm              , xK_period), sendMessage (IncMasterN (-1)))
-
-    -- Toggle the status bar gap
-    -- Use this binding with avoidStruts from Hooks.ManageDocks.
-    -- See also the statusBar function from Hooks.DynamicLog.
-    --
-    -- , ((modm              , xK_b     ), sendMessage ToggleStruts)
-
-    -- Quit xmonad
-    , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
-
-    -- Restart xmonad
-    , ((modm              , xK_q     ), spawn "pkill xmobar; cd ~/.xmonad/lib && ghc --make SysInfoBar.hs ; xmonad --recompile && xmonad --restart")
-
-    , ((0                 , xK_F12       ), toggleWS )
-    , ((modm              , xK_Left      ), prevWS )
-    , ((modm              , xK_Right     ), nextWS )
-    , ((modm              , xK_Down      ), withFocused minimizeWindow )
-    , ((modm              , xK_Up        ), sendMessage RestoreNextMinimizedWin )
-    , ((0                 , xK_KP_Insert       ), toggleWS )
-    , ((0                 , xK_KP_Add          ), nextWS )
-    , ((0                 , xK_KP_Subtract     ), prevWS )
-    , ((modm              , xK_KP_Add          ), sendMessage RestoreNextMinimizedWin )
-    , ((modm              , xK_KP_Subtract     ), withFocused minimizeWindow )
-
-    -- Run xmessage with a summary of the default keybindings (useful for beginners)
-    -- , ((modMask .|. shiftMask, xK_slash ), spawn ("echo \"" ++ help ++ "\" | xmessage -file -"))
-    ]
-    ++
-
-    -- F key / keypad digit -> change workspace
-    -- mod+F key / mod + keypad digit -> shift window to workspace
-    [((m, k), windows $ f i)
-        | (i, k) <- zip (cycle $ XMonad.workspaces conf) (
-                [xK_F1..xK_F9] ++
-                [xK_KP_End, xK_KP_Down, xK_KP_Page_Down,
-                 xK_KP_Left, xK_KP_Begin, xK_KP_Right,
-                 xK_KP_Home, xK_KP_Up, xK_KP_Page_Up]
-                )
-        , (f, m) <- [(W.greedyView, 0), (W.shift, modm)]]
-    ++
-
-    -- mod-[1..9] -> change workspace
-    -- mod-shift-[1..9] -> shift window to workspace
-    -- (fallback for notebook without F keys)
-    [((m .|. modm, k), windows $ f i)
-        | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
-        , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
-    ++
-
-    --
-    -- mod-{w,e,r}, Switch to physical/Xinerama screens 1, 2, or 3
-    -- mod-shift-{w,e,r}, Move client to screen 1, 2, or 3
-    --
-    [((m .|. modm, key), screenWorkspace sc >>= flip whenJust (windows . f))
-        | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
-        , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
-
-    ++
-
-    -- configure SSH connections from HostConfiguration to avoid
-    -- leaking host names
-    [
-    ((m, k), runInTerm "" $ "ssh -p" ++ port ++ " -Y -t " ++ con ++ " 'tmux -2 new-session'")
-        | ((m, k), (con,port)) <- HC.sshConnections hostconf
-    ]
+myKeymap :: HC.HostConfiguration -> XConfig l -> XConfig l
+myKeymap hostconf conf = addDescrKeys ((mod4Mask .|. shiftMask, xK_slash), xMessage) (myKeys conf) conf
+        `additionalKeys` (otherKeys hostconf conf)
 
 -- protects execution when VirtualBox is in focus
 vboxProtectedBinding :: String -> String -> X()

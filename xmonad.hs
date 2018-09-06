@@ -24,7 +24,7 @@ import XMonad.Util.Run ( spawnPipe )
 import qualified Events as EV ( myEventHook )
 import qualified HostConfiguration as HC
 import qualified Layout as LA ( myLayout )
-import qualified Mappings as M ( myKeys, myMouseBindings )
+import qualified Mappings as M ( myKeys, emptyKeys, myKeymap, myMouseBindings )
 import qualified ManageHook as MH ( myManageHook )
 import qualified Settings as S
         ( myFocusFollowsMouse
@@ -40,27 +40,28 @@ import qualified Workspaces as WS
         , myLogHook
         )
 
-xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ def
+xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ M.myKeymap conf $ def
         {
                 terminal           = HC.terminal conf,
                 focusFollowsMouse  = S.myFocusFollowsMouse,
                 clickJustFocuses   = S.myClickJustFocuses,
                 borderWidth        = S.myBorderWidth,
                 modMask            = S.myModMask,
-                workspaces         = WS.numberedWorkspaces (HC.barMode conf) wsnames,
+                workspaces         = WS.numberedWorkspaces barmode wsnames,
                 normalBorderColor  = S.myInactiveColor,
                 focusedBorderColor = S.myFocusedBorderColor,
 
-                keys               = M.myKeys conf,
+                keys               = M.emptyKeys,
                 mouseBindings      = M.myMouseBindings,
 
-                layoutHook         = LA.myLayout (HC.barMode conf) wsnames,
-                manageHook         = MH.myManageHook (HC.barMode conf) wsnames,
+                layoutHook         = LA.myLayout barmode wsnames,
+                manageHook         = MH.myManageHook barmode wsnames,
                 handleEventHook    = EV.myEventHook,
                 logHook            = WS.myLogHook xmobar conf,
                 startupHook        = autostartAllPrograms conf
         }
         where wsnames = HC.workspaceNames conf
+              barmode = HC.barMode conf
 
 autostartAllPrograms :: HC.HostConfiguration -> X ()
 autostartAllPrograms conf = do
