@@ -43,6 +43,9 @@ myKeys hostconf conf = M.fromList $ let modm = modMask conf in
     , ((modm .|. shiftMask, xK_x     ), runInTerm "" "vim ~/.xmonad/xmonad.hs")
     , ((modm,               xK_i     ), runInTerm "-title weechat" "sh -c 'tmux has-session -t weechat && tmux -2 attach-session -d -t weechat || tmux -2 new-session -s weechat weechat'")
 
+    -- launch office
+    , ((modm , xK_o     ), spawn "~/.xmonad/scripts/office.sh")
+
     -- screensaver
     , ((mod1Mask .|. controlMask, xK_l     ), spawn "xscreensaver-command -lock")
 
