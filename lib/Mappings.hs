@@ -11,8 +11,8 @@ import System.Exit ( exitWith, ExitCode(ExitSuccess) )
 
 import XMonad
 import XMonad.Actions.CycleWS ( toggleWS, prevWS, nextWS )
+import XMonad.Actions.Minimize ( minimizeWindow, maximizeWindow, withLastMinimized )
 import XMonad.Hooks.UrgencyHook ( focusUrgent, clearUrgents )
-import XMonad.Layout.Minimize ( minimizeWindow, MinimizeMsg(RestoreNextMinimizedWin) )
 import XMonad.Util.Paste ( pasteSelection, pasteString )
 import XMonad.Prompt.ConfirmPrompt ( confirmPrompt )
 import XMonad.Util.Run ( runInTerm, runProcessWithInput, safeSpawnProg )
@@ -70,7 +70,7 @@ myKeys hostconf conf =
         , ( "M-h",              addName "shrink" $ sendMessage Shrink )
         , ( "M-l",              addName "expand" $ sendMessage Expand )
         , ( "M-<Down>",         addName "minimize" $ withFocused minimizeWindow )
-        , ( "M-<Up>",           addName "restore" $ sendMessage RestoreNextMinimizedWin )
+        , ( "M-<Up>",           addName "restore" $ withLastMinimized maximizeWindow )
         , ( "M-,",              addName "master +1" $ sendMessage (IncMasterN 1) )
         , ( "M-.",              addName "master -1" $ sendMessage (IncMasterN (-1)) )
         ] ++

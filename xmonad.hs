@@ -1,11 +1,5 @@
---
--- xmonad example config file.
---
--- A template showing all available configuration hooks,
--- and how to override the defaults in your own xmonad.hs conf file.
---
--- Normally, you'd only override those defaults you care about.
---
+-- xmonad configuration
+-- see: https://github.com/nakal/xmonad-conf
 
 {-# LANGUAGE FlexibleContexts #-}
 
@@ -68,7 +62,7 @@ autostartAllPrograms conf = do
         case os of
                 "freebsd" -> spawn "~/.xmonad/lib/SysInfoBar"
                 "openbsd" -> spawn $ "sysinfobar | " ++ (HC.mySysInfoBar $ HC.barMode conf)
-                "linux" -> spawn $ "sysinfobar | " ++ (HC.mySysInfoBar $ HC.barMode conf)
+                "linux"   -> spawn $ "sysinfobar | " ++ (HC.mySysInfoBar $ HC.barMode conf)
                 _         -> return ()
         mapM_ execprog $ HC.autostartPrograms conf
         where execprog prog = spawn $ (fst prog) ++ " " ++ (unwords $ snd prog)
