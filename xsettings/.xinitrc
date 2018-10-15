@@ -1,8 +1,11 @@
 export LANG="de_DE.UTF-8"
 export LC_CTYPE="de_DE.UTF-8"
 
+exec > $HOME/.xsession-errors 2>&1
+
 OS=`uname -s`
-echo "Starting $0 on $OS ..." >&2
+
+echo "Starting $0 on $OS ..."
 case "$OS" in
 FreeBSD)
 	xset fp+ /usr/local/share/fonts/fantasque-sans-mono,/usr/local/share/fonts/fira
@@ -15,8 +18,6 @@ OpenBSD)
 esac
 xset fp rehash
 
-ulimit -c unlimited
-
 xrdb -merge ~/.Xdefaults
 xsetroot -cursor_name left_ptr -solid black
 setxkbmap -symbols "us_alt(de)"
@@ -27,6 +28,9 @@ PATH=$HOME/.cabal/bin:$HOME/.local/bin:$HOME/.cargo/bin:$HOME/bin:$PATH
 export PATH
 DEFAULT_SESSION=xmonad
 
+echo `xmonad --version` "("`which xmonad`")"
+echo `xmobar --version | head -n 1` "("`which xmobar`")"
+
 if [ -n "$GPG_AGENT_INFO" ]; then
 	SESSION_AGENT="ssh-agent"
 else
@@ -35,11 +39,11 @@ else
 	export GPG_AGENT_INFO="$HOME/.gnupg/S.gpg-agent:0:1"
 fi
 
-echo "START SESSION: $1" `date` >&2
+echo "START SESSION: $1" `date`
 
 case "$1" in
 spectrwm)
-	exec $SESSION_AGENT spectrwm >&2
+	exec $SESSION_AGENT spectrwm
 	;;
 openbox)
 	exec $SESSION_AGENT openbox-session
@@ -58,6 +62,6 @@ kde)
 *)
 	_JAVA_AWT_WM_NONREPARENTING=1
 	export _JAVA_AWT_WM_NONREPARENTING
-	exec $SESSION_AGENT "$DEFAULT_SESSION" > ~/.xsession-errors 2>&1
+	exec $SESSION_AGENT "$DEFAULT_SESSION"
 	;;
 esac
