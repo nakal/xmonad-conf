@@ -33,6 +33,7 @@ myKeys hostconf conf =
         subtitle "Applications": mkNamedKeymap conf
         [ ( "M-S-<Return>",     addName "Terminal" $ safeSpawnProg $ XMonad.terminal conf )
         , ( "C-S-<Return>",     addName "Terminal in tmux" $ runInTerm "" "tmux -2 new-session" )
+        , ( "C-M1-<Return>",    addName "Terminal (root)" $ runInTerm "" "sudo -i" )
         , ( "M-p",              addName "dmenu" $ spawn $ "dmenu_run -nb '" ++ myBackgroundColor ++ "' -nf '" ++ myInactiveColor ++ "' -sb   '" ++ myActiveColor ++ "' -sf black -fn '" ++ defaultFont ++ "'" )
         , ( "M-S-p",            addName "gmrun" $ spawn "gmrun" )
         , ( "M-S-v",            addName "Edit vimrc" $ runInTerm "" "vim ~/.vim/vimrc" )
