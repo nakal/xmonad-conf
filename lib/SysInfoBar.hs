@@ -57,7 +57,7 @@ getNetLoad (Just pipe) lastnetload = do
         if not ready then
                 return lastnetload
         else do
-                l <- fmap words $ hGetLine pipe
+                l <- words <$> hGetLine pipe
                 getNetLoad (Just pipe) $ case readMaybe (head l) :: Maybe Integer of
                         Nothing -> lastnetload
                         _       -> NetLoad (read $ l !! 3) (read $ l !! 6)
@@ -66,9 +66,9 @@ getNetLoad _ lastnetload = return lastnetload
 
 netspeed :: Integer -> String
 netspeed x
-        | x > 2 * 1024 ^ 3          =       printf "%.2fGB" (((fromIntegral x)/(1024^3)) :: Double)
-        | x > 2 * 1024 ^ 2          =       printf "%.2fMB" (((fromIntegral x)/(1024^2)) :: Double)
-        | x > 2 * 1024              =       printf "%.2fkB" (((fromIntegral x)/1024) :: Double)
+        | x > 2 * 1024 ^ 3          =       printf "%.2fGB" ((fromIntegral x /(1024^3)) :: Double)
+        | x > 2 * 1024 ^ 2          =       printf "%.2fMB" ((fromIntegral x /(1024^2)) :: Double)
+        | x > 2 * 1024              =       printf "%.2fkB" ((fromIntegral x /1024) :: Double)
         | otherwise                 =       printf "%d B " x
 
 hotCPUColor :: Integer -> Integer -> String
@@ -132,7 +132,7 @@ displayStats (Stats conf pipe cpuperc numcpu memstat swapperc (NetLoad net_rx ne
 
 getSwapStats :: IO SwapPercent
 getSwapStats = do
-        swap <- fmap rights $
+        swap <- rights <$>
                 mapM (\nr -> tryIOError (
                         sysctlNameToOidArgs "vm.swap_info" [ nr ] >>=
                                 sysctlPeekArray :: IO [Word32])) [0..15]
@@ -227,7 +227,7 @@ xmobarSysInfo homedir mode =
 main = do
         conf <- HC.readHostConfiguration
         homedir <- getHomeDirectory
-        (spawnPipe $ xmobarSysInfo homedir (HC.barMode conf)) >>=
+        spawnPipe (xmobarSysInfo homedir (HC.barMode conf)) >>=
                 (case os of
                         "freebsd" -> startBSD conf
                         _         -> error $ "Unknown operating system " ++ os

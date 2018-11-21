@@ -61,15 +61,15 @@ myManageHook mode wsnames =
                 , L.isPrefixOf "newwin - " <$> appName            --> doShift (getWorkspace "win")
                 , appName  =? "desktop_window"                  --> doIgnore
                 , appName  =? "kdesktop"                        --> doIgnore ]
-        where getWorkspace name = getWorkspaceName mode wsnames name
+        where getWorkspace = getWorkspaceName mode wsnames
 
 -- | Unfloat a window (sink)
 doUnfloat :: ManageHook
 doUnfloat = ask >>= \w -> doF $ W.sink w
 
 doCenterFloat :: ManageHook
-doCenterFloat = (placeHook $ fixed (1 % 2, 1 % 2)) <+> doFloat
+doCenterFloat = placeHook (fixed (1 % 2, 1 % 2)) <+> doFloat
 
 doNotificationFloat :: ManageHook
-doNotificationFloat = (placeHook $ fixed (19 % 20, 1 % 20)) <+> doFloat
+doNotificationFloat = placeHook (fixed (19 % 20, 1 % 20)) <+> doFloat
 

@@ -76,4 +76,4 @@ mySysInfoBar mode =
 sshConnections :: HostConfiguration -> [((KeyMask,KeySym),(Hostname,PortNum))]
 sshConnections =
         map (\((k,s),uhcp) -> ((k,s), makePort $ break (== ':') uhcp)) . ssh
-        where makePort (a,b) = (a, if (null b) then "22" else drop 1 b)
+        where makePort (a,b) = (a, if null b then "22" else drop 1 b)

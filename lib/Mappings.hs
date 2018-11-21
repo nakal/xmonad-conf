@@ -5,9 +5,10 @@ module Mappings
         , myMouseBindings
         ) where
 
+import Control.Monad
 import qualified Data.List as L ( elemIndex, isPrefixOf )
 import qualified Data.Map as M ( fromList )
-import System.Exit ( exitWith, ExitCode(ExitSuccess) )
+import System.Exit ( exitSuccess )
 
 import XMonad
 import XMonad.Actions.CycleWS ( toggleWS, prevWS, nextWS )
@@ -48,7 +49,7 @@ myKeys hostconf conf =
         ] ++
         subtitle "WM operations": mkNamedKeymap conf
         [ ( "M-q",              addName "restart" $ spawn "pkill xmobar; cd ~/.xmonad/lib && ghc --make SysInfoBar.hs ; xmonad --recompile && xmonad --restart" )
-        , ( "M-S-q",            addName "exit" $ io (exitWith ExitSuccess) )
+        , ( "M-S-q",            addName "exit" $ io exitSuccess )
         , ( "C-M1-l",            addName "lock screen" $ spawn "xscreensaver-command -lock" )
         , ( "M-S-<Backspace>",  addName "shutdown" $ vboxProtectedBinding "shutdown" "~/.xmonad/scripts/shutdown.sh" )
         , ( "C-S-<Backspace>",  addName "reboot" $ vboxProtectedBinding "reboot" "~/.xmonad/scripts/reboot.sh" )
@@ -76,7 +77,7 @@ myKeys hostconf conf =
         , ( "M-.",              addName "master -1" $ sendMessage (IncMasterN (-1)) )
         ] ++
         subtitle "Pasting": mkNamedKeymap conf
-        [ ( "M-v", addName "paste btn3" $ pasteSelection )
+        [ ( "M-v", addName "paste btn3" pasteSelection )
         , ( "M-C-v", addName "paste clip" $ runProcessWithInput "xclip" [ "-o", "-selection", "clipboard" ] "" >>= pasteString )
         ] ++
         subtitle "WS operations": mkNamedKeymap conf
@@ -129,15 +130,14 @@ emptyKeys c = mkKeymap c []
 
 myKeymap :: HC.HostConfiguration -> XConfig l -> XConfig l
 myKeymap hostconf conf = addDescrKeys ((mod4Mask .|. shiftMask, xK_slash), xMessage) (myKeys conf) conf
-        `additionalKeys` (otherKeys hostconf conf)
+        `additionalKeys` otherKeys hostconf conf
 
 -- protects execution when VirtualBox is in focus
 vboxProtectedBinding :: String -> String -> X()
 vboxProtectedBinding msg action =
-    (focusedHasProperty $ ClassName "VBoxSDL") >>= \p ->
-        if (not p)
-            then confirmPrompt promptConfig msg (io $ spawn action)
-            else return ()
+    focusedHasProperty (ClassName "VBoxSDL") >>= \p ->
+        unless p $
+            confirmPrompt promptConfig msg (io $ spawn action)
 
 ------------------------------------------------------------------------
 -- Mouse bindings: default actions bound to mouse events
@@ -145,15 +145,15 @@ vboxProtectedBinding msg action =
 myMouseBindings conf = M.fromList $ let modm = modMask conf in
 
     -- mod-button1, Set the window to floating mode and move by dragging
-    [ ((modm, button1), (\w -> focus w >> mouseMoveWindow w
-                                       >> windows W.shiftMaster))
+    [ ((modm, button1), \w -> focus w >> mouseMoveWindow w
+                                       >> windows W.shiftMaster)
 
     -- mod-button2, Raise the window to the top of the stack
-    , ((modm, button2), (\w -> focus w >> windows W.shiftMaster))
+    , ((modm, button2), \w -> focus w >> windows W.shiftMaster)
 
     -- mod-button3, Set the window to floating mode and resize by dragging
-    , ((modm, button3), (\w -> focus w >> mouseResizeWindow w
-                                       >> windows W.shiftMaster))
+    , ((modm, button3), \w -> focus w >> mouseResizeWindow w
+                                       >> windows W.shiftMaster)
 
     -- you may also bind events to the mouse scroll wheel (button4 and button5)
     ]

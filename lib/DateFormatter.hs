@@ -19,7 +19,7 @@ getTimeLocale "de" mode = TimeLocale {
                 "April", "Mai", "Juni", "Juli", "August", "September",
                 "Oktober", "November", "Dezember" ],
         amPm = ("früh", "nachm."),
-        dateTimeFmt = "%a %e %b %Y %H:%M" ++ (wantSeconds mode),
+        dateTimeFmt = "%a %e %b %Y %H:%M" ++ wantSeconds mode,
         dateFmt = "%a, den %e. %B %Y",
         timeFmt = "%H:%M:%S",
         time12Fmt = "%l Uhr %-zM %P",
@@ -29,11 +29,10 @@ getTimeLocale "de" mode = TimeLocale {
                 ]
         }
 getTimeLocale _ mode = defaultTimeLocale {
-        dateTimeFmt = "%a %e %b %Y %H:%M" ++ (wantSeconds mode)
+        dateTimeFmt = "%a %e %b %Y %H:%M" ++ wantSeconds mode
         }
 
 getTimeAndDate :: String -> HC.SysInfoBarMode -> IO String
-getTimeAndDate localename mode = do
-        localtime <- getZonedTime
-        return $ formatTime locale (dateTimeFmt locale) localtime
+getTimeAndDate localename mode =
+        formatTime locale (dateTimeFmt locale) <$> getZonedTime
         where locale = getTimeLocale localename mode

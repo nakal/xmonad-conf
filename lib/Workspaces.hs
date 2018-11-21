@@ -56,7 +56,7 @@ myLogHook xmobar conf = do
         prevws <- prevWorkspace
         dynamicLogWithPP $
                 def {
-                        ppCurrent           =   xmobarColor myActiveColor myBackgroundColor . (myPad $ HC.barMode conf)
+                        ppCurrent           =   xmobarColor myActiveColor myBackgroundColor . myPad (HC.barMode conf)
                         , ppVisible           =   xmobarWS myDefaultColor myBackgroundColor Nothing
                         , ppHidden            =   xmobarWS myDefaultColor myBackgroundColor prevws
                         , ppHiddenNoWindows   =   xmobarWS myInactiveColor myBackgroundColor prevws
@@ -70,7 +70,7 @@ myLogHook xmobar conf = do
         where
                 xmobarWS = xmobarWorkspace (HC.barMode conf)
                 wsTitle mode
-                        | mode == HC.Slim = \_ -> ""
+                        | mode == HC.Slim = const ""
                         | mode == HC.Full = (" " ++) . xmobarColor myActiveColor myBackgroundColor . xmobarStrip
 
 prevWorkspace :: X (Maybe WorkspaceId)
@@ -82,11 +82,11 @@ prevWorkspace = do
 
 xmobarWorkspace :: HC.SysInfoBarMode -> String -> String -> Maybe WorkspaceId -> WorkspaceId -> String
 xmobarWorkspace mode fg bg prevws =
-        xmobarColor fg bg . (myPad mode) . addAction
+        xmobarColor fg bg . myPad mode . addAction
         where
                 addAction wrkspc = "<action=`xdotool key " ++ myXDoToolKey ++
-                        "+" ++ (take 1 wrkspc) ++ "`>" ++
-                        (markPrevious prevws wrkspc) ++ "</action>"
+                        "+" ++ take 1 wrkspc ++ "`>" ++
+                        markPrevious prevws wrkspc ++ "</action>"
                 markPrevious prevws wrkspc = case prevws of
                         Just w      -> if w == wrkspc then "<fn=1>" ++ w ++ "</fn>"
                                         else wrkspc
@@ -110,7 +110,7 @@ numberedWorkspaces mode wsnames = zipWith (++) (map show [1..]) $ map appendName
 getWorkspaceName :: HC.SysInfoBarMode -> [ String ] -> String -> String
 getWorkspaceName mode wsnames name = case name `L.elemIndex` wsnames of
         Nothing -> show $ length wsnames
-        Just x  -> (show $ x+1) ++ suffix
+        Just x  -> show (x+1) ++ suffix
         where suffix
                 | mode == HC.Slim = ""
                 | mode == HC.Full = ":" ++ name

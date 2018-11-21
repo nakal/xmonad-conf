@@ -5,7 +5,7 @@
 
 import Control.Applicative ((<$>))
 import Data.Default
-import System.IO ( stderr, hPutStrLn )
+import System.IO ( stderr, hPrint )
 import System.Info ( os )
 
 import XMonad
@@ -61,14 +61,14 @@ autostartAllPrograms :: HC.HostConfiguration -> X ()
 autostartAllPrograms conf = do
         case os of
                 "freebsd" -> spawn "~/.xmonad/lib/SysInfoBar"
-                "openbsd" -> spawn $ "sysinfobar | " ++ (HC.mySysInfoBar $ HC.barMode conf)
-                "linux"   -> spawn $ "sysinfobar | " ++ (HC.mySysInfoBar $ HC.barMode conf)
+                "openbsd" -> spawn $ "sysinfobar | " ++ HC.mySysInfoBar (HC.barMode conf)
+                "linux"   -> spawn $ "sysinfobar | " ++ HC.mySysInfoBar (HC.barMode conf)
                 _         -> return ()
         mapM_ execprog $ HC.autostartPrograms conf
-        where execprog prog = spawn $ (fst prog) ++ " " ++ (unwords $ snd prog)
+        where execprog prog = spawn $ fst prog ++ " " ++ unwords (snd prog)
 
 main = do
         conf <- HC.readHostConfiguration
-        hPutStrLn stderr $ show conf
+        hPrint stderr conf
         xmobar <- spawnPipe (WS.myXmonadBar $ HC.barMode conf)
         xmonad $ xconfig conf xmobar
