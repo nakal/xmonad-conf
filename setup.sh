@@ -46,7 +46,6 @@ check_haskell() {
 		cabal_install_options="-fwith_utf8 -fwith_xft"
 		case $OS in
 			OpenBSD) cabal_install_options="$cabal_install_options --extra-lib-dirs=/usr/X11R6/lib --extra-include-dirs=/usr/X11R6/include" ;;
-			FreeBSD) cabal_install_options="$cabal_install_options --with-gcc /usr/local/bin/gcc6" ;;
 			*) ;;
 		esac
 		if ! cabal install -v xmobar $cabal_install_options; then
@@ -120,7 +119,7 @@ REQUIRED_PACKAGES_FreeBSD="\
 	dmenu gmrun xrdb xsetroot setxkbmap gnupg \
 	xmodmap hsetroot fira hs-cabal-install ghc \
 	roboto-fonts-ttf xdotool xclip xwininfo \
-	gcc6"
+	"
 RECOMMENDED_PACKAGES_FreeBSD="\
 	xdm gimp weechat firefox xfe gtk2 gtk-oxygen-engine gorilla \
 	"
