@@ -6,6 +6,7 @@ module Workspaces
         ) where
 
 import qualified Data.List as L ( elemIndex )
+import qualified Data.Map.Strict as M
 import System.IO ( Handle, hPutStrLn )
 
 import XMonad
@@ -29,9 +30,8 @@ import qualified XMonad.StackSet as W
 import qualified HostConfiguration as HC
 import Settings
 
-myPad :: HC.SysInfoBarMode -> String -> String
-myPad HC.Slim = id
-myPad HC.Full = (++) " "
+myPad :: HC.HostConfiguration -> String -> String
+myPad hc = if HC.isSlim hc then id else (++) ""
 
 -- Workspace mode symbol
 workspaceLayoutSymbol :: String -> String
@@ -56,7 +56,7 @@ myLogHook xmobar conf = do
         prevws <- prevWorkspace
         dynamicLogWithPP $
                 def {
-                        ppCurrent           =   xmobarColor myActiveColor myBackgroundColor . myPad (HC.barMode conf)
+                        ppCurrent           =   xmobarColor myActiveColor myBackgroundColor . myPad conf
                         , ppVisible           =   xmobarWS myDefaultColor myBackgroundColor Nothing
                         , ppHidden            =   xmobarWS myDefaultColor myBackgroundColor prevws
                         , ppHiddenNoWindows   =   xmobarWS myInactiveColor myBackgroundColor prevws
@@ -64,14 +64,16 @@ myLogHook xmobar conf = do
                         , ppWsSep             =   " "
                         , ppSep               =   " <fc=" ++ myInactiveColor ++ ">|</fc> "
                         , ppLayout            =   workspaceLayoutSymbol
-                        , ppTitle             =   wsTitle (HC.barMode conf)
+                        , ppTitle             =   wsTitle
                         , ppOutput            =   hPutStrLn xmobar
         }
         where
-                xmobarWS = xmobarWorkspace (HC.barMode conf)
-                wsTitle mode
-                        | mode == HC.Slim = const ""
-                        | mode == HC.Full = (" " ++) . xmobarColor myActiveColor myBackgroundColor . xmobarStrip
+                xmobarWS = xmobarWorkspace conf
+                wsTitle = if HC.isSlim conf
+                             then
+                                const ""
+                             else
+                                (" " ++) . xmobarColor myActiveColor myBackgroundColor . xmobarStrip
 
 prevWorkspace :: X (Maybe WorkspaceId)
 prevWorkspace = do
@@ -80,9 +82,9 @@ prevWorkspace = do
                 [] -> return Nothing
                 x:xs -> return $ Just $ W.tag x
 
-xmobarWorkspace :: HC.SysInfoBarMode -> String -> String -> Maybe WorkspaceId -> WorkspaceId -> String
-xmobarWorkspace mode fg bg prevws =
-        xmobarColor fg bg . myPad mode . addAction
+xmobarWorkspace :: HC.HostConfiguration -> String -> String -> Maybe WorkspaceId -> WorkspaceId -> String
+xmobarWorkspace conf fg bg prevws =
+        xmobarColor fg bg . myPad conf . addAction
         where
                 addAction wrkspc = "<action=`xdotool key " ++ myXDoToolKey ++
                         "+" ++ take 1 wrkspc ++ "`>" ++
@@ -92,25 +94,22 @@ xmobarWorkspace mode fg bg prevws =
                                         else wrkspc
                         _           -> wrkspc
 
-myXmonadBar :: HC.SysInfoBarMode -> String
-myXmonadBar mode =
+myXmonadBar :: HC.HostConfiguration -> String
+myXmonadBar conf =
         "xmobar .xmonad/" ++ barPrefix ++ "workspaces_xmobar.rc"
         where barPrefix
-                | mode == HC.Slim = "slim_"
-                | mode == HC.Full = ""
+                | HC.isSlim conf   = "slim_"
+                | otherwise     = ""
 
 -- This function numbers the workspace names
-numberedWorkspaces :: HC.SysInfoBarMode -> [ String ] -> [ String ]
-numberedWorkspaces mode wsnames = zipWith (++) (map show [1..]) $ map appendName wsnames
-        where appendName name
-                | mode == HC.Slim || null name = ""
-                | otherwise = (':' :) name
+numberedWorkspaces :: HC.HostConfiguration -> [ String ]
+numberedWorkspaces conf = map name $ M.assocs (HC.workspaces conf)
+        where name (i, n)
+                | HC.isSlim conf || null n      = show i
+                | otherwise                     = concat [show i, ":", n]
 
 -- Safely returns a matching workspace name
-getWorkspaceName :: HC.SysInfoBarMode -> [ String ] -> String -> String
-getWorkspaceName mode wsnames name = case name `L.elemIndex` wsnames of
-        Nothing -> show $ length wsnames
-        Just x  -> show (x+1) ++ suffix
-        where suffix
-                | mode == HC.Slim = ""
-                | mode == HC.Full = ":" ++ name
+getWorkspaceName :: HC.HostConfiguration -> String -> String
+getWorkspaceName conf name = case M.lookup name (HC.workspaceMap conf) of
+        Nothing -> last $ numberedWorkspaces conf
+        Just x  -> x

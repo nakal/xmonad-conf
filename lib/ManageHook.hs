@@ -30,8 +30,8 @@ import Workspaces
 -- To match on the WM_NAME, you can use 'title' in the same way that
 -- 'className' and 'appName' are used below.
 --
-myManageHook :: HC.SysInfoBarMode -> [ String ] -> Query (Endo WindowSet)
-myManageHook mode wsnames =
+myManageHook :: HC.HostConfiguration -> Query (Endo WindowSet)
+myManageHook conf =
         manageDocks <+> composeAll
                 [ className =? "MPlayer"                --> doCenterFloat
                 , className =? "XMessage"               --> doCenterFloat
@@ -61,7 +61,7 @@ myManageHook mode wsnames =
                 , L.isPrefixOf "newwin - " <$> appName            --> doShift (getWorkspace "win")
                 , appName  =? "desktop_window"                  --> doIgnore
                 , appName  =? "kdesktop"                        --> doIgnore ]
-        where getWorkspace = getWorkspaceName mode wsnames
+        where getWorkspace = getWorkspaceName conf
 
 -- | Unfloat a window (sink)
 doUnfloat :: ManageHook

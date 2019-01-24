@@ -1,7 +1,18 @@
-module HostConfiguration where
+module HostConfiguration
+        ( WorkspaceNames
+        , HostConfiguration
+        , workspaces
+        , workspaceMap
+        , terminal
+        , readHostConfiguration
+        , sshConnections
+        , isSlim
+        , sysInfoBar
+        , autostartPrograms
+        ) where
 
 import Control.Applicative ((<$>))
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 import Data.HashMap.Lazy
 import Graphics.X11.Types
 import Network.HostName
@@ -12,46 +23,61 @@ import qualified Data.Text.IO as TIO
 import Text.Toml
 import Text.Toml.Types
 
-type WorkspaceName = String
 type NetInterfaceName = String
 type ExecuteCommand = ( String, [ String ] )
 type UsernameAtHostnameColonPort = String
 type Hostname = String
 type PortNum = String
 type SSHMapping = ((KeyMask, KeySym),UsernameAtHostnameColonPort)
+type WorkspaceNames = M.Map Int String
 
 defaultLocale = "en"
-defaultWorkspaceNames = ["web","com","dev","gfx","ofc","","","",""]
+defaultWorkspaces = M.fromList $ zip [1..] ["web","com","dev","gfx","ofc","","","",""]
 defaultTerminal = "xterm"
 
 -- | The mode in which the sysinfobar should be displayed
 data SysInfoBarMode = Slim | Full
         deriving ( Read, Show, Eq )
 
-data HostConfiguration = HostConfiguration {
-        locale :: String                        ,
-        workspaceNames :: [ WorkspaceName ]     ,
-        barMode :: SysInfoBarMode               ,
-        terminal :: FilePath                    ,
-        autostartPrograms :: [ ExecuteCommand ] ,
-        ssh :: [SSHMapping]
-        }
-        deriving ( Read, Show )
-
-defaultHostConfiguration :: HostConfiguration
-defaultHostConfiguration = HostConfiguration {
-        locale = defaultLocale                          ,
-        workspaceNames = defaultWorkspaceNames          ,
-        barMode = Full                                  ,
-        terminal = defaultTerminal                      ,
-        autostartPrograms = []                          ,
-        ssh = []
-        }
-
 data GeneralSection = GeneralSection
         { gen_locale :: String
         , gen_terminal :: String
         , gen_barMode :: SysInfoBarMode
+        } deriving Show
+
+defaultGeneralSection :: GeneralSection
+defaultGeneralSection = GeneralSection
+        { gen_locale = "en"
+        , gen_terminal = defaultTerminal
+        , gen_barMode = Full
+        }
+
+data HostConfiguration = HostConfiguration
+        { general :: GeneralSection
+        , workspaces :: WorkspaceNames
+        , autostartPrograms :: [ ExecuteCommand ]
+        , ssh :: [SSHMapping]
+        }
+        deriving Show
+
+isSlim :: HostConfiguration -> Bool
+isSlim hc = gen_barMode (general hc) == Slim
+
+terminal :: HostConfiguration -> String
+terminal hc = gen_terminal (general hc)
+
+workspaceMap :: HostConfiguration -> M.Map String String
+workspaceMap hc = M.foldrWithKey (\k v m -> M.insert v (wsname k v) m)  M.empty (workspaces hc)
+        where wsname i n
+                | isSlim hc = show i
+                | otherwise = concat [ show i, ":", n ]
+
+defaultHostConfiguration :: HostConfiguration
+defaultHostConfiguration = HostConfiguration
+        { general = defaultGeneralSection
+        , workspaces = defaultWorkspaces
+        , autostartPrograms = []
+        , ssh = []
         }
 
 parseGeneralSection :: Table -> GeneralSection
@@ -67,12 +93,12 @@ parseGeneralSection g =
                 )
                 (case g ! T.pack "barmode" of
                         VString bm  -> if T.unpack bm == "Slim" then Slim
-                                        else barMode defaultHostConfiguration
-                        _      -> barMode defaultHostConfiguration
+                                        else gen_barMode defaultGeneralSection
+                        _      -> gen_barMode defaultGeneralSection
                 )
 
-parseWorkSpaceSection :: Table -> [WorkspaceName]
-parseWorkSpaceSection g = defaultWorkspaceNames
+parseWorkSpaceSection :: Table -> WorkspaceNames
+parseWorkSpaceSection g = defaultWorkspaces
 
 parseAutostartSection :: Table -> [ExecuteCommand]
 parseAutostartSection a = autostartPrograms defaultHostConfiguration
@@ -96,10 +122,8 @@ parseConfiguration t =
                     _          -> emptyTable
         in
                 HostConfiguration
-                        { locale = gen_locale gen
-                        , workspaceNames = wsp
-                        , barMode = gen_barMode gen
-                        , terminal = gen_terminal gen
+                        { general = gen
+                        , workspaces = wsp
                         , autostartPrograms = auto
                         , ssh = mappings
                         }
@@ -130,12 +154,12 @@ myHostName :: IO Hostname
 myHostName = takeWhile (/= '.') <$> getHostName
 
 -- SysInfoBar path
-mySysInfoBar :: SysInfoBarMode -> String
-mySysInfoBar mode =
+sysInfoBar :: HostConfiguration -> String
+sysInfoBar conf =
         "xmobar -d .xmonad/" ++ barPrefix ++ "sysinfo_xmobar.rc"
         where barPrefix
-                | mode == Slim = "slim_"
-                | mode == Full = ""
+                | isSlim conf   = "slim_"
+                | otherwise     = ""
 
 sshConnections :: HostConfiguration -> [((KeyMask,KeySym),(Hostname,PortNum))]
 sshConnections =

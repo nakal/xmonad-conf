@@ -41,28 +41,26 @@ xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ M.myKeymap conf $ def
                 clickJustFocuses   = S.myClickJustFocuses,
                 borderWidth        = S.myBorderWidth,
                 modMask            = S.myModMask,
-                workspaces         = WS.numberedWorkspaces barmode wsnames,
+                workspaces         = WS.numberedWorkspaces conf,
                 normalBorderColor  = S.myInactiveColor,
                 focusedBorderColor = S.myFocusedBorderColor,
 
                 keys               = M.emptyKeys,
                 mouseBindings      = M.myMouseBindings,
 
-                layoutHook         = LA.myLayout barmode wsnames,
-                manageHook         = MH.myManageHook barmode wsnames,
+                layoutHook         = LA.myLayout conf,
+                manageHook         = MH.myManageHook conf,
                 handleEventHook    = EV.myEventHook,
                 logHook            = WS.myLogHook xmobar conf,
                 startupHook        = autostartAllPrograms conf
         }
-        where wsnames = HC.workspaceNames conf
-              barmode = HC.barMode conf
 
 autostartAllPrograms :: HC.HostConfiguration -> X ()
 autostartAllPrograms conf = do
         case os of
                 "freebsd" -> spawn "~/.xmonad/lib/SysInfoBar"
-                "openbsd" -> spawn $ "sysinfobar | " ++ HC.mySysInfoBar (HC.barMode conf)
-                "linux"   -> spawn $ "sysinfobar | " ++ HC.mySysInfoBar (HC.barMode conf)
+                "openbsd" -> spawn $ "sysinfobar | " ++ HC.sysInfoBar conf
+                "linux"   -> spawn $ "sysinfobar | " ++ HC.sysInfoBar conf
                 _         -> return ()
         mapM_ execprog $ HC.autostartPrograms conf
         where execprog prog = spawn $ fst prog ++ " " ++ unwords (snd prog)
@@ -70,5 +68,5 @@ autostartAllPrograms conf = do
 main = do
         conf <- HC.readHostConfiguration
         hPrint stderr conf
-        xmobar <- spawnPipe (WS.myXmonadBar $ HC.barMode conf)
+        xmobar <- spawnPipe (WS.myXmonadBar conf)
         xmonad $ xconfig conf xmobar
