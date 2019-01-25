@@ -1,12 +1,13 @@
 module HostConfiguration
         ( WorkspaceNames
         , HostConfiguration
+        , KeyMapping(..)
         , workspaces
         , workspaceMap
         , terminal
         , locale
         , readHostConfiguration
-        , sshConnections
+        , keyMappings
         , isSlim
         , sysInfoBar
         , autostartPrograms
@@ -31,7 +32,12 @@ type ExecuteCommand = ( String, [ String ] )
 type UsernameAtHostnameColonPort = String
 type Hostname = String
 type PortNum = String
-type SSHMapping = ((KeyMask, KeySym),UsernameAtHostnameColonPort)
+data KeyMapping = KeyMapping
+        { kmKey :: String
+        , kmName :: String
+        , kmExec :: ExecuteCommand
+        , kmInTerminal :: Bool
+        } deriving Show
 type WorkspaceNames = M.Map Int String
 
 defaultLocale = "en"
@@ -59,7 +65,7 @@ data HostConfiguration = HostConfiguration
         { general :: GeneralSection
         , workspaces :: WorkspaceNames
         , autostartPrograms :: [ ExecuteCommand ]
-        , ssh :: [SSHMapping]
+        , keyMappings :: [KeyMapping]
         }
         deriving Show
 
@@ -83,7 +89,7 @@ defaultHostConfiguration = HostConfiguration
         { general = defaultGeneralSection
         , workspaces = defaultWorkspaces
         , autostartPrograms = []
-        , ssh = []
+        , keyMappings = []
         }
 
 parseGeneralSection :: Table -> GeneralSection
@@ -133,8 +139,29 @@ parseAutostartSection a =
           VArray v      -> MB.mapMaybe parseExec (V.toList v)
           _             -> autostartPrograms defaultHostConfiguration
 
-parseMappingsSection :: Table -> [SSHMapping]
-parseMappingsSection s = ssh defaultHostConfiguration
+parseMapping :: Table -> Maybe KeyMapping
+parseMapping mt =
+        let k = case mt ! T.pack "key" of
+                  VString t     ->      T.unpack t
+                  _             ->      ""
+            e = case mt ! T.pack "exec" of
+                  v@(VArray _)  ->      parseExec v
+                  _             ->      Nothing
+            n = case mt ! T.pack "name" of
+                  VString n     ->      T.unpack n
+                  _             ->      ""
+            t = case mt ! T.pack "in_terminal" of
+                  VBoolean b    ->      b
+                  _             ->      False
+        in
+                if Prelude.null k || MB.isNothing e
+                   then
+                        Nothing
+                   else
+                        Just $ KeyMapping k n (MB.fromJust e) t
+
+parseMappingTable :: VTArray -> [KeyMapping]
+parseMappingTable a = MB.catMaybes $ V.toList $ V.map parseMapping a
 
 parseConfiguration :: Table -> HostConfiguration
 parseConfiguration t =
@@ -147,15 +174,15 @@ parseConfiguration t =
             auto = parseAutostartSection $ case t ! T.pack "autostart" of
                     VTable a   -> a
                     _          -> emptyTable
-            mappings = parseMappingsSection $ case t ! T.pack "mappings" of
-                    VTable m   -> m
-                    _          -> emptyTable
+            mapping = case t ! T.pack "mapping" of
+                    VTArray m           -> parseMappingTable m
+                    _                   -> []
         in
                 HostConfiguration
                         { general = gen
                         , workspaces = wsp
                         , autostartPrograms = auto
-                        , ssh = mappings
+                        , keyMappings = mapping
                         }
 
 readHostConfiguration :: IO HostConfiguration
@@ -188,8 +215,3 @@ sysInfoBar conf =
         where barPrefix
                 | isSlim conf   = "slim_"
                 | otherwise     = ""
-
-sshConnections :: HostConfiguration -> [((KeyMask,KeySym),(Hostname,PortNum))]
-sshConnections =
-        fmap (\((k,s),uhcp) -> ((k,s), makePort $ break (== ':') uhcp)) . ssh
-        where makePort (a,b) = (a, if Prelude.null b then "22" else drop 1 b)

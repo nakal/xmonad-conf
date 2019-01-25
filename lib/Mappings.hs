@@ -16,7 +16,7 @@ import XMonad.Actions.Minimize ( minimizeWindow, maximizeWindow, withLastMinimiz
 import XMonad.Hooks.UrgencyHook ( focusUrgent, clearUrgents )
 import XMonad.Util.Paste ( pasteSelection, pasteString )
 import XMonad.Prompt.ConfirmPrompt ( confirmPrompt )
-import XMonad.Util.Run ( runInTerm, runProcessWithInput, safeSpawnProg )
+import XMonad.Util.Run ( runInTerm, runProcessWithInput, safeSpawnProg, safeSpawn, safeRunInTerm )
 import qualified XMonad.StackSet as W
 import XMonad.Util.EZConfig
 import XMonad.Util.NamedActions
@@ -87,9 +87,16 @@ myKeys hostconf conf =
         , ( "<KP_Subtract>", addName "prev" prevWS )
         , ( "M-<Right>", addName "next" nextWS )
         , ( "<KP_Add>", addName "next" nextWS )
+        ] ++
+        subtitle "local configuration": mkNamedKeymap conf
+        [ ( m,  addName n $ exetype inTerm cmd args)
+                | HC.KeyMapping m n (cmd, args) inTerm <- HC.keyMappings hostconf
         ]
+        where exetype it cmd args
+                | it              = safeSpawn (XMonad.terminal conf) ("-e":cmd:args)
+                | otherwise       = safeSpawn cmd args
 
-otherKeys hostconf conf =
+otherKeys conf =
 
         -- F key / keypad digit -> change workspace
         -- mod+F key / mod + keypad digit -> shift window to workspace
@@ -118,19 +125,13 @@ otherKeys hostconf conf =
         [((m .|. modMask conf, key), screenWorkspace sc >>= flip whenJust (windows . f))
                 | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
                 , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]
-        ] ++
-
-        -- configure SSH connections from HostConfiguration to avoid
-        -- leaking host names
-        [((m, k), runInTerm "" $ "ssh -p" ++ port ++ " -Y -t " ++ con ++ " 'tmux -2 new-session'")
-                | ((m, k), (con,port)) <- HC.sshConnections hostconf
         ]
 
 emptyKeys c = mkKeymap c []
 
 myKeymap :: HC.HostConfiguration -> XConfig l -> XConfig l
-myKeymap hostconf conf = addDescrKeys ((mod4Mask .|. shiftMask, xK_slash), xMessage) (myKeys conf) conf
-        `additionalKeys` otherKeys hostconf conf
+myKeymap hostconf conf = addDescrKeys ((mod4Mask .|. shiftMask, xK_slash), xMessage) (myKeys hostconf) conf
+        `additionalKeys` otherKeys conf
 
 -- protects execution when VirtualBox is in focus
 vboxProtectedBinding :: String -> String -> X()
