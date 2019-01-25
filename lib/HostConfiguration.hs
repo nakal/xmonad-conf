@@ -14,7 +14,9 @@ module HostConfiguration
 
 import Control.Applicative ((<$>))
 import qualified Data.Map.Strict as M
+import qualified Data.Maybe as MB
 import Data.HashMap.Lazy
+import qualified Data.Vector as V
 import Graphics.X11.Types
 import Network.HostName
 import System.Directory
@@ -111,8 +113,25 @@ parseWorkSpaceSection w =
                         let VString n = w ! T.pack (show num)
                 ]
 
+parseExec :: Node -> Maybe ExecuteCommand
+parseExec e =
+        case e of
+          VArray v      -> let cmd = traverse
+                                (\x -> case x of
+                                        VString t     -> Just $ T.unpack t
+                                        _             -> Nothing
+                                ) (V.toList v)
+                           in
+                                case cmd of
+                                  Just (bin:args)       -> Just (bin, args)
+                                  _                     -> Nothing
+          _             -> Nothing
+
 parseAutostartSection :: Table -> [ExecuteCommand]
-parseAutostartSection a = autostartPrograms defaultHostConfiguration
+parseAutostartSection a =
+        case a ! T.pack "exec" of
+          VArray v      -> MB.mapMaybe parseExec (V.toList v)
+          _             -> autostartPrograms defaultHostConfiguration
 
 parseMappingsSection :: Table -> [SSHMapping]
 parseMappingsSection s = ssh defaultHostConfiguration
