@@ -4,6 +4,7 @@ module HostConfiguration
         , workspaces
         , workspaceMap
         , terminal
+        , locale
         , readHostConfiguration
         , sshConnections
         , isSlim
@@ -66,6 +67,9 @@ isSlim hc = gen_barMode (general hc) == Slim
 terminal :: HostConfiguration -> String
 terminal hc = gen_terminal (general hc)
 
+locale :: HostConfiguration -> String
+locale hc = gen_locale (general hc)
+
 workspaceMap :: HostConfiguration -> M.Map String String
 workspaceMap hc = M.foldrWithKey (\k v m -> M.insert v (wsname k v) m)  M.empty (workspaces hc)
         where wsname i n
@@ -91,14 +95,21 @@ parseGeneralSection g =
                         VString t       -> T.unpack t
                         _               -> defaultTerminal
                 )
-                (case g ! T.pack "barmode" of
-                        VString bm  -> if T.unpack bm == "Slim" then Slim
+                (case g ! T.pack "slimscreen" of
+                        VBoolean bm  -> if bm then Slim
                                         else gen_barMode defaultGeneralSection
                         _      -> gen_barMode defaultGeneralSection
                 )
 
 parseWorkSpaceSection :: Table -> WorkspaceNames
-parseWorkSpaceSection g = defaultWorkspaces
+parseWorkSpaceSection w =
+        M.fromList
+                [
+                        (num, T.unpack n) | num <- [1..9],
+                        let tnum = T.pack (show num),
+                        member tnum w,
+                        let VString n = w ! T.pack (show num)
+                ]
 
 parseAutostartSection :: Table -> [ExecuteCommand]
 parseAutostartSection a = autostartPrograms defaultHostConfiguration
@@ -143,9 +154,7 @@ readHostConfiguration = do
                                                         hPutStrLn stderr ("failed to parse TOML in " ++ confpath)
                                                         hPutStrLn stderr ("\t" ++ show err)
                                                         return defaultHostConfiguration
-                          Right t       ->      do
-                                                        print toml
-                                                        return $ parseConfiguration t
+                          Right t       ->      return $ parseConfiguration t
                 else do
                         hPutStrLn stderr "configuration not found, using defaults."
                         return defaultHostConfiguration

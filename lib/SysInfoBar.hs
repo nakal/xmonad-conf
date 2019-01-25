@@ -116,7 +116,7 @@ batteryStats _ = ""
 
 displayStats :: Stats -> IO()
 displayStats (Stats conf pipe cpuperc numcpu memstat swapperc (NetLoad net_rx net_tx) maybe_battime) = do
-        datestr <- DF.getTimeAndDate (HC.locale conf) (HC.barMode conf)
+        datestr <- DF.getTimeAndDate conf
         hPutStrLn pipe $
                 printf ("<fc=%v>|</fc> CPU:<fc=%v>%3v%%</fc> MEM:\
                         \<fc=%v>%3v%%</fc> SWP:<fc=%v>\
@@ -217,17 +217,17 @@ spawnNetStat = do
                         return $ Just line)
                         (\_ -> return Nothing)
 
-xmobarSysInfo :: FilePath -> HC.SysInfoBarMode -> [ String ]
-xmobarSysInfo homedir mode =
+xmobarSysInfo :: FilePath -> HC.HostConfiguration -> [ String ]
+xmobarSysInfo homedir conf =
         [ "xmobar", homedir ++ "/.xmonad/" ++ prefix ++ "sysinfo_xmobar.rc" ]
         where prefix
-                | mode == HC.Slim = "slim_"
-                | mode == HC.Full = ""
+                | HC.isSlim conf = "slim_"
+                | otherwise   = ""
 
 main = do
         conf <- HC.readHostConfiguration
         homedir <- getHomeDirectory
-        spawnPipe (xmobarSysInfo homedir (HC.barMode conf)) >>=
+        spawnPipe (xmobarSysInfo homedir conf) >>=
                 (case os of
                         "freebsd" -> startBSD conf
                         _         -> error $ "Unknown operating system " ++ os

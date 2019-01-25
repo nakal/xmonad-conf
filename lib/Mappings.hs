@@ -94,12 +94,12 @@ otherKeys hostconf conf =
         -- F key / keypad digit -> change workspace
         -- mod+F key / mod + keypad digit -> shift window to workspace
         [((m, k), windows $ f i)
-                | (i, k) <- zip (cycle $ XMonad.workspaces conf) (
-                        [xK_F1..xK_F9] ++
-                        [xK_KP_End, xK_KP_Down, xK_KP_Page_Down,
-                        xK_KP_Left, xK_KP_Begin, xK_KP_Right,
-                        xK_KP_Home, xK_KP_Up, xK_KP_Page_Up]
-                        )
+                | (i, k) <- concatMap (zip (XMonad.workspaces conf))
+                                [ [xK_F1..xK_F9]
+                                , [xK_KP_End, xK_KP_Down, xK_KP_Page_Down,
+                                  xK_KP_Left, xK_KP_Begin, xK_KP_Right,
+                                  xK_KP_Home, xK_KP_Up, xK_KP_Page_Up]
+                                ]
                 , (f, m) <- [(W.greedyView, 0), (W.shift, modMask conf)]
         ] ++
 

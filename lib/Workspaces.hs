@@ -6,6 +6,7 @@ module Workspaces
         ) where
 
 import qualified Data.List as L ( elemIndex )
+import Data.Maybe
 import qualified Data.Map.Strict as M
 import System.IO ( Handle, hPutStrLn )
 
@@ -31,7 +32,7 @@ import qualified HostConfiguration as HC
 import Settings
 
 myPad :: HC.HostConfiguration -> String -> String
-myPad hc = if HC.isSlim hc then id else (++) ""
+myPad hc = if HC.isSlim hc then id else (++) " "
 
 -- Workspace mode symbol
 workspaceLayoutSymbol :: String -> String
@@ -110,6 +111,4 @@ numberedWorkspaces conf = map name $ M.assocs (HC.workspaces conf)
 
 -- Safely returns a matching workspace name
 getWorkspaceName :: HC.HostConfiguration -> String -> String
-getWorkspaceName conf name = case M.lookup name (HC.workspaceMap conf) of
-        Nothing -> last $ numberedWorkspaces conf
-        Just x  -> x
+getWorkspaceName conf name = fromMaybe (last $ numberedWorkspaces conf) (M.lookup name (HC.workspaceMap conf))

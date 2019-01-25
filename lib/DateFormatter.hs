@@ -7,19 +7,18 @@ import Data.Time.LocalTime
 
 import qualified HostConfiguration as HC
 
-wantSeconds :: HC.SysInfoBarMode -> String
-wantSeconds HC.Slim = ""
-wantSeconds HC.Full = ":%S"
+wantSeconds :: HC.HostConfiguration -> String
+wantSeconds hc = if HC.isSlim hc then "" else ":%S"
 
-getTimeLocale :: String -> HC.SysInfoBarMode -> TimeLocale
-getTimeLocale "de" mode = TimeLocale {
+getTimeLocale :: String -> HC.HostConfiguration -> TimeLocale
+getTimeLocale "de" conf = TimeLocale {
         wDays = fmap (\x -> (x, take 2 x)) [ "Sonntag", "Montag", "Dienstag",
                 "Mittwoch", "Donnerstag", "Freitag", "Samstag" ],
         months = fmap (\x -> (x, take 3 x)) [ "Januar", "Februar", "März",
                 "April", "Mai", "Juni", "Juli", "August", "September",
                 "Oktober", "November", "Dezember" ],
         amPm = ("früh", "nachm."),
-        dateTimeFmt = "%a %e %b %Y %H:%M" ++ wantSeconds mode,
+        dateTimeFmt = "%a %e %b %Y %H:%M" ++ wantSeconds conf,
         dateFmt = "%a, den %e. %B %Y",
         timeFmt = "%H:%M:%S",
         time12Fmt = "%l Uhr %-zM %P",
@@ -32,7 +31,9 @@ getTimeLocale _ mode = defaultTimeLocale {
         dateTimeFmt = "%a %e %b %Y %H:%M" ++ wantSeconds mode
         }
 
-getTimeAndDate :: String -> HC.SysInfoBarMode -> IO String
-getTimeAndDate localename mode =
-        formatTime locale (dateTimeFmt locale) <$> getZonedTime
-        where locale = getTimeLocale localename mode
+getTimeAndDate :: HC.HostConfiguration -> IO String
+getTimeAndDate conf =
+        let     localename = HC.locale conf
+                locale = getTimeLocale localename conf
+        in
+                formatTime locale (dateTimeFmt locale) <$> getZonedTime
