@@ -14,7 +14,7 @@ Included fine tuning has been done for (e.g.):
 	* GTK+ 2 & 3
 	* session management
 	* dialogs for
-		* SSH
+		* [SSH](lib/Contrib/README.md)
 		* rdesktop
 		* VirtualBox
 * xmobar:
@@ -40,7 +40,7 @@ For those who read the warnings above, proceed with these steps:
 0. **Make a backup of your $HOME** (optional, but you never know!)
 1. Clone the project.
 2. Move the project files to `~/.xmonad`.
-3. When you have FreeBSD, you can directly execute the script
+3. If you have FreeBSD, you can directly execute the script
    `~/.xmonad/setup.sh`. If not you will need
    to check the dependencies by yourself and comment out the
    `pkg info` check at the beginning of the script.
@@ -51,7 +51,8 @@ For those who read the warnings above, proceed with these steps:
 
 You can use the directory `~/.xmonad/conf` to make fine tuning for hosts.
 Xmonad will look for a configuration there that is named
-`~/.xmonad/conf/HOSTNAME.hs`.
+`~/.xmonad/conf/HOSTNAME.toml`. It is stored in
+[TOML](https://github.com/toml-lang/toml) format.
 
 ### Workspaces and Layouts
 
@@ -69,56 +70,84 @@ Use F-keys to navigate to the workspaces or click on the workspace bar.
 
 ### Netbooks and devices with small screens
 
-If you have a small screen, you can set `barMode = Slim` in your
-host configuration file.
+If you have a small screen, you can set `slimscreen = true` in your
+host configuration file's `[general]` section.
 
 ### Example
 
-This configuration will make 9 desktops with the given names.  It will also
+This configuration will make 9 workspaces with the given names.  It will also
 start Firefox and Thunderbird. It will also set the wallpaper with the given
 arguments (just so you can see how to pass arguments).
 
 ```
-HostConfiguration {
-	locale = "de",
-        workspaceNames = [ "web","com","dev","gfx","ofc","","","",""],
-	barMode = Full,
-        terminal = "xterm",
-        autostartPrograms = [
-		("hsetroot",["-fill","~/.wallpapers/liquid-1600x1200.jpg"]),
-                ("firefox",[]),
-                ("thunderbird",[])
-                ],
-	ssh = [
-		((64,115),"user@server1"),
-		((65,115),"server2:222")
-		]
-        }
+[general]
+
+locale = "de"
+terminal = "xterm"
+slimscreen = false
+
+[workspaces]
+
+1 = "web"
+2 = "com"
+3 = "dev"
+4 = "gfx"
+5 = "ofc"
+6 = ""
+7 = ""
+8 = ""
+9 = ""
+
+[autostart]
+
+exec =  [ ["hsetroot", "-fill", "~/.wallpapers/my-wallpaper.jpg"]
+        , ["firefox" ]
+        , ["thunderbird" ]
+ ]
+
+[[mapping]]
+
+key = "M-s"
+name = "ssh user@server1"
+exec = [ "ssh", "-Y", "-t", "user@server1", "tmux -2 new-session" ]
+in_terminal = true
+
+[[mapping]]
+
+key = "M-S-s"
+name = "ssh server2"
+exec = [ "ssh", "-p", "222", "-Y", "-t", "server2", "tmux -2 new-session" ]
+in_terminal = true
 ```
 
-**Be careful here,** this has to be a valid Haskell record syntax (instance of
-Read/Show) or it will be safely skipped and the defaults will be used.
-
-Unfortunatelly, it is not possible to use `xK_s` and `mod`-Masks for
-the keys in the configuration of `ssh` connections, so you will need to find the symbols
-for yourself [here](http://xmonad.org/xmonad-docs/X11/src/Graphics-X11-Types.html).
+Problem reading the configuration file are logged in `~/.xsession-errors`.
+For most cases of problems the appropriate defaults will be used.
 
 #### Default host-specific configuration
 
 It looks like this:
 ```
-defaultHostConfiguration = HostConfiguration {
-	locale = "en",
-        workspaceNames = ["web","com","dev","gfx","ofc","","","",""],
-	barMode = Full,
-        terminal = "xterm",
-        autostartPrograms = [],
-	ssh = []
-        }
+[general]
+
+locale = "en"
+terminal = "xterm"
+slimscreen = false
+
+[workspaces]
+
+1 = "web"
+2 = "com"
+3 = "dev"
+4 = "gfx"
+5 = "ofc"
+6 = ""
+7 = ""
+8 = ""
+9 = ""
 ```
 
-You don't need to make a file for this, it is implied, if nothing has been
-found or if an error reading your configuration occurs.
+You don't need to make a file for this, it is implied, if no configuration has been
+found for the current host or if an error reading your configuration occurs.
 
 ## Features and gotchas
 
@@ -126,7 +155,7 @@ The configuration is fully managed in [git](http://git-scm.com).
 
 All the configurations included are softlinks. It means that you can update
 them and you implicitly update the checked out project. This also implies
-that it might be a good idea to make yourself a fork of this project. But
+that it might be a good idea to have a fork of this project for yourself. But
 you can also merge in changes from my repository, but don't complain, if
 something breaks for you. You should consider this project my private
 playground.
