@@ -65,6 +65,7 @@ autostartAllPrograms conf = do
         mapM_ execprog $ HC.autostartPrograms conf
         where execprog prog = spawn $ fst prog ++ " " ++ unwords (snd prog)
 
+main :: IO()
 main = do
         conf <- HC.readHostConfiguration
         hPrint stderr conf
