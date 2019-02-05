@@ -26,7 +26,7 @@ check_haskell() {
 	fi
 
 	HASKELL_PACKAGES="\
-		xmonad xmonad-contrib hostname \
+		xmonad xmonad-contrib hostname vector htoml \
 		"
 	for pkg in $HASKELL_PACKAGES; do
 		if ! ghc-pkg describe "$pkg" > /dev/null; then
