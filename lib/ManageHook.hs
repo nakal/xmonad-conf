@@ -42,6 +42,7 @@ myManageHook conf =
                 , className =? "Iceweasel"              --> insertPosition Master Newer <+> doShift (getWorkspace "web")
                 , className =? "Firefox"                --> insertPosition Master Newer <+> doShift (getWorkspace "web")
                 , L.isPrefixOf "Vimperator Edit" <$> title --> insertPosition End Newer <+> doShift (getWorkspace "web")
+                , className =? "Chromium-browser"       --> insertPosition Master Newer <+> doShift (getWorkspace "web")
                 , className =? "Claws-mail"             --> doShift  (getWorkspace "com")
                 , className =? "Thunderbird"            --> doShift  (getWorkspace "com")
                 , className =? "Pidgin"                 --> doShift  (getWorkspace "com")
