@@ -41,6 +41,7 @@ myManageHook conf =
                 , title =? "Calendar"                   --> doNotificationFloat
                 , className =? "Iceweasel"              --> insertPosition Master Newer <+> doShift (getWorkspace "web")
                 , className =? "Firefox"                --> insertPosition Master Newer <+> doShift (getWorkspace "web")
+                , className =? "Firefox-esr"                --> insertPosition Master Newer <+> doShift (getWorkspace "web")
                 , L.isPrefixOf "Vimperator Edit" <$> title --> insertPosition End Newer <+> doShift (getWorkspace "web")
                 , className =? "Chromium-browser"       --> insertPosition Master Newer <+> doShift (getWorkspace "web")
                 , className =? "Claws-mail"             --> doShift  (getWorkspace "com")
