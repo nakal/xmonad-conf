@@ -112,7 +112,7 @@ REQUIRED_PACKAGES_OpenBSD="\
 	gnupg-2 gpgme rxvt-unicode xdotool xclip \
 	"
 RECOMMENDED_PACKAGES_OpenBSD="\
-	firefox gimp weechat xfe mozilla-dicts-de-DE password-gorilla \
+	firefox gimp xfe mozilla-dicts-de-DE password-gorilla \
 "
 REQUIRED_PACKAGES_FreeBSD="\
 	sudo rxvt-unicode xscreensaver \
@@ -121,7 +121,7 @@ REQUIRED_PACKAGES_FreeBSD="\
 	roboto-fonts-ttf xdotool xclip xwininfo \
 	"
 RECOMMENDED_PACKAGES_FreeBSD="\
-	xdm gimp weechat firefox xfe gtk2 gtk-oxygen-engine gorilla \
+	xdm gimp iridium xfe gtk2 gtk-oxygen-engine gorilla \
 	"
 . "$SCRIPT_HOME/shell-setup/include/packages.sh"
 check_packages

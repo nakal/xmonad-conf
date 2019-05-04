@@ -31,6 +31,14 @@ DEFAULT_SESSION=xmonad
 echo `xmonad --version` "("`which xmonad`")"
 echo `xmobar --version | head -n 1` "("`which xmobar`")"
 
+if which iridium >/dev/null 2>&1; then
+	BROWSER=iridium
+fi
+if [ -z "$BROWSER" ]; then
+	BROWSER=firefox
+fi
+export BROWSER
+
 if [ -n "$GPG_AGENT_INFO" ]; then
 	SESSION_AGENT="ssh-agent"
 else
