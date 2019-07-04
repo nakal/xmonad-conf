@@ -20,20 +20,20 @@ check_haskell() {
 		exit 1
 	fi
 	echo "Ok, found cabal, updating package list, please wait..."
-	if ! cabal update; then
-		echo "*** ERROR: cabal update failed."
+	if ! cabal new-update; then
+		echo "*** ERROR: cabal new-update failed."
 		exit 1
 	fi
 
 	HASKELL_PACKAGES="\
-		xmonad xmonad-contrib hostname vector htoml \
+		xmonad xmonad-contrib hostname vector htoml bsd-sysctl \
 		"
 	for pkg in $HASKELL_PACKAGES; do
 		if ! ghc-pkg describe "$pkg" > /dev/null; then
 			echo "Haskell installation missing $pkg, installing..."
-			if ! cabal install "$pkg"; then
+			if ! cabal new-install "$pkg"; then
 				echo "*** ERROR (installation failed): cabal" \
-					" install $pkg"
+					" new-install $pkg"
 				exit 1
 			fi
 		else
@@ -48,12 +48,19 @@ check_haskell() {
 			OpenBSD) cabal_install_options="$cabal_install_options --extra-lib-dirs=/usr/X11R6/lib --extra-include-dirs=/usr/X11R6/include" ;;
 			*) ;;
 		esac
-		if ! cabal install -v xmobar $cabal_install_options; then
+		if ! cabal new-install -v xmobar $cabal_install_options; then
 			echo "*** ERROR (installation failed): cabal" \
-				" install $pkg $cabal_install_options"
+				" new-install $pkg $cabal_install_options"
 			exit 1
 		fi
 	fi
+
+	ghc_version=`ghc --numeric-version`
+
+	# Fix ghc-pkg
+	for f in $HOME/.cabal/store/ghc-$ghc_version/package.db/*.conf; do
+		ghc-pkg register --user --force $f
+	done
 }
 
 echo "[Xmonad setup] Looking for my installation directory..."

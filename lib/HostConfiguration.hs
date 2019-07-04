@@ -194,9 +194,12 @@ parseConfiguration t =
             auto = parseAutostartSection $ case t ! T.pack "autostart" of
                     VTable a   -> a
                     _          -> emptyTable
-            mapping = case t ! T.pack "mapping" of
-                    VTArray m           -> parseMappingTable m
-                    _                   -> []
+            mapping = if mappingkey `member` t then
+                        case t ! mappingkey of
+                                VTArray m           -> parseMappingTable m
+                                _                   -> []
+                        else
+                                []
         in
                 HostConfiguration
                         { general = gen
@@ -204,6 +207,7 @@ parseConfiguration t =
                         , autostartPrograms = auto
                         , keyMappings = mapping
                         }
+        where mappingkey = T.pack "mapping"
 
 -- | Locates, reads and parses the TOML configuration file
 -- | and returns a HostConfiguration for general use
