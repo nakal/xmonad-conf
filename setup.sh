@@ -42,7 +42,7 @@ check_haskell() {
 	done
 
 	# cabal does not register Xmobar
-	if which xmobar; then
+	if ! which xmobar; then
 		cabal_install_options="-fwith_utf8 -fwith_xft"
 		case $OS in
 			OpenBSD) cabal_install_options="$cabal_install_options --extra-lib-dirs=/usr/X11R6/lib --extra-include-dirs=/usr/X11R6/include" ;;
@@ -126,6 +126,7 @@ REQUIRED_PACKAGES_FreeBSD="\
 	dmenu gmrun xrdb xsetroot setxkbmap gnupg \
 	xmodmap hsetroot fira hs-cabal-install ghc \
 	roboto-fonts-ttf xdotool xclip xwininfo \
+	pkgconf xterm \
 	"
 RECOMMENDED_PACKAGES_FreeBSD="\
 	xdm gimp iridium xfe gtk2 gtk-oxygen-engine gorilla \
