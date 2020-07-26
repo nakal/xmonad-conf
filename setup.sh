@@ -55,12 +55,12 @@ check_haskell() {
 		fi
 	fi
 
-	ghc_version=`ghc --numeric-version`
-
 	# Fix ghc-pkg
-	for f in $HOME/.cabal/store/ghc-$ghc_version/package.db/*.conf; do
-		ghc-pkg register --user --force $f
-	done
+	ghc_version=`ghc --numeric-version`
+	if ! cp $HOME/.cabal/store/ghc-$ghc_version/package.db/package.cache* $HOME/.ghc/*-*-$ghc_version/package.conf.d/; then
+		echo "*** ERROR: Could not fix GHC package list."
+		exit 1
+	fi
 }
 
 echo "[Xmonad setup] Looking for my installation directory..."

@@ -54,13 +54,14 @@ myHighLoadColor = "red"
 getNetLoad :: Maybe Handle -> NetLoad -> IO NetLoad
 getNetLoad (Just pipe) lastnetload = do
         ready <- catchIOError (hReady pipe) (\_ -> return False)
-        if not ready then
-                return lastnetload
-        else do
+        if not ready
+           then do
                 l <- words <$> hGetLine pipe
                 getNetLoad (Just pipe) $ case readMaybe (head l) :: Maybe Integer of
                         Nothing -> lastnetload
                         _       -> NetLoad (read $ l !! 3) (read $ l !! 6)
+           else
+                return lastnetload
 
 getNetLoad _ lastnetload = return lastnetload
 
