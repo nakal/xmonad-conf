@@ -31,7 +31,7 @@ check_haskell() {
 	for pkg in $HASKELL_PACKAGES; do
 		if ! ghc-pkg describe "$pkg" > /dev/null; then
 			echo "Haskell installation missing $pkg, installing..."
-			if ! cabal new-install "$pkg"; then
+			if ! cabal new-install --overwrite-policy=always "$pkg"; then
 				echo "*** ERROR (installation failed): cabal" \
 					" new-install $pkg"
 				exit 1
@@ -56,6 +56,7 @@ check_haskell() {
 	fi
 
 	# Fix ghc-pkg
+	ghc-pkg recache --user
 	ghc_version=`ghc --numeric-version`
 	if ! cp $HOME/.cabal/store/ghc-$ghc_version/package.db/package.cache* $HOME/.ghc/*-*-$ghc_version/package.conf.d/; then
 		echo "*** ERROR: Could not fix GHC package list."
@@ -129,7 +130,7 @@ REQUIRED_PACKAGES_FreeBSD="\
 	pkgconf xterm \
 	"
 RECOMMENDED_PACKAGES_FreeBSD="\
-	xdm gimp iridium xfe gtk2 gtk-oxygen-engine gorilla \
+	xdm gimp iridium-browser xfe gtk2 gtk-oxygen-engine gorilla \
 	"
 . "$SCRIPT_HOME/shell-setup/include/packages.sh"
 check_packages
