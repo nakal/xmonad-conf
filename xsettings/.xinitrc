@@ -35,7 +35,7 @@ if which iridium >/dev/null 2>&1; then
 	BROWSER=iridium
 fi
 if [ -z "$BROWSER" ]; then
-	BROWSER=firefox
+	BROWSER=chrome
 fi
 export BROWSER
 

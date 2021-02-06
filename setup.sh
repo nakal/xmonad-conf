@@ -148,6 +148,7 @@ cd $HOME
 REMOVE_FILES=".xinitrc .xsession .Xdefaults .gtkrc-2.0 \
 	.config/gtk-3.0/settings.ini .config/user-dirs.dirs \
 	.vimperatorrc.local .xpdfrc_base .office.sh \
+	.config/alacritty/alacritty.yml \
 	"
 
 for df in $REMOVE_FILES; do
@@ -178,6 +179,10 @@ ln -s $SCRIPT_HOME/xsettings/user-dirs.dirs .
 mkdir -p $HOME/.config/gtk-3.0
 cd $HOME/.config/gtk-3.0
 ln -s $SCRIPT_HOME/xsettings/settings.ini .
+
+mkdir -p $HOME/.config/alacritty
+cd $HOME/.config/alacritty
+ln -s $SCRIPT_HOME/xsettings/alacritty.yml .
 
 # xpdf local configuration
 if [ ! -e $HOME/.xpdfrc ]; then
