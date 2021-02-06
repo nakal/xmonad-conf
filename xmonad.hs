@@ -33,6 +33,8 @@ import qualified Workspaces as WS
         , myXmonadBar
         , myLogHook
         )
+import XMonad.Hooks.EwmhDesktops as Ewmh
+import XMonad.Hooks.SetWMName as WM
 
 xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ M.myKeymap conf $ def
         {
@@ -57,6 +59,8 @@ xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ M.myKeymap conf $ def
 
 autostartAllPrograms :: HC.HostConfiguration -> X ()
 autostartAllPrograms conf = do
+        Ewmh.ewmhDesktopsStartup
+        WM.setWMName "LG3D"
         case os of
                 "freebsd" -> spawn "~/.xmonad/lib/SysInfoBar"
                 "openbsd" -> spawn $ "sysinfobar | " ++ HC.sysInfoBar conf

@@ -39,13 +39,13 @@ myManageHook conf =
                 , className =? "xmDialog"               --> doCenterFloat
                 , className =? "xmNotification"         --> doNotificationFloat
                 , title =? "Calendar"                   --> doNotificationFloat
-                , className =? "Iceweasel"              --> insertPosition Master Newer <+> doShift (getWorkspace "web")
+                , className =? "Iceweasel"              --> insertPosition End Newer <+> doShift (getWorkspace "web")
                 , className =? "Firefox"                --> insertPosition Master Newer <+> doShift (getWorkspace "web")
                 , className =? "Firefox-esr"                --> insertPosition Master Newer <+> doShift (getWorkspace "web")
                 , L.isPrefixOf "Vimperator Edit" <$> title --> insertPosition End Newer <+> doShift (getWorkspace "web")
                 , className =? "Chromium-browser"       --> insertPosition Master Newer <+> doShift (getWorkspace "web")
                 , className =? "Claws-mail"             --> doShift  (getWorkspace "com")
-                , className =? "Thunderbird"            --> doShift  (getWorkspace "com")
+                , className =? "Thunderbird"            --> insertPosition End Newer <+> doShift  (getWorkspace "com")
                 , className =? "Pidgin"                 --> doShift  (getWorkspace "com")
                 , className =? "VBoxSDL"                --> doShift  (getWorkspace "win")
                 , className =? "rdesktop"               --> doUnfloat <+> doShift  (getWorkspace "win")
