@@ -26,12 +26,13 @@ check_haskell() {
 	fi
 
 	HASKELL_PACKAGES="\
+		unordered-containers X11 data-default \
 		xmonad xmonad-contrib hostname vector htoml bsd-sysctl \
 		"
 	for pkg in $HASKELL_PACKAGES; do
 		if ! ghc-pkg describe "$pkg" > /dev/null; then
 			echo "Haskell installation missing $pkg, installing..."
-			if ! cabal new-install --overwrite-policy=always "$pkg"; then
+			if ! cabal new-install --lib --overwrite-policy=always "$pkg"; then
 				echo "*** ERROR (installation failed): cabal" \
 					" new-install $pkg"
 				exit 1
