@@ -1,4 +1,3 @@
-
 import Control.Concurrent
 import Control.Monad
 import Data.Char
@@ -54,7 +53,7 @@ myHighLoadColor = "red"
 getNetLoad :: Maybe Handle -> NetLoad -> IO NetLoad
 getNetLoad (Just pipe) lastnetload = do
         ready <- catchIOError (hReady pipe) (\_ -> return False)
-        if not ready
+        if ready
            then do
                 l <- words <$> hGetLine pipe
                 getNetLoad (Just pipe) $ case readMaybe (head l) :: Maybe Integer of
