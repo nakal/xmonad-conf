@@ -97,7 +97,7 @@ xmobarWorkspace conf fg bg prevws =
 
 myXmonadBar :: HC.HostConfiguration -> String
 myXmonadBar conf =
-        "xmobar .xmonad/" ++ barPrefix ++ "workspaces_xmobar.rc"
+        "xmobar ~/.xmonad/" ++ barPrefix ++ "workspaces_xmobar.rc"
         where barPrefix
                 | HC.isSlim conf   = "slim_"
                 | otherwise     = ""
