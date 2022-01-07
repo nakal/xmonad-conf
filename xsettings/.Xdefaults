@@ -34,10 +34,12 @@ urxvt*iso14755: false
 urxvt*cursorColor: orange
 urxvt*termName: rxvt-unicode-256color
 urxvt*perl-ext-common: default,matcher
+urxvt*perl-ext: -confirm-paste
 urxvt*url-launcher: xdg-open
 urxvt*matcher.button: 2
 urxvt*urgentOnBell: true
 urxvt*cursorBlink: true
+urxvt*disablePasteBrackets: true
 
 rxvt*font: xft:Fantasque Sans Mono:pixelsize=17
 rxvt*locale: UTF-8
@@ -51,8 +53,10 @@ rxvt*letterSpace: -1
 rxvt*iso14755: false
 rxvt*cursorColor: orange
 rxvt*termName: rxvt-unicode-256color
-rxvt*perl-ext-common: default,matcher
+urxvt*perl-ext-common: default,matcher
+urxvt*perl-ext: -confirm-paste
 rxvt*url-launcher: xdg-open
 rxvt*matcher.button: 2
 rxvt*urgentOnBell: true
 rxvt*cursorBlink: true
+rxvt*disablePasteBrackets: true
