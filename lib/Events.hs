@@ -2,7 +2,7 @@ module Events
         ( myEventHook
         ) where
 
-import XMonad.Hooks.ManageDocks ( docksEventHook )
+import XMonad.Hooks.ManageDocks ( docks )
 
 ------------------------------------------------------------------------
 -- Event handling
@@ -13,4 +13,4 @@ import XMonad.Hooks.ManageDocks ( docksEventHook )
 -- return (All True) if the default handler is to be run afterwards. To
 -- combine event hooks use mappend or mconcat from Data.Monoid.
 --
-myEventHook = docksEventHook
+myEventHook = docks
