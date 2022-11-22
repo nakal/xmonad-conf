@@ -51,8 +51,8 @@ For those who read the warnings above, proceed with these steps:
 
 You can use the directory `~/.xmonad/conf` to make fine tuning for hosts.
 Xmonad will look for a configuration there that is named
-`~/.xmonad/conf/HOSTNAME.toml`. It is stored in
-[TOML](https://github.com/toml-lang/toml) format.
+`~/.xmonad/conf/HOSTNAME.json`. It is stored in
+[JSON](https://www.json.org/json-en.html) format.
 
 ### Workspaces and Layouts
 
@@ -80,44 +80,38 @@ start Firefox and Thunderbird. It will also set the wallpaper with the given
 arguments (just so you can see how to pass arguments).
 
 ```
-[general]
+{
+        "general":{
+                "locale":"de",
+                "terminal":"xterm",
+                "slimscreen":false
+        },
 
-locale = "de"
-terminal = "xterm"
-slimscreen = false
+        "workspaces":[
+                "web", "com", "dev", "gfx", "ofc"
+        ],
 
-[workspaces]
+        "autostart":[
+                ["hsetroot", "-fill", "~/.wallpapers/my-wallpaper.jpg"]
+                , ["firefox"]
+                , ["thunderbird"]
+        ],
 
-1 = "web"
-2 = "com"
-3 = "dev"
-4 = "gfx"
-5 = "ofc"
-6 = ""
-7 = ""
-8 = ""
-9 = ""
-
-[autostart]
-
-exec =  [ ["hsetroot", "-fill", "~/.wallpapers/my-wallpaper.jpg"]
-        , ["firefox" ]
-        , ["thunderbird" ]
- ]
-
-[[mapping]]
-
-key = "M-s"
-name = "ssh user@server1"
-exec = [ "ssh", "-Y", "-t", "user@server1", "tmux -2 new-session" ]
-in_terminal = true
-
-[[mapping]]
-
-key = "M-S-s"
-name = "ssh server2"
-exec = [ "ssh", "-p", "222", "-Y", "-t", "server2", "tmux -2 new-session" ]
-in_terminal = true
+        "mapping":[
+                {
+                        "key":"M-s",
+                        "name":"ssh user@server1",
+                        "exec": [ "ssh", "-Y", "-t", "user@server1", "tmux -2 new-session" ],
+                        "in_terminal":true
+                },
+                {
+                        "key":"M-S-s",
+                        "name":"ssh server2",
+                        "exec": [ "ssh", "-p", "222", "-Y", "-t", "server2", "tmux -2 new-session" ],
+                        "in_terminal":true
+                }
+        ]
+}
 ```
 
 Problem reading the configuration file are logged in `~/.xsession-errors`.
@@ -127,23 +121,21 @@ For most cases of problems the appropriate defaults will be used.
 
 It looks like this:
 ```
-[general]
+{
+        "general":{
+                "locale":"en",
+                "terminal":"xterm",
+                "slimscreen":false
+        },
 
-locale = "en"
-terminal = "xterm"
-slimscreen = false
+        "workspaces":[
+                "web", "com", "dev", "gfx", "ofc"
+        ],
 
-[workspaces]
+        "autostart":[],
 
-1 = "web"
-2 = "com"
-3 = "dev"
-4 = "gfx"
-5 = "ofc"
-6 = ""
-7 = ""
-8 = ""
-9 = ""
+        "mapping":[]
+}
 ```
 
 You don't need to make a file for this, it is implied, if no configuration has been

@@ -89,12 +89,14 @@ myKeys hostconf conf =
         , ( "<KP_Add>", addName "next" nextWS )
         ] ++
         subtitle "local configuration": mkNamedKeymap conf
-        [ ( m,  addName n $ exetype inTerm cmd args)
-                | HC.KeyMapping m n (cmd, args) inTerm <- HC.keyMappings hostconf
+        [ ( m,  addName n $ exetype inTerm cmd)
+                | HC.KeyMapping m n cmd inTerm <- HC.keyMappings hostconf
         ]
-        where exetype it cmd args
-                | it              = safeSpawn (XMonad.terminal conf) ("-e":cmd:args)
-                | otherwise       = safeSpawn cmd args
+        where exetype it cmd
+                | it              = safeSpawn (XMonad.terminal conf) ("-e":cmd)
+                | otherwise       = do
+                                        let (c,a) = HC.commandForm cmd
+                                        safeSpawn c a
 
 otherKeys conf =
 

@@ -1,9 +1,12 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module HostConfiguration
-        ( WorkspaceNames
-        , HostConfiguration
+        ( HostConfiguration
         , KeyMapping(..)
         , workspaces
         , workspaceMap
+        , workspaceList
         , terminal
         , locale
         , readHostConfiguration
@@ -11,8 +14,10 @@ module HostConfiguration
         , isSlim
         , sysInfoBar
         , autostartPrograms
+        , commandForm
         ) where
 
+import GHC.Generics
 import Control.Applicative ((<$>))
 import qualified Data.Map.Strict as M
 import qualified Data.Maybe as MB
@@ -24,46 +29,43 @@ import System.Directory
 import System.IO
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import Text.Toml
-import Text.Toml.Types
+import Data.Aeson
+import Data.Aeson.Types
 
 type NetInterfaceName = String
 type ExecuteCommand = ( String, [ String ] )
 type UsernameAtHostnameColonPort = String
 type Hostname = String
 type PortNum = String
-data KeyMapping = KeyMapping
-        { kmKey :: String
-        , kmName :: String
-        , kmExec :: ExecuteCommand
-        , kmInTerminal :: Bool
-        } deriving Show
+
 type WorkspaceNames = M.Map Int String
+type WorkspaceList = [ String ]
 
 -- | Default desktop locale, if not configured
 defaultLocale = "en"
 
 -- | Default set of workspaces, if not configured
-defaultWorkspaces = M.fromList $ zip [1..] ["web","com","dev","gfx","ofc","","","",""]
+-- defaultWorkspaces = M.fromList $ zip [1..] ["web","com","dev","gfx","ofc","","","",""]
+defaultWorkspaces = ["web","com","dev","gfx","ofc","","","",""]
 
 -- | Default terminal to use, if not not configured
 defaultTerminal = "xterm"
 
 -- | The mode in which the sysinfobar should be displayed
 data SysInfoBarMode = Slim | Full
-        deriving ( Read, Show, Eq )
+        deriving ( Read, Show, Eq, Generic )
 
 -- | General section as read from TOML
 data GeneralSection = GeneralSection
         { gen_locale :: String
         , gen_terminal :: String
         , gen_barMode :: SysInfoBarMode
-        } deriving Show
+        } deriving (Show, Generic)
 
 -- | Defaults for the general section
 defaultGeneralSection :: GeneralSection
 defaultGeneralSection = GeneralSection
-        { gen_locale = "en"
+        { gen_locale = defaultLocale
         , gen_terminal = defaultTerminal
         , gen_barMode = Full
         }
@@ -71,11 +73,57 @@ defaultGeneralSection = GeneralSection
 -- | Entire TOML configuration
 data HostConfiguration = HostConfiguration
         { general :: GeneralSection
-        , workspaces :: WorkspaceNames
-        , autostartPrograms :: [ ExecuteCommand ]
+        , workspaces :: WorkspaceList
+        , autostart :: [ [ String ] ]
         , keyMappings :: [KeyMapping]
         }
-        deriving Show
+        deriving (Show, Generic)
+
+-- | Defaults for the entire TOML configuration
+defaultHostConfiguration :: HostConfiguration
+defaultHostConfiguration = HostConfiguration
+        { general = defaultGeneralSection
+        , workspaces = defaultWorkspaces
+        , autostart = []
+        , keyMappings = []
+        }
+
+data KeyMapping = KeyMapping
+        { kmKey :: String
+        , kmName :: String
+        , kmExecute :: [ String ]
+        , kmInTerminal :: Bool
+        } deriving ( Show, Generic)
+
+instance FromJSON HostConfiguration where
+        parseJSON (Object v) =
+                HostConfiguration
+                <$> v .:? "general" .!= general defaultHostConfiguration
+                <*> v .:? "workspaces" .!= workspaces defaultHostConfiguration
+                <*> v .:? "autostart" .!= autostart defaultHostConfiguration
+                <*> v .:? "mapping" .!= keyMappings defaultHostConfiguration
+
+instance FromJSON GeneralSection where
+        parseJSON (Object v) =
+                GeneralSection
+                <$> v .:? "locale" .!= gen_locale defaultGeneralSection
+                <*> v .:? "terminal" .!= gen_terminal defaultGeneralSection
+                <*> v .:? "slimscreen" .!= gen_barMode defaultGeneralSection
+        parseJSON invalid = prependFailure "parsing section general failed, " (typeMismatch "Object" invalid)
+
+instance FromJSON SysInfoBarMode where
+        parseJSON (Bool b) =
+                return $ if b then Slim else Full
+        parseJSON invalid = prependFailure "in section general: " (typeMismatch "slimscreen" invalid)
+
+instance FromJSON KeyMapping where
+        parseJSON (Object v) =
+                KeyMapping
+                <$> v .: "key"
+                <*> v .: "name"
+                <*> v .: "exec"
+                <*> v .:? "in_terminal" .!= False
+        parseJSON invalid = prependFailure "parsing key mapping failed, " (typeMismatch "mapping" invalid)
 
 -- | Helper to check if we deal with a slim desktop variant
 isSlim :: HostConfiguration -> Bool
@@ -91,123 +139,23 @@ locale hc = gen_locale (general hc)
 
 -- | Retrieves the current workspace map as a Map
 workspaceMap :: HostConfiguration -> M.Map String String
-workspaceMap hc = M.foldrWithKey (\k v m -> M.insert v (wsname k v) m)  M.empty (workspaces hc)
+workspaceMap hc = M.foldrWithKey (\k v m -> M.insert v (wsname k v) m)  M.empty (M.fromList $ zip [1..] (workspaces hc))
         where wsname i n
                 | isSlim hc = show i
                 | otherwise = concat [ show i, ":", n ]
 
--- | Defaults for the entire TOML configuration
-defaultHostConfiguration :: HostConfiguration
-defaultHostConfiguration = HostConfiguration
-        { general = defaultGeneralSection
-        , workspaces = defaultWorkspaces
-        , autostartPrograms = []
-        , keyMappings = []
-        }
+-- | Retrieves the current workspace list as [(num,name)]
+workspaceList :: HostConfiguration -> [ (Int, String) ]
+workspaceList hc = zip [1..9] (workspaces hc)
 
--- | Reads the TOML general section with fallbacks
-parseGeneralSection :: Table -> GeneralSection
-parseGeneralSection g =
-        GeneralSection
-                (case g ! T.pack "locale" of
-                        VString l       -> T.unpack l
-                        _               -> defaultLocale
-                )
-                (case g ! T.pack "terminal" of
-                        VString t       -> T.unpack t
-                        _               -> defaultTerminal
-                )
-                (case g ! T.pack "slimscreen" of
-                        VBoolean bm  -> if bm then Slim
-                                        else gen_barMode defaultGeneralSection
-                        _      -> gen_barMode defaultGeneralSection
-                )
+-- | Converts the array form from the configuration file to a pair
+-- | separating command and parameters
+commandForm :: [String] -> ExecuteCommand
+commandForm (x:xs) = (x, xs)
+commandForm _ = ("true",[])
 
--- | Reads the TOML workspaces section with fallback
-parseWorkSpaceSection :: Table -> WorkspaceNames
-parseWorkSpaceSection w =
-        M.fromList
-                [
-                        (num, T.unpack n) | num <- [1..9],
-                        let tnum = T.pack (show num),
-                        member tnum w,
-                        let VString n = w ! T.pack (show num)
-                ]
-
--- | Parses an exec specification
-parseExec :: Node -> Maybe ExecuteCommand
-parseExec e =
-        case e of
-          VArray v      -> let cmd = traverse
-                                (\x -> case x of
-                                        VString t     -> Just $ T.unpack t
-                                        _             -> Nothing
-                                ) (V.toList v)
-                           in
-                                case cmd of
-                                  Just (bin:args)       -> Just (bin, args)
-                                  _                     -> Nothing
-          _             -> Nothing
-
--- | Parses the autostart section, falls back to empty
-parseAutostartSection :: Table -> [ExecuteCommand]
-parseAutostartSection a =
-        case a ! T.pack "exec" of
-          VArray v      -> MB.mapMaybe parseExec (V.toList v)
-          _             -> autostartPrograms defaultHostConfiguration
-
--- | Parses a key mapping from the mapping section
-parseMapping :: Table -> Maybe KeyMapping
-parseMapping mt =
-        let k = case mt ! T.pack "key" of
-                  VString t     ->      T.unpack t
-                  _             ->      ""
-            e = case mt ! T.pack "exec" of
-                  v@(VArray _)  ->      parseExec v
-                  _             ->      Nothing
-            n = case mt ! T.pack "name" of
-                  VString n     ->      T.unpack n
-                  _             ->      ""
-            t = case mt ! T.pack "in_terminal" of
-                  VBoolean b    ->      b
-                  _             ->      False
-        in
-                if Prelude.null k || MB.isNothing e
-                   then
-                        Nothing
-                   else
-                        Just $ KeyMapping k n (MB.fromJust e) t
-
--- | Parses all mappings from the TOML configuration
-parseMappingTable :: VTArray -> [KeyMapping]
-parseMappingTable a = MB.catMaybes $ V.toList $ V.map parseMapping a
-
--- | Parses the TOML configuration
-parseConfiguration :: Table -> HostConfiguration
-parseConfiguration t =
-        let gen = parseGeneralSection $ case t ! T.pack "general" of
-                        VTable general        -> general
-                        _                     -> emptyTable
-            wsp = parseWorkSpaceSection $ case t ! T.pack "workspaces" of
-                    VTable ws   -> ws
-                    _           -> emptyTable
-            auto = parseAutostartSection $ case t ! T.pack "autostart" of
-                    VTable a   -> a
-                    _          -> emptyTable
-            mapping = if mappingkey `member` t then
-                        case t ! mappingkey of
-                                VTArray m           -> parseMappingTable m
-                                _                   -> []
-                        else
-                                []
-        in
-                HostConfiguration
-                        { general = gen
-                        , workspaces = wsp
-                        , autostartPrograms = auto
-                        , keyMappings = mapping
-                        }
-        where mappingkey = T.pack "mapping"
+autostartPrograms :: HostConfiguration -> [ExecuteCommand]
+autostartPrograms = Prelude.map commandForm . autostart
 
 -- | Locates, reads and parses the TOML configuration file
 -- | and returns a HostConfiguration for general use
@@ -215,18 +163,17 @@ readHostConfiguration :: IO HostConfiguration
 readHostConfiguration = do
         homedir <- getHomeDirectory
         host <- myHostName
-        let confpath = homedir ++ "/.xmonad/conf/" ++ host ++ ".toml"
+        let confpath = homedir ++ "/.xmonad/conf/" ++ host ++ ".json"
         confexists <- doesFileExist confpath
         hPutStrLn stderr $ "Reading " ++ confpath
         if confexists then do
-                        contents <- TIO.readFile confpath
-                        let toml = parseTomlDoc "" contents
-                        case toml of
+                        j <- eitherDecodeFileStrict confpath
+                        case j of
                           Left err      ->      do
-                                                        hPutStrLn stderr ("failed to parse TOML in " ++ confpath)
+                                                        hPutStrLn stderr ("failed to parse JSON in " ++ confpath)
                                                         hPutStrLn stderr ("\t" ++ show err)
                                                         return defaultHostConfiguration
-                          Right t       ->      return $ parseConfiguration t
+                          Right o       ->      return $ o
                 else do
                         hPutStrLn stderr "configuration not found, using defaults."
                         return defaultHostConfiguration

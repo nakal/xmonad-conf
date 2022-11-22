@@ -15,7 +15,7 @@ import XMonad.Hooks.UrgencyHook
         )
 import XMonad.Util.Run ( spawnPipe )
 
-import qualified Events as EV ( myEventHook )
+-- import qualified Events as EV ( myEventHook )
 import qualified HostConfiguration as HC
 import qualified Layout as LA ( myLayout )
 import qualified Mappings as M ( myKeys, emptyKeys, myKeymap, myMouseBindings )
@@ -35,8 +35,9 @@ import qualified Workspaces as WS
         )
 import XMonad.Hooks.EwmhDesktops as Ewmh
 import XMonad.Hooks.SetWMName as WM
+import XMonad.Hooks.ManageDocks as MD
 
-xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ M.myKeymap conf $ def
+xconfig conf xmobar = ewmh . MD.docks $ withUrgencyHook NoUrgencyHook $ M.myKeymap conf $ def
         {
                 terminal           = HC.terminal conf,
                 focusFollowsMouse  = S.myFocusFollowsMouse,
@@ -52,14 +53,12 @@ xconfig conf xmobar = withUrgencyHook NoUrgencyHook $ M.myKeymap conf $ def
 
                 layoutHook         = LA.myLayout conf,
                 manageHook         = MH.myManageHook conf,
-                handleEventHook    = EV.myEventHook,
                 logHook            = WS.myLogHook xmobar conf,
                 startupHook        = autostartAllPrograms conf
         }
 
 autostartAllPrograms :: HC.HostConfiguration -> X ()
 autostartAllPrograms conf = do
-        Ewmh.ewmhDesktopsStartup
         WM.setWMName "LG3D"
         case os of
                 "freebsd" -> spawn "~/.xmonad/lib/SysInfoBar"

@@ -27,7 +27,7 @@ check_haskell() {
 
 	HASKELL_PACKAGES="\
 		unordered-containers X11 data-default \
-		xmonad xmonad-contrib hostname vector htoml bsd-sysctl \
+		xmonad xmonad-contrib hostname vector aeson bsd-sysctl \
 		"
 	for pkg in $HASKELL_PACKAGES; do
 		if ! ghc-pkg describe "$pkg" > /dev/null; then

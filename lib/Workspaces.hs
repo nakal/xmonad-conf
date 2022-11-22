@@ -104,7 +104,7 @@ myXmonadBar conf =
 
 -- This function numbers the workspace names
 numberedWorkspaces :: HC.HostConfiguration -> [ String ]
-numberedWorkspaces conf = map name $ M.assocs (HC.workspaces conf)
+numberedWorkspaces conf = map name (HC.workspaceList conf)
         where name (i, n)
                 | HC.isSlim conf || null n      = show i
                 | otherwise                     = concat [show i, ":", n]
