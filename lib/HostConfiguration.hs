@@ -18,17 +18,10 @@ module HostConfiguration
         ) where
 
 import GHC.Generics
-import Control.Applicative ((<$>))
 import qualified Data.Map.Strict as M
-import qualified Data.Maybe as MB
-import Data.HashMap.Lazy
-import qualified Data.Vector as V
-import Graphics.X11.Types
 import Network.HostName
 import System.Directory
 import System.IO
-import qualified Data.Text as T
-import qualified Data.Text.IO as TIO
 import Data.Aeson
 import Data.Aeson.Types
 
@@ -45,7 +38,6 @@ type WorkspaceList = [ String ]
 defaultLocale = "en"
 
 -- | Default set of workspaces, if not configured
--- defaultWorkspaces = M.fromList $ zip [1..] ["web","com","dev","gfx","ofc","","","",""]
 defaultWorkspaces = ["web","com","dev","gfx","ofc","","","",""]
 
 -- | Default terminal to use, if not not configured

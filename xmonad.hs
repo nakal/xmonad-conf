@@ -15,7 +15,6 @@ import XMonad.Hooks.UrgencyHook
         )
 import XMonad.Util.Run ( spawnPipe )
 
--- import qualified Events as EV ( myEventHook )
 import qualified HostConfiguration as HC
 import qualified Layout as LA ( myLayout )
 import qualified Mappings as M ( myKeys, emptyKeys, myKeymap, myMouseBindings )
