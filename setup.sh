@@ -27,12 +27,29 @@ check_haskell() {
 
 	HASKELL_PACKAGES="\
 		unordered-containers X11 data-default \
-		xmonad xmonad-contrib hostname vector aeson bsd-sysctl \
+		vector \
 		"
+
+	if [ "$OS" != "Linux" ]; then
+		HASKELL_PACKAGES="$HASKELL_PACKAGES \
+		xmonad xmonad-contrib hostname aeson \
+		"
+	fi
+
+
+	if [ "$OS" = "FreeBSD" ]; then
+		HASKELL_PACKAGES="$HASKELL_PACKAGES bsd-sysctl"
+	fi
+
 	for pkg in $HASKELL_PACKAGES; do
 		if ! ghc-pkg describe "$pkg" > /dev/null; then
 			echo "Haskell installation missing $pkg, installing..."
-			if ! cabal new-install --lib --overwrite-policy=always "$pkg"; then
+			if [ "$pkg" = "xmonad" ]; then
+				libflag=""
+			else
+				libflag="--lib"
+			fi
+			if ! cabal new-install $libflag --overwrite-policy=always "$pkg"; then
 				echo "*** ERROR (installation failed): cabal" \
 					" new-install $pkg"
 				exit 1
@@ -56,12 +73,14 @@ check_haskell() {
 		fi
 	fi
 
-	# Fix ghc-pkg
-	ghc-pkg recache --user
-	ghc_version=`ghc --numeric-version`
-	if ! cp $HOME/.cabal/store/ghc-$ghc_version/package.db/package.cache* $HOME/.ghc/*-*-$ghc_version/package.conf.d/; then
-		echo "*** ERROR: Could not fix GHC package list."
-		exit 1
+	if [ "$OS" != "Linux" ]; then
+		echo "Fixing ghc package list manually..."
+		ghc-pkg recache --user
+		ghc_version=`ghc --numeric-version`
+		if ! cp $HOME/.cabal/store/ghc-$ghc_version/package.db/package.cache* $HOME/.ghc/*-*-$ghc_version/package.conf.d/; then
+			echo "*** ERROR: Could not fix GHC package list."
+			exit 1
+		fi
 	fi
 }
 
@@ -131,8 +150,21 @@ REQUIRED_PACKAGES_FreeBSD="\
 	pkgconf xterm \
 	"
 RECOMMENDED_PACKAGES_FreeBSD="\
-	xdm gimp iridium-browser xfe gtk2 gtk-oxygen-engine gorilla \
+	xdm gimp xfe gtk2 gtk-oxygen-engine gorilla \
 	"
+
+REQUIRED_PACKAGES_Linux="\
+	libpango1.0-dev libcairo2-dev rxvt-unicode \
+	libghc-glib-dev libxft-dev libxss-dev fonts-fantasque-sans \
+	libxrandr-dev lynx gnupg2 exuberant-ctags tmux \
+	libx11-dev xmonad xmobar libghc-xmonad-dev libghc-xmonad-contrib-dev \
+	libghc-aeson-dev libghc-hostname-dev libghc-data-default-dev \
+	suckless-tools \
+	"
+RECOMMENDED_PACKAGES_Linux="\
+	password-gorilla xpdf \
+	"
+
 . "$SCRIPT_HOME/shell-setup/include/packages.sh"
 check_packages
 
@@ -147,7 +179,7 @@ fi
 
 cd $HOME
 REMOVE_FILES=".xinitrc .xsession .Xdefaults .gtkrc-2.0 \
-	.config/gtk-3.0/settings.ini .config/user-dirs.dirs \
+	.config/gtk-3.0/settings.ini \
 	.vimperatorrc.local .xpdfrc_base .office.sh \
 	.config/alacritty/alacritty.yml \
 	"
@@ -175,7 +207,6 @@ ln -s $SCRIPT_HOME/scripts/office.sh .office.sh
 
 mkdir -p $HOME/.config
 cd $HOME/.config
-ln -s $SCRIPT_HOME/xsettings/user-dirs.dirs .
 
 mkdir -p $HOME/.config/gtk-3.0
 cd $HOME/.config/gtk-3.0
