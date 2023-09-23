@@ -1,5 +1,5 @@
 export LANG="de_DE.UTF-8"
-export LC_CTYPE="de_DE.UTF-8"
+export LC_ALL="de_DE.UTF-8"
 
 exec > $HOME/.xsession-errors 2>&1
 
@@ -31,13 +31,23 @@ DEFAULT_SESSION=xmonad
 echo `xmonad --version` "("`which xmonad`")"
 echo `xmobar --version | head -n 1` "("`which xmobar`")"
 
-if which iridium >/dev/null 2>&1; then
-	BROWSER=iridium
+if which firefox >/dev/null 2>&1; then
+	BROWSER=firefox
 fi
 if [ -z "$BROWSER" ]; then
 	BROWSER=chrome
 fi
 export BROWSER
+
+if which urxvt >/dev/null 2>&1; then
+	DEFAULT_X_TERMINAL=urxvt
+fi
+if [ -z "$DEFAULT_X_TERMINAL" ]; then
+	DEFAULT_X_TERMINAL=xterm
+fi
+export DEFAULT_X_TERMINAL
+
+test -f $HOME/.xinitrc_local && source $HOME/.xinitrc_local
 
 if [ -n "$GPG_AGENT_INFO" ]; then
 	SESSION_AGENT="ssh-agent"

@@ -48,7 +48,7 @@ myManageHook conf =
                 , className =? "Chromium-browser"       --> insertPosition Master Newer <+> doShift (getWorkspace "web")
                 , className =? "Claws-mail"             --> doShift  (getWorkspace "com")
                 , className =? "Thunderbird"            --> insertPosition End Newer <+> doShift  (getWorkspace "com")
-                , className =? "thunderbird"            --> insertPosition End Newer <+> doShift  (getWorkspace "com")
+                , L.isPrefixOf "thunderbird" <$> className --> insertPosition End Newer <+> doShift  (getWorkspace "com")
                 , className =? "Mail"                   --> insertPosition End Newer <+> doShift  (getWorkspace "com")
                 , className =? "Pidgin"                 --> doShift  (getWorkspace "com")
                 , className =? "VBoxSDL"                --> doShift  (getWorkspace "win")
@@ -57,6 +57,7 @@ myManageHook conf =
                 , className =? "Inkscape"               --> doShift  (getWorkspace "gfx")
                 , className =? "Dia"                    --> doShift  (getWorkspace "gfx")
                 , className =? "Darktable"              --> doShift  (getWorkspace "gfx")
+                , className =? "Logseq"                 --> doShift (getWorkspace "log")
                 , title =? "weechat"                    --> insertPosition End Older <+> doShift  (getWorkspace "com")
                 , title =? "mutt"                       --> insertPosition Master Newer <+> doShift  (getWorkspace "com")
                 , title =? "neomutt"                    --> insertPosition Master Newer <+> doShift  (getWorkspace "com")
@@ -66,7 +67,8 @@ myManageHook conf =
                 , appName =? "libreoffice"                      --> doShift (getWorkspace "ofc")
                 , L.isPrefixOf "newwin - " <$> appName            --> doShift (getWorkspace "win")
                 , appName  =? "desktop_window"                  --> doIgnore
-                , appName  =? "kdesktop"                        --> doIgnore ]
+                , appName  =? "kdesktop"                        --> doIgnore
+                ]
         where getWorkspace = getWorkspaceName conf
 
 -- | Unfloat a window (sink)

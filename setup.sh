@@ -159,10 +159,10 @@ REQUIRED_PACKAGES_Linux="\
 	libxrandr-dev lynx gnupg2 exuberant-ctags tmux \
 	libx11-dev xmonad xmobar libghc-xmonad-dev libghc-xmonad-contrib-dev \
 	libghc-aeson-dev libghc-hostname-dev libghc-data-default-dev \
-	suckless-tools \
+	suckless-tools hsetroot xdotool curl xscreensaver \
 	"
 RECOMMENDED_PACKAGES_Linux="\
-	password-gorilla xpdf \
+	password-gorilla xpdf scrot \
 	"
 
 . "$SCRIPT_HOME/shell-setup/include/packages.sh"
