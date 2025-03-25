@@ -1,3 +1,8 @@
+# Repository moved and won't be updated here
+
+| Repository moved to: `https://codeberg.org/nakal/xmonad-conf` |
+|---|
+
 # nakal's Xmonad (plus desktop) configuration
 
 ![Desktop screenshot](http://www.sugioarto.com/img/xmonad-screenshot.png)
